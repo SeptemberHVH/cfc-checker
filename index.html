@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CFC Pro Max Checker 2026 🏆</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="sprites-b64.js"></script>
+</head>
+<body>
+
+  <!-- Matrix rain + confettis -->
+  <canvas id="matrix-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Scanlines overlay -->
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- Orbes de fond -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main class="container">
+
+    <!-- Header -->
+    <header class="hero">
+      <div class="badge-top">
+        <span class="badge-dot"></span>
+        🇨🇭 CITÉ DES MÉTIERS 2026
+        <span class="badge-dot"></span>
+      </div>
+
+      <h1 class="title">
+        <span class="title-cfc" data-text="CFC">CFC</span>
+        <span class="title-pro" data-text="PRO MAX">PRO MAX</span>
+        <span class="title-checker" data-text="CHECKER">CHECKER</span>
+      </h1>
+
+      <p class="subtitle">
+        <span class="subtitle-inner">Vérifie si ton ami est dans le palmarès</span>
+        <span class="subtitle-blink">▮</span>
+      </p>
+
+      <!-- Sprites déco header -->
+      <div class="hero-sprites">
+        <img src="img/TUNG.png" class="sprite sprite-tung hero-tung" alt="" aria-hidden="true" />
+        <img src="img/HUN.png"  class="sprite sprite-hun  hero-hun"  alt="" aria-hidden="true" />
+      </div>
+    </header>
+
+    <!-- Carte principale -->
+    <section class="card" id="form-card">
+      <div class="card-shine"></div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="input-prenom">Prénom</label>
+          <input type="text" id="input-prenom" placeholder="ex: Alain" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="input-nom">Nom</label>
+          <input type="text" id="input-nom" placeholder="ex: Addor" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="input-profession">Profession <span class="optional">(optionnel)</span></label>
+        <input type="text" id="input-profession" placeholder="ex: Employé de commerce" autocomplete="off" />
+      </div>
+
+      <!-- Zone PDF -->
+      <div class="field">
+        <label>📄 Charger le palmarès PDF</label>
+        <button class="btn-pdf-auto" id="btn-fetch-pdf" type="button">
+          <span id="fetch-pdf-icon">⚡</span>
+          <span id="fetch-pdf-label">Récupérer le PDF automatiquement</span>
+        </button>
+        <div class="pdf-drop-zone" id="pdf-drop-zone">
+          <input type="file" id="pdf-file-input" accept="application/pdf" hidden />
+          <div class="pdf-drop-inner" id="pdf-drop-inner">
+            <span class="pdf-drop-icon">📂</span>
+            <span class="pdf-drop-text">Glisse le PDF ici ou <u>clique pour choisir</u></span>
+            <span class="pdf-drop-hint">
+              Télécharge depuis
+              <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener">citedesmetiers.ch ↗</a>
+              puis dépose-le ici
+            </span>
+          </div>
+          <div class="pdf-status" id="pdf-status"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="textarea-palmares">
+          📋 Mode Manuel
+          <span class="optional">(rempli automatiquement après chargement du PDF)</span>
+        </label>
+        <textarea id="textarea-palmares" rows="5" placeholder="Colle ici le texte du palmarès, ou charge le PDF ci-dessus…"></textarea>
+        <button class="btn-secondary" id="btn-load-example" type="button">📥 Charger des données d'exemple</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="btn-check" type="button">
+          <span class="btn-icon">🔍</span>
+          <span>Vérifier le palmarès</span>
+          <span class="btn-glow"></span>
+        </button>
+        <button class="btn-reset" id="btn-reset" type="button">↺ Reset</button>
+      </div>
+
+    </section>
+
+    <!-- Zone résultat -->
+    <section class="result-zone" id="result-zone" aria-live="polite"></section>
+
+    <!-- Panel debug -->
+    <section class="debug-zone">
+      <button class="btn-debug" id="btn-debug" type="button">🔬 Afficher les lignes extraites</button>
+      <div class="debug-panel hidden" id="debug-panel"></div>
+    </section>
+
+  </main>
+
+  <!-- Flottants brainrot -->
+  <div class="brainrot-float brainrot-f1" aria-hidden="true">🥁</div>
+  <div class="brainrot-float brainrot-f2" aria-hidden="true">🐊</div>
+  <div class="brainrot-float brainrot-f3" aria-hidden="true">💀</div>
+  <div class="brainrot-float brainrot-f4" aria-hidden="true">🦈</div>
+  <div class="brainrot-float brainrot-f5" aria-hidden="true">🥁</div>
+
+  <footer class="footer">
+    <p>🔒 Aucune donnée personnelle stockée — tout reste dans ton navigateur.</p>
+    <p class="footer-sub">Site non officiel — <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener">Palmarès officiel ↗</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
