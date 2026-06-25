@@ -12,12 +12,18 @@
 </head>
 <body>
 
+  <!-- Matrix rain + confettis + particules -->
   <canvas id="matrix-canvas"></canvas>
   <canvas id="confetti-canvas"></canvas>
   <canvas id="particles-canvas"></canvas>
+
+  <!-- Scanlines overlay -->
   <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- CRT vignette -->
   <div class="crt-vignette" aria-hidden="true"></div>
 
+  <!-- Orbes de fond -->
   <div class="bg-orbs">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
@@ -26,27 +32,33 @@
 
   <main class="container">
 
+    <!-- Header -->
     <header class="hero">
       <div class="badge-top">
         <span class="badge-dot"></span>
         🇨🇭 CITÉ DES MÉTIERS 2026
         <span class="badge-dot"></span>
       </div>
+
       <h1 class="title">
         <span class="title-cfc" data-text="CFC">CFC</span>
         <span class="title-pro" data-text="PRO MAX">PRO MAX</span>
         <span class="title-checker" data-text="CHECKER">CHECKER</span>
       </h1>
+
       <p class="subtitle">
         <span class="subtitle-inner">Vérifie si ton ami est dans le palmarès</span>
         <span class="subtitle-blink">▮</span>
       </p>
+
+      <!-- Sprites déco header -->
       <div class="hero-sprites">
-        <img src="TUNG.png" class="sprite hero-tung" alt="" aria-hidden="true" />
-        <img src="HUN.png"  class="sprite hero-hun"  alt="" aria-hidden="true" />
+        <img src="TUNG.png" class="sprite sprite-tung hero-tung" alt="" aria-hidden="true" />
+        <img src="HUN.png"  class="sprite sprite-hun  hero-hun"  alt="" aria-hidden="true" />
       </div>
     </header>
 
+    <!-- Carte principale -->
     <section class="card" id="form-card">
       <div class="card-shine"></div>
 
@@ -66,14 +78,20 @@
         <input type="text" id="input-profession" placeholder="ex: Employé de commerce" autocomplete="off" />
       </div>
 
+      <!-- Mode toggle -->
       <div class="field">
         <label>📡 Mode de chargement</label>
         <div class="mode-toggle">
-          <button class="mode-btn mode-btn--active" id="btn-mode-auto" type="button">⚡ AUTOMATIQUE</button>
-          <button class="mode-btn" id="btn-mode-manual" type="button">📂 MANUEL</button>
+          <button class="mode-btn mode-btn--active" id="btn-mode-auto" type="button">
+            ⚡ AUTOMATIQUE
+          </button>
+          <button class="mode-btn" id="btn-mode-manual" type="button">
+            📂 MANUEL
+          </button>
         </div>
       </div>
 
+      <!-- Section AUTO -->
       <div id="section-auto">
         <button class="btn-pdf-auto" id="btn-fetch-pdf" type="button">
           <span id="fetch-pdf-icon">⚡</span>
@@ -82,6 +100,7 @@
         <div class="pdf-status" id="pdf-status"></div>
       </div>
 
+      <!-- Section MANUEL -->
       <div id="section-manual" class="section-hidden">
         <div class="pdf-drop-zone" id="pdf-drop-zone">
           <input type="file" id="pdf-file-input" accept="application/pdf" hidden />
@@ -95,6 +114,7 @@
             </span>
           </div>
         </div>
+
         <div class="field" style="margin-top:14px">
           <label for="textarea-palmares">
             📋 Coller le texte manuellement
@@ -104,6 +124,7 @@
           <button class="btn-secondary" id="btn-load-example" type="button">📥 Charger des données d'exemple</button>
         </div>
       </div>
+
 
       <div class="btn-row">
         <button class="btn-primary" id="btn-check" type="button">
@@ -116,16 +137,20 @@
 
     </section>
 
+    <!-- Zone résultat -->
     <section class="result-zone" id="result-zone" aria-live="polite"></section>
 
+    <!-- Panel debug -->
     <section class="debug-zone">
       <button class="btn-debug" id="btn-debug" type="button">🔬 Afficher les lignes extraites</button>
       <button class="speedrun-toggle" id="btn-speedrun" type="button">⚡ SPEEDRUN</button>
+      <button class="sound-toggle" id="btn-sound" type="button">🔊 SON</button>
       <div class="debug-panel hidden" id="debug-panel"></div>
     </section>
 
   </main>
 
+  <!-- Flottants brainrot -->
   <div class="brainrot-float brainrot-f1" aria-hidden="true">🥁</div>
   <div class="brainrot-float brainrot-f2" aria-hidden="true">🐊</div>
   <div class="brainrot-float brainrot-f3" aria-hidden="true">💀</div>
@@ -137,8 +162,15 @@
     <p class="footer-sub">Site non officiel — <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener">Palmarès officiel ↗</a></p>
   </footer>
 
-  <div id="bios-screen" aria-hidden="true"><div id="bios-content"></div></div>
+  <!-- Boot BIOS screen -->
+  <div id="bios-screen" aria-hidden="true">
+    <div id="bios-content"></div>
+  </div>
+
+  <!-- Achievement Steam toast -->
   <div id="achievement-toast" aria-live="polite"></div>
+
+  <!-- Gold flash overlay -->
   <div id="gold-overlay"></div>
 
   <script src="script.js"></script>
