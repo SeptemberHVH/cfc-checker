@@ -20,8 +20,8 @@ GMAIL_USER     = os.environ.get("GMAIL_USER", "")
 GMAIL_APP_PASS = os.environ.get("GMAIL_APP_PASS", "")
 NOTIFY_TO      = os.environ.get("NOTIFY_TO", GMAIL_USER)
 
-PRENOM = "Alain"
-NOM    = "Addor"
+PRENOM = "Alyssa"
+NOM    = "Robatel"
 
 PAGE_URL = "https://www.citedesmetiers.ch/palmares2026/"
 PDF_OUT  = "palmares.pdf"   # fichier sauvegardé dans le repo
