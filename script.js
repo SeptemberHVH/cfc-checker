@@ -10,6 +10,9 @@
   const content = document.getElementById('bios-content');
 
   const lines = [
+    { text: '' },
+    { text: '>>> EN TRAIN DE BYPASS LE FIREWALL PRO MAX <<<', cls: 'bios-wait' },
+    { text: '' },
     { text: 'CFC BIOS v2.0 — HUN EDITION', cls: 'bios-head' },
     { text: '' },
     { text: '> Checking brainrot...  ', end: { text: 'OK',      cls: 'bios-ok'   } },
@@ -581,9 +584,8 @@ async function downloadCertificate(prenom, nom, profession) {
     // HUN : bas droite — TUNG : bas gauche
     // A4 paysage = 297mm × 210mm
     // HUN à droite, aligné avec le bas (y + h ≈ 205mm)
-    if (typeof SPRITE_HUN  !== 'undefined') addSpriteB64(doc, SPRITE_HUN,  238, 148, 55, 'HUN');
-    // TUNG à gauche, légèrement plus petit
-    if (typeof SPRITE_TUNG !== 'undefined') addSpriteB64(doc, SPRITE_TUNG,   5, 155, 45, 'TUNG');
+    if (typeof SPRITE_HUN  !== 'undefined') await addSpriteB64(doc, SPRITE_HUN,  238, 148, 55);
+    if (typeof SPRITE_TUNG !== 'undefined') await addSpriteB64(doc, SPRITE_TUNG,   5, 155, 45);
 
     const filename = `Attestation_CFC_${[prenom,nom].filter(Boolean).join('_') || 'HUN'}_2026_RC2.pdf`;
     doc.save(filename);
@@ -596,31 +598,22 @@ async function downloadCertificate(prenom, nom, profession) {
   }
 }
 
-// Cache des ratios sprites, rempli au chargement de la page
-const SPRITE_RATIOS = { HUN: 1, TUNG: 1 };
+function preloadSprites() {}
 
-function preloadSprites() {
-  [['HUN', typeof SPRITE_HUN !== 'undefined' ? SPRITE_HUN : null],
-   ['TUNG', typeof SPRITE_TUNG !== 'undefined' ? SPRITE_TUNG : null]]
-  .forEach(([key, dataUrl]) => {
-    if (!dataUrl) return;
+function getImgRatio(dataUrl) {
+  return new Promise(resolve => {
     const img = new Image();
-    img.onload = () => {
-      if (img.naturalWidth && img.naturalHeight)
-        SPRITE_RATIOS[key] = img.naturalWidth / img.naturalHeight;
-    };
+    img.onload  = () => resolve(img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1);
+    img.onerror = () => resolve(1);
     img.src = dataUrl;
   });
 }
 
-/**
- * Ajoute un sprite base64 dans jsPDF en conservant le ratio réel.
- */
-function addSpriteB64(doc, dataUrl, xMm, yMm, maxHmm, ratioKey) {
+async function addSpriteB64(doc, dataUrl, xMm, yMm, maxHmm) {
   try {
-    const ratio = SPRITE_RATIOS[ratioKey] || 1;
+    const ratio = await getImgRatio(dataUrl);
     doc.addImage(dataUrl, 'PNG', xMm, yMm, maxHmm * ratio, maxHmm);
-  } catch (_) { /* sprite optionnel */ }
+  } catch (e) { console.warn('Sprite PDF error:', e); }
 }
 
 // Utilitaire : rectangle arrondi pour canvas
