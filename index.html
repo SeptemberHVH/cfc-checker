@@ -75,13 +75,30 @@
         <input type="text" id="input-profession" placeholder="ex: Employé de commerce" autocomplete="off" />
       </div>
 
-      <!-- Zone PDF -->
+      <!-- Mode toggle -->
       <div class="field">
-        <label>📄 Charger le palmarès PDF</label>
+        <label>📡 Mode de chargement</label>
+        <div class="mode-toggle">
+          <button class="mode-btn mode-btn--active" id="btn-mode-auto" type="button">
+            ⚡ AUTOMATIQUE
+          </button>
+          <button class="mode-btn" id="btn-mode-manual" type="button">
+            📂 MANUEL
+          </button>
+        </div>
+      </div>
+
+      <!-- Section AUTO -->
+      <div id="section-auto">
         <button class="btn-pdf-auto" id="btn-fetch-pdf" type="button">
           <span id="fetch-pdf-icon">⚡</span>
           <span id="fetch-pdf-label">Récupérer le PDF automatiquement</span>
         </button>
+        <div class="pdf-status" id="pdf-status"></div>
+      </div>
+
+      <!-- Section MANUEL -->
+      <div id="section-manual" class="section-hidden">
         <div class="pdf-drop-zone" id="pdf-drop-zone">
           <input type="file" id="pdf-file-input" accept="application/pdf" hidden />
           <div class="pdf-drop-inner" id="pdf-drop-inner">
@@ -93,17 +110,16 @@
               puis dépose-le ici
             </span>
           </div>
-          <div class="pdf-status" id="pdf-status"></div>
         </div>
-      </div>
 
-      <div class="field">
-        <label for="textarea-palmares">
-          📋 Mode Manuel
-          <span class="optional">(rempli automatiquement après chargement du PDF)</span>
-        </label>
-        <textarea id="textarea-palmares" rows="5" placeholder="Colle ici le texte du palmarès, ou charge le PDF ci-dessus…"></textarea>
-        <button class="btn-secondary" id="btn-load-example" type="button">📥 Charger des données d'exemple</button>
+        <div class="field" style="margin-top:14px">
+          <label for="textarea-palmares">
+            📋 Coller le texte manuellement
+            <span class="optional">(rempli auto si tu charges un PDF)</span>
+          </label>
+          <textarea id="textarea-palmares" rows="5" placeholder="Colle ici le texte du palmarès…"></textarea>
+          <button class="btn-secondary" id="btn-load-example" type="button">📥 Charger des données d'exemple</button>
+        </div>
       </div>
 
       <div class="btn-row">
