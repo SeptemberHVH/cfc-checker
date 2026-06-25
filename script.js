@@ -1,6 +1,6 @@
 /* ============================================================
    CFC PRO MAX CHECKER 2026 — Script principal v3
-   Matrix rain + Web Audio drums + holographic card + glitch
+   Matrix rain + Web Audio drums + holographic card + glitch!
    ============================================================ */
 
 // ─── Matrix Rain ─────────────────────────────────────────────
