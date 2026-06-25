@@ -462,7 +462,7 @@ async function fetchPdfAuto() {
 
 // ─── Génération attestation PDF ──────────────────────────────
 
-function drawSpriteOnCanvas(ctx, dataUrl, xPx, yPx, heightPx) {
+function drawSpriteOnCanvas(ctx, url, xPx, yPx, heightPx) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
@@ -470,8 +470,11 @@ function drawSpriteOnCanvas(ctx, dataUrl, xPx, yPx, heightPx) {
       ctx.drawImage(img, xPx, yPx, heightPx * ratio, heightPx);
       resolve();
     };
-    img.onerror = resolve;
-    img.src = dataUrl;
+    img.onerror = () => {
+      console.error('Sprite non chargé:', url);
+      resolve();
+    };
+    img.src = url;
   });
 }
 
