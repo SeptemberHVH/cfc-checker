@@ -621,8 +621,9 @@ function roundRect(ctx, x, y, w, h, r) {
 
 // ─── Son victoire ─────────────────────────────────────────────
 
-let _victoireAudio = null;
-let soundEnabled   = localStorage.getItem('hun-sound') !== 'false';
+let soundEnabled    = localStorage.getItem('hun-sound') !== 'false';
+let _victoireBuffer = null;
+let _victoireSource = null;
 
 function _updateSoundBtn() {
   const btn = document.getElementById('btn-sound');
@@ -631,18 +632,36 @@ function _updateSoundBtn() {
   btn.classList.toggle('muted', !soundEnabled);
 }
 
+// Précharge le mp3 via Web Audio API (pas de restriction autoplay)
+async function preloadVictoire() {
+  try {
+    const res = await fetch('./victoire.mp3');
+    const buf = await res.arrayBuffer();
+    _victoireBuffer = await getAudioCtx().decodeAudioData(buf);
+  } catch(e) {}
+}
+
 function stopVictoire() {
-  if (_victoireAudio) {
-    _victoireAudio.pause();
-    _victoireAudio.currentTime = 0;
-    _victoireAudio = null;
+  if (_victoireSource) {
+    try { _victoireSource.stop(); } catch(e) {}
+    _victoireSource = null;
   }
 }
 
 function playVictoire() {
-  if (!soundEnabled || !_victoireAudio) return;
-  _victoireAudio.currentTime = 0;
-  _victoireAudio.play().catch(() => {});
+  if (!soundEnabled || !_victoireBuffer) return;
+  stopVictoire();
+  try {
+    const ctx  = getAudioCtx();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.7;
+    gain.connect(ctx.destination);
+    _victoireSource = ctx.createBufferSource();
+    _victoireSource.buffer = _victoireBuffer;
+    _victoireSource.connect(gain);
+    _victoireSource.start(0);
+    _victoireSource.onended = () => { _victoireSource = null; };
+  } catch(e) {}
 }
 
 function toggleSound() {
@@ -1079,15 +1098,6 @@ function finishLoadingAnimation(cb) { cb(); }
 
 async function checkPalmares() {
   stopVictoire();
-  // Unlock audio dans le contexte du clic utilisateur (avant tout await)
-  if (soundEnabled) {
-    _victoireAudio = new Audio('./victoire.mp3');
-    _victoireAudio.volume = 0.7;
-    _victoireAudio.play().then(() => {
-      _victoireAudio.pause();
-      _victoireAudio.currentTime = 0;
-    }).catch(() => {});
-  }
   const prenom     = document.getElementById('input-prenom').value.trim();
   const nom        = document.getElementById('input-nom').value.trim();
   const profession = document.getElementById('input-profession').value.trim();
@@ -1294,8 +1304,8 @@ dropZone.addEventListener('drop', async e => {
   await loadPdfBuffer(await file.arrayBuffer(), file.name);
 });
 
-// Précharge les sprites dès que la page est prête
 preloadSprites();
+preloadVictoire();
 
 window.addEventListener('resize', () => {
   const canvas = document.getElementById('confetti-canvas');
