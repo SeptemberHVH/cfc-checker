@@ -640,10 +640,8 @@ function stopVictoire() {
 }
 
 function playVictoire() {
-  if (!soundEnabled) return;
-  stopVictoire();
-  _victoireAudio = new Audio('./victoire.mp3');
-  _victoireAudio.volume = 0.7;
+  if (!soundEnabled || !_victoireAudio) return;
+  _victoireAudio.currentTime = 0;
   _victoireAudio.play().catch(() => {});
 }
 
@@ -1081,6 +1079,15 @@ function finishLoadingAnimation(cb) { cb(); }
 
 async function checkPalmares() {
   stopVictoire();
+  // Unlock audio dans le contexte du clic utilisateur (avant tout await)
+  if (soundEnabled) {
+    _victoireAudio = new Audio('./victoire.mp3');
+    _victoireAudio.volume = 0.7;
+    _victoireAudio.play().then(() => {
+      _victoireAudio.pause();
+      _victoireAudio.currentTime = 0;
+    }).catch(() => {});
+  }
   const prenom     = document.getElementById('input-prenom').value.trim();
   const nom        = document.getElementById('input-nom').value.trim();
   const profession = document.getElementById('input-profession').value.trim();
