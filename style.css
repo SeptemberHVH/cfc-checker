@@ -145,6 +145,7 @@ body {
 .title-pro,
 .title-checker { position: relative; display: inline-block; }
 
+/* Glitch via pseudo-éléments */
 .title-cfc::before, .title-cfc::after,
 .title-pro::before, .title-pro::after,
 .title-checker::before, .title-checker::after {
@@ -216,7 +217,7 @@ body {
 
 .hero-sprites {
   position: relative;
-  height: 0;
+  height: 0; /* ne prend pas de place */
   pointer-events: none;
 }
 
@@ -269,6 +270,7 @@ body {
   pointer-events: none;
 }
 
+/* Shine holographique qui suit la souris via JS */
 .card-shine {
   position: absolute; inset: 0;
   border-radius: var(--radius);
@@ -644,6 +646,7 @@ input:focus, textarea:focus {
 
 .result-zone { margin-top: 32px; }
 
+/* Succès — base */
 .result-success {
   background: linear-gradient(135deg, #040e08 0%, #020704 100%);
   border: 2px solid var(--green);
@@ -774,6 +777,7 @@ input:focus, textarea:focus {
   font-family: var(--font-body);
 }
 
+/* Brainrot banner */
 .brainrot-banner {
   font-size: 32px;
   letter-spacing: 10px;
@@ -786,6 +790,7 @@ input:focus, textarea:focus {
   to   { transform: rotate(3deg) scale(1.06); }
 }
 
+/* Sprites dans le résultat */
 .result-sprites {
   display: flex;
   justify-content: center;
@@ -816,6 +821,7 @@ input:focus, textarea:focus {
   to   { transform: translateX(0) scale(1); opacity: 1; }
 }
 
+/* Résultat échec */
 .result-fail {
   background: #060202;
   border: 2px solid #3f1414;
@@ -837,6 +843,7 @@ input:focus, textarea:focus {
   line-height: 1.8;
 }
 
+/* Résultats multiples */
 .result-multi {
   background: rgba(8,7,3,.9);
   border: 2px solid rgba(245,158,11,.4);
@@ -869,6 +876,7 @@ input:focus, textarea:focus {
 .match-line { font-size: 13px; color: var(--text); }
 .match-prof { font-size: 11px; color: var(--gold); opacity: .8; font-family: var(--font-ui); }
 
+/* Animation résultat */
 @keyframes result-in {
   from { opacity: 0; transform: translateY(24px) scale(.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -1216,6 +1224,23 @@ input.error, textarea.error {
 }
 .speedrun-toggle:hover  { border-color: #3a3a5a; color: #4a4a6a; }
 .speedrun-toggle.active { border-color: var(--gold); color: var(--gold); }
+
+.sound-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent;
+  border: 1px dashed #151525;
+  border-radius: 6px;
+  color: #252535;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  transition: border-color .2s, color .2s;
+  margin-left: 8px;
+}
+.sound-toggle:hover   { border-color: #3a3a5a; color: #4a4a6a; }
+.sound-toggle.muted   { border-color: #2a1a1a; color: #3a2a2a; }
 
 /* ─── Boot BIOS screen ────────────────────────────────────── */
 
