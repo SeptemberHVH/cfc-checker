@@ -795,6 +795,19 @@ function renderMultiple(matchResults, prenom, nom) {
   zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// ─── Speedrun mode ───────────────────────────────────────────
+
+let speedrunMode = false;
+
+function toggleSpeedrun() {
+  speedrunMode = !speedrunMode;
+  const btn = document.getElementById('btn-speedrun');
+  if (btn) {
+    btn.textContent  = speedrunMode ? '⚡ SPEEDRUN ON' : '⚡ SPEEDRUN';
+    btn.classList.toggle('active', speedrunMode);
+  }
+}
+
 // ─── Mode toggle ─────────────────────────────────────────────
 
 let currentMode = 'auto';
@@ -822,44 +835,121 @@ function setMode(mode) {
 document.getElementById('btn-mode-auto').addEventListener('click',   () => setMode('auto'));
 document.getElementById('btn-mode-manual').addEventListener('click', () => setMode('manual'));
 
-// ─── Animation de chargement brainrot ────────────────────────
+// ─── QCM avant la recherche ───────────────────────────────────
 
-const LOADING_MESSAGES = [
-  "En train de mama guaver...",
-  "Essayant de chercher tous les HUN du CFC...",
-  "N'ayant pas trouvé WESLEY et WASSIM...",
-  "PAS MALLESSSSSSS...",
-  "Interrogeant les crocodiles du palmarès...",
-  "Activation du mode Tung Tung Sahur 🥁...",
-  "Vérifiant que Boneka Ambalabu est dans la liste...",
-  "Tralalero Tralala-ing à toute vitesse...",
-  "Calibrage du détecteur de HUN...",
-  "Asking mama guavo for permission...",
-  "Scanning 47 pages de giga CFC...",
-  "BONEKA AMBALABU détecté quelque part...",
-  "Vérification des badges Pro Max...",
-  "HUN EDITION chargée avec succès...",
-  "Calcul de la note de l'ami...",
+function showQCM() {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'qcm-overlay';
+    overlay.innerHTML = `
+      <div class="qcm-box">
+        <div class="qcm-sep">══════════════════════════════</div>
+        <div class="qcm-label">QUESTION OBLIGATOIRE</div>
+        <div class="qcm-question">Savez-vous gérer des interfaces ?</div>
+        <div class="qcm-sep">══════════════════════════════</div>
+        <div class="qcm-options" id="qcm-options" style="margin-top:20px">
+          <button class="qcm-btn" id="qcm-non">○ Non</button>
+          <button class="qcm-btn qcm-btn-oui" id="qcm-oui">○ Oui la putain de ta race</button>
+        </div>
+        <div class="qcm-result" id="qcm-result"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('qcm-show')));
+
+    function closeQCM() {
+      overlay.classList.add('qcm-hide');
+      setTimeout(() => { overlay.remove(); resolve(); }, 450);
+    }
+
+    overlay.querySelector('#qcm-non').addEventListener('click', () => {
+      overlay.querySelector('#qcm-options').style.display = 'none';
+      const res = overlay.querySelector('#qcm-result');
+      res.innerHTML = [
+        '<span class="term-err">❌ Compétence manquante...</span>',
+        'Formation accélérée...',
+        '<span class="qcm-bar term-ok">████████████████</span>',
+        '<span class="term-ok">✔ Interface acquise.</span>',
+      ].join('<br>');
+      res.classList.add('show');
+      setTimeout(closeQCM, 2000);
+    });
+
+    overlay.querySelector('#qcm-oui').addEventListener('click', () => {
+      overlay.querySelector('#qcm-options').style.display = 'none';
+      const res = overlay.querySelector('#qcm-result');
+      res.innerHTML = [
+        '<span class="term-ok">✔ Niveau CFC PRO MAX détecté.</span>',
+        '<span class="term-warn">HUN APPROVED.</span>',
+      ].join('<br>');
+      res.classList.add('show');
+      setTimeout(closeQCM, 1300);
+    });
+  });
+}
+
+// ─── Terminal de chargement brainrot ─────────────────────────
+
+const TERMINAL_MAIN = [
+  { text: 'BYPASSING THE FIREWALL SA MERE...', cls: 'term-warn' },
+  { text: 'Initializing CFC Kernel...' },
+  { text: 'Checking GitHub Actions...', status: 'OK', sc: 'term-ok' },
+  { text: 'Checking PDF parser...', status: 'OK', sc: 'term-ok' },
+  { text: 'Checking HUN Engine...', status: 'OK', sc: 'term-ok' },
+  { text: 'Checking Tung Tung Sahur...', status: 'OK', sc: 'term-ok' },
+  null, // easter egg slot 1
+  { text: 'Searching Wesley...', status: 'ERROR', sc: 'term-err' },
+  { text: 'Searching Wesley (2nd try)...', status: 'ERROR', sc: 'term-err' },
+  { text: 'Searching Wesley (3rd try)...', status: 'TOO RETARDED', sc: 'term-err' },
+  { text: 'Cancelling Wesley...' },
+  { text: 'Loading HUN Search Engine...', status: '✔ READY', sc: 'term-ok' },
+  null, // easter egg slot 2
+  { text: 'Reading palmarès...' },
+  { text: 'Searching candidate...' },
+  { text: 'Analyzing TPTPTPTTPTPXYZATPA...', cls: 'term-warn' },
+  { text: 'MAMA GUAVO...', cls: 'term-warn' },
+];
+
+const TERMINAL_EGGS = [
+  { text: 'Consulting Alain...' },
+  { text: 'Pourquoi ?' },
+  { text: 'Please wait...' },
+  { text: 'Compiling HUN.dll...' },
+  { text: 'Removing Wesley...', status: 'DONE', sc: 'term-ok' },
+  { text: 'Brainrot level... ██████████ 100%', cls: 'term-warn' },
+  { text: 'Synchronizing MAMA GUAVO...' },
+  { text: 'Downloading CFC...' },
+  { text: 'Installing HUN Edition...' },
+  { text: 'Verifying Tung Tung...' },
+  { text: 'Generating diploma...' },
+  { text: 'Checking interface skills...' },
+  { text: 'Searching major de promo...' },
 ];
 
 let _loadingInterval = null;
 let _progressInterval = null;
 let _fakeProgress = 0;
+let _termAbort = false;
 
-function showSearchingAnimation() {
+function showTerminalLoading() {
+  _termAbort = false;
   const zone = document.getElementById('result-zone');
   zone.innerHTML = `
-    <div class="result-searching">
-      <div class="searching-title">SCANNING LE PALMARES</div>
-      <div class="searching-subtitle">▸ CFC PRO MAX CHECKER 2026 — HUN EDITION ◂</div>
-      <div class="searching-msg-wrap">
-        <div class="searching-msg" id="searching-msg">${LOADING_MESSAGES[0]}</div>
+    <div class="terminal-container">
+      <div class="terminal-header">
+        <span class="term-dot term-dot-r"></span>
+        <span class="term-dot term-dot-y"></span>
+        <span class="term-dot term-dot-g"></span>
+        <span class="terminal-title-bar">CFC_KERNEL v2.0 — HUN EDITION</span>
       </div>
-      <div class="fake-progress-track">
-        <div class="fake-progress-bar" id="fake-progress-bar"></div>
+      <div class="terminal-body" id="terminal-body"><span class="term-cursor"></span></div>
+      <div class="terminal-footer">
+        <div class="fake-progress-track">
+          <div class="fake-progress-bar" id="fake-progress-bar" style="width:0%"></div>
+        </div>
+        <div class="fake-progress-pct" id="fake-progress-pct" style="margin-bottom:0">0%</div>
       </div>
-      <div class="fake-progress-pct" id="fake-progress-pct">0%</div>
-      <div class="searching-sprites">
+      <div class="terminal-sprites">
         <img src="TUNG.png" class="searching-sprite-tung" alt="" />
         <img src="HUN.png"  class="searching-sprite-hun"  alt="" />
       </div>
@@ -867,63 +957,93 @@ function showSearchingAnimation() {
   `;
   zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  _fakeProgress = 0;
-  let msgIdx = 0;
-  const msgs = [...LOADING_MESSAGES].sort(() => Math.random() - .5);
+  // Pick 2 random easter eggs
+  const eggs = [...TERMINAL_EGGS].sort(() => Math.random() - .5).slice(0, 2);
+  const sequence = TERMINAL_MAIN.map(l => l === null ? eggs.shift() : l).filter(Boolean);
+  const total = sequence.length;
 
-  _loadingInterval = setInterval(() => {
-    msgIdx = (msgIdx + 1) % msgs.length;
-    const el = document.getElementById('searching-msg');
-    if (el) {
-      el.style.animation = 'none';
-      el.offsetHeight; // reflow
-      el.style.animation = '';
-      el.textContent = msgs[msgIdx];
+  return new Promise(resolve => {
+    let idx = 0;
+
+    function addLine(line) {
+      const body = document.getElementById('terminal-body');
+      if (!body) return;
+      const cursor = body.querySelector('.term-cursor');
+      if (cursor) cursor.remove();
+
+      const el = document.createElement('div');
+      el.className = 'terminal-line' + (line.cls ? ' ' + line.cls : '');
+
+      if (line.status) {
+        el.textContent = line.text;
+        body.appendChild(el);
+        moveCursor(body);
+        body.scrollTop = body.scrollHeight;
+        return new Promise(r => setTimeout(() => {
+          const sp = document.createElement('span');
+          sp.className = line.sc || '';
+          sp.textContent = ' ' + line.status;
+          el.appendChild(sp);
+          moveCursor(body);
+          body.scrollTop = body.scrollHeight;
+          r();
+        }, 180 + Math.random() * 120));
+      } else {
+        el.textContent = line.text;
+        body.appendChild(el);
+        moveCursor(body);
+        body.scrollTop = body.scrollHeight;
+        return Promise.resolve();
+      }
     }
-  }, 700);
 
-  _progressInterval = setInterval(() => {
-    const bar = document.getElementById('fake-progress-bar');
-    const pct = document.getElementById('fake-progress-pct');
-    if (!bar) { clearInterval(_progressInterval); return; }
-    const target = 82;
-    const step = (target - _fakeProgress) * 0.12 + Math.random() * 2;
-    _fakeProgress = Math.min(_fakeProgress + step, target);
-    bar.style.width = _fakeProgress.toFixed(1) + '%';
-    if (pct) pct.textContent = Math.floor(_fakeProgress) + '%';
-  }, 80);
+    function moveCursor(body) {
+      const c = document.createElement('span');
+      c.className = 'term-cursor';
+      body.appendChild(c);
+    }
+
+    async function nextLine() {
+      if (_termAbort || idx >= sequence.length) { resolve(); return; }
+      const line = sequence[idx++];
+      await addLine(line);
+      // Update progress
+      _fakeProgress = Math.round((idx / total) * 90);
+      const bar = document.getElementById('fake-progress-bar');
+      const pct = document.getElementById('fake-progress-pct');
+      if (bar) bar.style.width = _fakeProgress + '%';
+      if (pct) pct.textContent = _fakeProgress + '%';
+      setTimeout(nextLine, 160 + Math.random() * 140);
+    }
+
+    nextLine();
+  });
 }
 
-function finishLoadingAnimation(cb) {
-  clearInterval(_loadingInterval);
-  clearInterval(_progressInterval);
-
-  const bar = document.getElementById('fake-progress-bar');
-  const pct = document.getElementById('fake-progress-pct');
-  const msg = document.getElementById('searching-msg');
-
-  const trollMessages = ['Presque...', '99% depuis 30 min...', 'MAMA GUAVO APPROVES...'];
-
-  function troll(step) {
-    if (!bar) { cb(); return; }
-    if (step < 3) {
-      bar.style.width = '99%';
-      if (pct) pct.textContent = '99%...';
-      if (msg) { msg.style.animation = 'none'; msg.offsetHeight; msg.style.animation = ''; msg.textContent = trollMessages[step]; }
-      setTimeout(() => troll(step + 1), 620);
-    } else {
-      bar.style.width = '100%';
-      if (pct) pct.textContent = '100% !!';
-      if (msg) msg.textContent = 'RÉSULTAT TROUVÉ — CHARGEMENT...';
-      setTimeout(cb, 380);
-    }
+function finishTerminal() {
+  const body = document.getElementById('terminal-body');
+  const bar  = document.getElementById('fake-progress-bar');
+  const pct  = document.getElementById('fake-progress-pct');
+  if (body) {
+    const cursor = body.querySelector('.term-cursor');
+    if (cursor) cursor.remove();
+    const done = document.createElement('div');
+    done.className = 'terminal-line term-ok';
+    done.textContent = '✔ SEARCH COMPLETE — LOADING RESULT...';
+    body.appendChild(done);
+    body.scrollTop = body.scrollHeight;
   }
-  troll(0);
+  if (bar) bar.style.width = '100%';
+  if (pct) pct.textContent = '100%';
 }
+
+// Legacy stubs (resetForm uses clearInterval on these)
+function showSearchingAnimation() {}
+function finishLoadingAnimation(cb) { cb(); }
 
 // ─── Logique principale ───────────────────────────────────────
 
-function checkPalmares() {
+async function checkPalmares() {
   const prenom     = document.getElementById('input-prenom').value.trim();
   const nom        = document.getElementById('input-nom').value.trim();
   const profession = document.getElementById('input-profession').value.trim();
@@ -931,9 +1051,7 @@ function checkPalmares() {
 
   // Validation
   let hasError = false;
-  ['input-prenom','input-nom'].forEach(id =>
-    document.getElementById(id).classList.remove('error')
-  );
+  ['input-prenom','input-nom'].forEach(id => document.getElementById(id).classList.remove('error'));
   document.getElementById('textarea-palmares').classList.remove('error');
 
   if (!prenom && !nom) {
@@ -951,38 +1069,46 @@ function checkPalmares() {
   }
   if (hasError) return;
 
-  // Lance l'animation brainrot
-  showSearchingAnimation();
+  // QCM
+  if (!speedrunMode) {
+    await showQCM();
+  }
 
-  // Fake delay pour profiter de l'animation (1.5s–2.5s)
-  const delay = 1500 + Math.random() * 1000;
-
-  setTimeout(() => {
-    const lines = texte.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  // Lancer la recherche en parallèle (instantané, juste du string matching)
+  const searchPromise = Promise.resolve().then(() => {
+    const lines       = texte.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const nameMatches = lines.filter(l => lineMatchesName(l, prenom, nom));
-    const filtered    = profession
-      ? nameMatches.filter(l => lineMatchesProfession(l, profession))
-      : nameMatches;
-    const pool = filtered.length > 0 ? filtered : nameMatches;
+    const filtered    = profession ? nameMatches.filter(l => lineMatchesProfession(l, profession)) : nameMatches;
+    const pool        = filtered.length > 0 ? filtered : nameMatches;
+    return { lines, pool };
+  });
 
-    finishLoadingAnimation(() => {
-      if (pool.length === 0) {
-        renderFail(prenom, nom);
-        updateDebugPanel(lines, [], prenom, nom);
-        return;
-      }
-      const matchResults = pool.map(line => ({
-        line,
-        profession: extractProfessionForMatch(lines, line),
-      }));
-      if (matchResults.length === 1) {
-        renderSuccess(matchResults, prenom, nom);
-      } else {
-        renderMultiple(matchResults, prenom, nom);
-      }
-      updateDebugPanel(lines, pool, prenom, nom);
-    });
-  }, delay);
+  // Terminal brainrot (ou résultat direct en speedrun)
+  if (!speedrunMode) {
+    await showTerminalLoading();
+    finishTerminal();
+    await new Promise(r => setTimeout(r, 420));
+  }
+
+  const { lines, pool } = await searchPromise;
+
+  if (pool.length === 0) {
+    renderFail(prenom, nom);
+    updateDebugPanel(lines, [], prenom, nom);
+    return;
+  }
+
+  const matchResults = pool.map(line => ({
+    line,
+    profession: extractProfessionForMatch(lines, line),
+  }));
+
+  if (matchResults.length === 1) {
+    renderSuccess(matchResults, prenom, nom);
+  } else {
+    renderMultiple(matchResults, prenom, nom);
+  }
+  updateDebugPanel(lines, pool, prenom, nom);
 }
 
 // ─── Panel Debug ──────────────────────────────────────────────
@@ -1080,6 +1206,7 @@ document.getElementById('btn-check').addEventListener('click', checkPalmares);
 document.getElementById('btn-reset').addEventListener('click', resetForm);
 document.getElementById('btn-fetch-pdf').addEventListener('click', fetchPdfAuto);
 document.getElementById('btn-debug').addEventListener('click', toggleDebug);
+document.getElementById('btn-speedrun').addEventListener('click', toggleSpeedrun);
 
 document.getElementById('btn-load-example').addEventListener('click', () => {
   document.getElementById('textarea-palmares').value = EXEMPLE_PALMARES;
