@@ -16,8 +16,8 @@ GMAIL_APP_PASS = os.environ["GMAIL_APP_PASS"]  # mot de passe d'application
 NOTIFY_TO      = os.environ.get("NOTIFY_TO", GMAIL_USER)  # destinataire (toi par défaut)
 
 # Nom à chercher — modifie ici si besoin
-PRENOM = "Alain"
-NOM    = "Addor"
+PRENOM = "Estelle"
+NOM    = "Amstad"
 
 # Page officielle du palmarès
 PAGE_URL = "https://www.citedesmetiers.ch/palmares2026/"
