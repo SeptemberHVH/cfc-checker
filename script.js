@@ -614,8 +614,8 @@ function renderSuccess(matchResults, prenom, nom) {
       <div class="result-success">
         <div class="brainrot-banner">🥁🥁🥁</div>
         <div class="result-sprites">
-          <img src="img/TUNG.png" class="result-sprite-tung" alt="Tung Tung" />
-          <img src="img/HUN.png"  class="result-sprite-hun"  alt="HUN" />
+          <img src="TUNG.png" class="result-sprite-tung" alt="Tung Tung" />
+          <img src="HUN.png"  class="result-sprite-hun"  alt="HUN" />
         </div>
         <div class="result-title">✅ ALAIN ADDOR VALIDÉ</div>
         <div class="result-subtitle">CFC EMPLOYÉ DE COMMERCE PRO MAX<br>HUN EDITION 🇨🇭</div>
@@ -635,7 +635,7 @@ function renderSuccess(matchResults, prenom, nom) {
     zone.innerHTML = `
       <div class="result-success result-success-normal">
         <div class="result-sprites">
-          <img src="img/HUN.png" class="result-sprite-hun" alt="HUN" />
+          <img src="HUN.png" class="result-sprite-hun" alt="HUN" />
         </div>
         <div class="result-title">✅ ${escapeHtml(displayName)} VALIDÉ</div>
         ${profDisplay}
@@ -659,7 +659,7 @@ function renderFail(prenom, nom) {
   zone.innerHTML = `
     <div class="result-fail">
       <div class="result-sprites" style="justify-content:center;margin-bottom:12px">
-        <img src="img/TUNG.png" class="result-sprite-tung" style="opacity:.5;filter:grayscale(.6)" alt="" />
+        <img src="TUNG.png" class="result-sprite-tung" style="opacity:.5;filter:grayscale(.6)" alt="" />
       </div>
       <div class="result-title">❌ Pas encore trouvé dans ce fichier</div>
       <div class="result-msg">
@@ -700,7 +700,7 @@ function showSearching() {
   const zone = document.getElementById('result-zone');
   zone.innerHTML = `
     <div class="result-searching">
-      <img src="img/TUNG.png" class="sprite sprite-tung sprite-tung-search" alt="Tung Tung" />
+      <img src="TUNG.png" class="sprite sprite-tung sprite-tung-search" alt="Tung Tung" />
       <div class="searching-text">Analyse du palmarès en cours…</div>
     </div>
   `;
