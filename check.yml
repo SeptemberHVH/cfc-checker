@@ -1,11 +1,13 @@
 name: CFC Pro Max Checker 2026
 
 on:
-  # Tourne toutes les 2 heures automatiquement
   schedule:
     - cron: "0 */2 * * *"
-  # Permet aussi de lancer manuellement depuis GitHub
   workflow_dispatch:
+
+# Droit d'écriture pour committer palmares.pdf dans le repo
+permissions:
+  contents: write
 
 jobs:
   check:
@@ -13,10 +15,12 @@ jobs:
 
     steps:
       - name: Checkout du repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Installer Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.11"
 
