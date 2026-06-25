@@ -462,12 +462,16 @@ async function fetchPdfAuto() {
 
 // ─── Génération attestation PDF ──────────────────────────────
 
-function loadImg(src) {
-  return new Promise((resolve, reject) => {
+function drawSpriteOnCanvas(ctx, dataUrl, xPx, yPx, heightPx) {
+  return new Promise(resolve => {
     const img = new Image();
-    img.onload  = () => resolve(img);
-    img.onerror = () => reject(new Error('Image non chargée : ' + src));
-    img.src = src;
+    img.onload = () => {
+      const ratio = img.naturalWidth / (img.naturalHeight || 1);
+      ctx.drawImage(img, xPx, yPx, heightPx * ratio, heightPx);
+      resolve();
+    };
+    img.onerror = resolve;
+    img.src = dataUrl;
   });
 }
 
@@ -480,8 +484,8 @@ async function downloadCertificate(prenom, nom, profession) {
 
     const { jsPDF } = window.jspdf;
 
-    // ── Canvas A4 paysage ~150dpi (1754×1240) — SANS les sprites ──
-    // Les sprites sont ajoutés séparément dans jsPDF pour éviter le canvas tainted
+    // ── Canvas A4 paysage ~150dpi (1754×1240) ──
+    // Les sprites sont dessinés sur le canvas (data: URLs ne taintent pas)
     const W = 1754, H = 1240;
     const cv = document.createElement('canvas');
     cv.width  = W;
@@ -574,18 +578,18 @@ async function downloadCertificate(prenom, nom, profession) {
     c.fillStyle = '#f59e0b'; c.font = '34px serif'; c.textAlign = 'center';
     [[80,80],[W-80,80],[80,H-80],[W-80,H-80]].forEach(([x,y]) => c.fillText('*', x, y+12));
 
-    // ── Export fond (sans sprites → canvas propre, toDataURL OK) ──
-    const bgData = cv.toDataURL('image/jpeg', 0.95);
+    // ── Sprites dessinés sur le canvas (data: URL = pas de canvas taint) ──
+    // Échelle : 1754px / 297mm ≈ 5.9 px/mm
+    const PX_PER_MM = W / 297;
+    if (typeof SPRITE_HUN  !== 'undefined')
+      await drawSpriteOnCanvas(c, SPRITE_HUN,  Math.round(238 * PX_PER_MM), Math.round(148 * PX_PER_MM), Math.round(55 * PX_PER_MM));
+    if (typeof SPRITE_TUNG !== 'undefined')
+      await drawSpriteOnCanvas(c, SPRITE_TUNG, Math.round(5   * PX_PER_MM), Math.round(155 * PX_PER_MM), Math.round(45 * PX_PER_MM));
 
-    // ── jsPDF : fond + sprites ──
+    // ── Export canvas complet → jsPDF ──
+    const fullData = cv.toDataURL('image/jpeg', 0.95);
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    doc.addImage(bgData, 'JPEG', 0, 0, 297, 210);
-
-    // HUN : bas droite — TUNG : bas gauche
-    // A4 paysage = 297mm × 210mm
-    // HUN à droite, aligné avec le bas (y + h ≈ 205mm)
-    if (typeof SPRITE_HUN  !== 'undefined') await addSpriteB64(doc, SPRITE_HUN,  238, 148, 55);
-    if (typeof SPRITE_TUNG !== 'undefined') await addSpriteB64(doc, SPRITE_TUNG,   5, 155, 45);
+    doc.addImage(fullData, 'JPEG', 0, 0, 297, 210);
 
     const filename = `Attestation_CFC_${[prenom,nom].filter(Boolean).join('_') || 'HUN'}_2026_RC2.pdf`;
     doc.save(filename);
@@ -599,22 +603,6 @@ async function downloadCertificate(prenom, nom, profession) {
 }
 
 function preloadSprites() {}
-
-function getImgRatio(dataUrl) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload  = () => resolve(img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1);
-    img.onerror = () => resolve(1);
-    img.src = dataUrl;
-  });
-}
-
-async function addSpriteB64(doc, dataUrl, xMm, yMm, maxHmm) {
-  try {
-    const ratio = await getImgRatio(dataUrl);
-    doc.addImage(dataUrl, 'PNG', xMm, yMm, maxHmm * ratio, maxHmm);
-  } catch (e) { console.warn('Sprite PDF error:', e); }
-}
 
 // Utilitaire : rectangle arrondi pour canvas
 function roundRect(ctx, x, y, w, h, r) {
