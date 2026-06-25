@@ -145,6 +145,7 @@ body {
 .title-pro,
 .title-checker { position: relative; display: inline-block; }
 
+/* Glitch via pseudo-éléments */
 .title-cfc::before, .title-cfc::after,
 .title-pro::before, .title-pro::after,
 .title-checker::before, .title-checker::after {
@@ -216,7 +217,7 @@ body {
 
 .hero-sprites {
   position: relative;
-  height: 0;
+  height: 0; /* ne prend pas de place */
   pointer-events: none;
 }
 
@@ -269,6 +270,7 @@ body {
   pointer-events: none;
 }
 
+/* Shine holographique qui suit la souris via JS */
 .card-shine {
   position: absolute; inset: 0;
   border-radius: var(--radius);
@@ -644,6 +646,7 @@ input:focus, textarea:focus {
 
 .result-zone { margin-top: 32px; }
 
+/* Succès — base */
 .result-success {
   background: linear-gradient(135deg, #040e08 0%, #020704 100%);
   border: 2px solid var(--green);
@@ -774,6 +777,7 @@ input:focus, textarea:focus {
   font-family: var(--font-body);
 }
 
+/* Brainrot banner */
 .brainrot-banner {
   font-size: 32px;
   letter-spacing: 10px;
@@ -786,6 +790,7 @@ input:focus, textarea:focus {
   to   { transform: rotate(3deg) scale(1.06); }
 }
 
+/* Sprites dans le résultat */
 .result-sprites {
   display: flex;
   justify-content: center;
@@ -816,6 +821,7 @@ input:focus, textarea:focus {
   to   { transform: translateX(0) scale(1); opacity: 1; }
 }
 
+/* Résultat échec */
 .result-fail {
   background: #060202;
   border: 2px solid #3f1414;
@@ -837,6 +843,7 @@ input:focus, textarea:focus {
   line-height: 1.8;
 }
 
+/* Résultats multiples */
 .result-multi {
   background: rgba(8,7,3,.9);
   border: 2px solid rgba(245,158,11,.4);
@@ -869,6 +876,7 @@ input:focus, textarea:focus {
 .match-line { font-size: 13px; color: var(--text); }
 .match-prof { font-size: 11px; color: var(--gold); opacity: .8; font-family: var(--font-ui); }
 
+/* Animation résultat */
 @keyframes result-in {
   from { opacity: 0; transform: translateY(24px) scale(.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -892,7 +900,11 @@ input:focus, textarea:focus {
   animation: glowPulse 3s ease-in-out infinite;
 }
 
-.btn-certif:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,158,11,.5); }
+.btn-certif:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(245,158,11,.5);
+}
+
 .btn-certif:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 @keyframes glowPulse {
@@ -1003,4 +1015,165 @@ input.error, textarea.error {
   .title-cfc { font-size: 70px; }
   .title-pro { font-size: 44px; }
   .title-checker { font-size: 28px; }
+}
+
+/* ─── CRT vignette ────────────────────────────────────────── */
+
+.crt-vignette {
+  position: fixed; inset: 0; z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    transparent 55%,
+    rgba(0,0,0,.55) 100%);
+}
+
+/* ─── Particles canvas ────────────────────────────────────── */
+
+#particles-canvas {
+  position: fixed; inset: 0; z-index: 1;
+  pointer-events: none;
+}
+
+/* ─── Boot BIOS screen ────────────────────────────────────── */
+
+#bios-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .8s ease;
+}
+
+#bios-screen.fade-out { opacity: 0; pointer-events: none; }
+#bios-screen.gone     { display: none; }
+
+#bios-content {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(12px, 2vw, 15px);
+  color: #22c55e;
+  line-height: 1.9;
+  white-space: pre;
+  padding: 20px;
+  width: min(560px, 90vw);
+}
+
+.bios-head   { color: #a855f7; display: block; margin-bottom: 4px; }
+.bios-ok     { color: #22c55e; }
+.bios-fail   { color: #ef4444; }
+.bios-wait   { color: #f59e0b; }
+.bios-ready  { color: #fff; text-shadow: 0 0 16px #fff; }
+.bios-cursor { display: inline-block; width: 9px; height: 1em; background: #22c55e; vertical-align: text-bottom; animation: blink-dot .6s step-end infinite; }
+
+/* ─── Achievement Steam toast ─────────────────────────────── */
+
+#achievement-toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  z-index: 1000;
+  transform: translateX(140%);
+  transition: transform .5s cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+
+#achievement-toast.show { transform: translateX(0); }
+
+.achievement-inner {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #0d0c1a 0%, #1a0a2e 100%);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 0 40px rgba(245,158,11,.3), 0 6px 30px rgba(0,0,0,.9);
+  min-width: 250px;
+}
+
+.achievement-icon { font-size: 34px; flex-shrink: 0; }
+
+.achievement-text { display: flex; flex-direction: column; gap: 2px; }
+.achievement-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.achievement-title {
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.achievement-sub {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--violet-glow);
+  letter-spacing: 1px;
+}
+
+/* ─── Tampon VALIDÉ ───────────────────────────────────────── */
+
+.stamp-valid {
+  position: absolute;
+  top: 18px; right: 18px;
+  border: 3px solid rgba(239,68,68,.85);
+  border-radius: 5px;
+  padding: 5px 10px;
+  transform: rotate(-12deg) scale(3);
+  opacity: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(239,68,68,.85);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1.5;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(239,68,68,.3);
+  pointer-events: none;
+  user-select: none;
+  animation: stamp-drop .45s .5s cubic-bezier(.175,.885,.32,1.275) forwards;
+  z-index: 10;
+}
+
+@keyframes stamp-drop {
+  0%   { transform: rotate(-12deg) scale(3); opacity: 0; }
+  60%  { transform: rotate(-12deg) scale(.92); opacity: .9; }
+  100% { transform: rotate(-12deg) scale(1); opacity: .85; }
+}
+
+/* ─── Scan holographique vertical au résultat ─────────────── */
+
+.result-success::after {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(168,85,247,.07) 35%,
+    rgba(74,222,128,.13) 50%,
+    rgba(168,85,247,.07) 65%,
+    transparent 100%);
+  animation: holoscan 1.4s ease-out .05s forwards;
+  pointer-events: none;
+}
+
+@keyframes holoscan {
+  from { left: -100%; }
+  to   { left: 160%; }
+}
+
+/* ─── Gold flash overlay ──────────────────────────────────── */
+
+#gold-overlay {
+  position: fixed; inset: 0; z-index: 997;
+  pointer-events: none;
+  background: rgba(245,158,11,.14);
+  opacity: 0;
+}
+
+#gold-overlay.flash { animation: gold-flash-anim .9s ease-out forwards; }
+
+@keyframes gold-flash-anim {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
 }
