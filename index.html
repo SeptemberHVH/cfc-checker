@@ -13,12 +13,16 @@
 </head>
 <body>
 
-  <!-- Matrix rain + confettis -->
+  <!-- Matrix rain + confettis + particules -->
   <canvas id="matrix-canvas"></canvas>
   <canvas id="confetti-canvas"></canvas>
+  <canvas id="particles-canvas"></canvas>
 
   <!-- Scanlines overlay -->
   <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- CRT vignette -->
+  <div class="crt-vignette" aria-hidden="true"></div>
 
   <!-- Orbes de fond -->
   <div class="bg-orbs">
@@ -155,6 +159,17 @@
     <p>🔒 Aucune donnée personnelle stockée — tout reste dans ton navigateur.</p>
     <p class="footer-sub">Site non officiel — <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener">Palmarès officiel ↗</a></p>
   </footer>
+
+  <!-- Boot BIOS screen -->
+  <div id="bios-screen" aria-hidden="true">
+    <div id="bios-content"></div>
+  </div>
+
+  <!-- Achievement Steam toast -->
+  <div id="achievement-toast" aria-live="polite"></div>
+
+  <!-- Gold flash overlay -->
+  <div id="gold-overlay"></div>
 
   <script src="script.js"></script>
 </body>
