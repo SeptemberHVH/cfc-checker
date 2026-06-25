@@ -578,13 +578,10 @@ async function downloadCertificate(prenom, nom, profession) {
     c.fillStyle = '#f59e0b'; c.font = '34px serif'; c.textAlign = 'center';
     [[80,80],[W-80,80],[80,H-80],[W-80,H-80]].forEach(([x,y]) => c.fillText('*', x, y+12));
 
-    // ── Sprites dessinés sur le canvas (data: URL = pas de canvas taint) ──
-    // Échelle : 1754px / 297mm ≈ 5.9 px/mm
+    // ── Sprites dessinés sur le canvas — même domaine = pas de canvas taint ──
     const PX_PER_MM = W / 297;
-    if (typeof SPRITE_HUN  !== 'undefined')
-      await drawSpriteOnCanvas(c, SPRITE_HUN,  Math.round(238 * PX_PER_MM), Math.round(148 * PX_PER_MM), Math.round(55 * PX_PER_MM));
-    if (typeof SPRITE_TUNG !== 'undefined')
-      await drawSpriteOnCanvas(c, SPRITE_TUNG, Math.round(5   * PX_PER_MM), Math.round(155 * PX_PER_MM), Math.round(45 * PX_PER_MM));
+    await drawSpriteOnCanvas(c, 'HUN.png',  Math.round(238 * PX_PER_MM), Math.round(148 * PX_PER_MM), Math.round(55 * PX_PER_MM));
+    await drawSpriteOnCanvas(c, 'TUNG.png', Math.round(5   * PX_PER_MM), Math.round(155 * PX_PER_MM), Math.round(45 * PX_PER_MM));
 
     // ── Export canvas complet → jsPDF ──
     const fullData = cv.toDataURL('image/jpeg', 0.95);
