@@ -117,7 +117,6 @@
     ctx.font = '14px monospace';
     for (let i = 0; i < drops.length; i++) {
       const char = CHARS[Math.floor(Math.random() * CHARS.length)];
-      // Couleur alternée violet / vert
       ctx.fillStyle = i % 3 === 0 ? '#a855f7' : '#22c55e';
       ctx.fillText(char, i * 18, drops[i] * 18);
       if (drops[i] * 18 > canvas.height && Math.random() > .975) drops[i] = 0;
@@ -203,7 +202,6 @@ function playDrum(type = 'kick', delay = 0) {
 }
 
 function playTungTung() {
-  // Tung Tung Tung Sahur pattern 🥁
   const pattern = [
     ['kick',  0],
     ['hihat', .1],
@@ -223,15 +221,13 @@ function playTungTung() {
 
 // ─── Config PDF ──────────────────────────────────────────────
 
-// PDF local commité par GitHub Actions — même domaine = zéro CORS
 const PDF_LOCAL = 'palmares.pdf';
-// URL officielle en fallback
 const PDF_URL = 'https://www.citedesmetiers.ch/app/uploads/2026/06/Palmares_2026-06-22_15h37.pdf';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ─── Données d'exemple (structure réelle d'un palmarès CFC) ──
+// ─── Données d'exemple ────────────────────────────────────────
 
 const EXEMPLE_PALMARES = `Palmarès CFC 2026 — Cité des Métiers — Données d'exemple
 
@@ -281,40 +277,26 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** Détecte si une ligne ressemble à un titre de section métier. */
 function looksLikeSectionTitle(line) {
   const n = normalize(line);
   const hasKeyword = SECTION_KEYWORDS.some(k => n.includes(normalize(k)));
   if (!hasKeyword) return false;
-  // Une ligne avec une note (5.8) n'est pas un titre de section
   if (/\d[.,]\d/.test(line)) return false;
-  // Trop long = pas un titre
   if (line.length > 90) return false;
   return true;
 }
 
-/** Tente d'extraire la profession directement depuis une ligne. */
 function extractProfessionFromLine(line) {
-  // Format "— Profession CFC" ou "- Profession AFP"
   const dashMatch = line.match(/[—\-–]\s*([^—\-–\d]{4,}(?:CFC|AFP|diplôme|maturité)[^—\-–\d]*)/i);
   if (dashMatch) return dashMatch[1].trim();
-  // Format "Nom Prénom Profession CFC note"
   const cfcMatch = line.match(/([\w\s''éèêëàâùûüôîïçœæ-]{4,}(?:CFC|AFP))/i);
   if (cfcMatch) return cfcMatch[1].trim();
   return null;
 }
 
-/**
- * Cherche la profession liée à une ligne de match.
- * 1. Cherche sur la même ligne
- * 2. Remonte les lignes pour trouver le dernier titre de section
- */
 function extractProfessionForMatch(lines, matchLine) {
-  // 1. Sur la même ligne
   const inLine = extractProfessionFromLine(matchLine);
   if (inLine) return inLine;
-
-  // 2. Remonte vers le dernier titre de section
   const idx = lines.indexOf(matchLine);
   for (let i = idx - 1; i >= 0; i--) {
     if (looksLikeSectionTitle(lines[i])) {
@@ -341,20 +323,12 @@ function lineMatchesProfession(line, profession) {
   return normalize(line).includes(normalize(profession));
 }
 
-/** Retourne vrai uniquement si on cherche exactement Alain Addor. */
 function isAlainAddor(prenom, nom) {
   return normalize(prenom) === 'alain' && normalize(nom) === 'addor';
 }
 
 // ─── Extraction PDF ───────────────────────────────────────────
 
-/**
- * Extrait le texte d'un PDF page par page.
- * Regroupe les items par ligne en utilisant leur coordonnée Y.
- * Tolérance de 4px pour gérer les légères variations de baseline.
- * Les items d'une même ligne sont triés par X (gauche → droite)
- * pour conserver l'ordre naturel des colonnes d'un tableau.
- */
 async function extractTextFromPdfBuffer(buffer) {
   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
   const allLines = [];
@@ -363,7 +337,6 @@ async function extractTextFromPdfBuffer(buffer) {
     const page    = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
 
-    // Groupe les items par ligne (Y arrondi à 4px près)
     const rowMap = new Map();
     for (const item of content.items) {
       if (!item.str.trim()) continue;
@@ -372,7 +345,6 @@ async function extractTextFromPdfBuffer(buffer) {
       rowMap.get(y).push({ x: item.transform[4], str: item.str });
     }
 
-    // Trie les lignes de haut en bas (Y décroissant en espace PDF)
     const sortedYs = [...rowMap.keys()].sort((a, b) => b - a);
 
     for (const y of sortedYs) {
@@ -448,9 +420,7 @@ async function fetchPdfAuto() {
       icon.textContent  = '✅';
       await loadPdfBuffer(buffer, 'palmares.pdf');
       return;
-    } catch (_) {
-      // essaie la source suivante
-    }
+    } catch (_) {}
   }
 
   btn.disabled = false;
@@ -487,8 +457,6 @@ async function downloadCertificate(prenom, nom, profession) {
 
     const { jsPDF } = window.jspdf;
 
-    // ── Canvas A4 paysage ~150dpi (1754×1240) ──
-    // Les sprites sont dessinés sur le canvas (data: URLs ne taintent pas)
     const W = 1754, H = 1240;
     const cv = document.createElement('canvas');
     cv.width  = W;
@@ -499,51 +467,42 @@ async function downloadCertificate(prenom, nom, profession) {
     const profText = (profession || 'EMPLOYÉ·E DE COMMERCE CFC').toUpperCase();
     const dateStr  = new Date().toLocaleDateString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric' });
 
-    // ── Fond dégradé ──
     const bg = c.createLinearGradient(0, 0, W, H);
     bg.addColorStop(0, '#08080e'); bg.addColorStop(.5, '#0d0820'); bg.addColorStop(1, '#060e08');
     c.fillStyle = bg;
     c.fillRect(0, 0, W, H);
 
-    // ── Grille déco ──
     c.strokeStyle = 'rgba(124,58,237,0.06)'; c.lineWidth = 1;
     for (let x = 0; x < W; x += 50) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
     for (let y = 0; y < H; y += 50) { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
 
-    // ── Bordures dorées ──
     c.strokeStyle = '#f59e0b'; c.lineWidth = 8;  c.strokeRect(24, 24, W-48, H-48);
     c.strokeStyle = '#fbbf24'; c.lineWidth = 2;  c.strokeRect(40, 40, W-80, H-80);
 
-    // ── Barre top violette ──
     const topGrad = c.createLinearGradient(0,0,W,0);
     topGrad.addColorStop(0,'#5b21b6'); topGrad.addColorStop(.5,'#a855f7'); topGrad.addColorStop(1,'#5b21b6');
     c.fillStyle = topGrad; c.fillRect(40, 40, W-80, 100);
     c.fillStyle = '#fff'; c.font = 'bold 38px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
     c.fillText('CITE DES METIERS  --  PALMARES CFC 2026  --  SUISSE', W/2, 108);
 
-    // ── ATTESTATION OFFICIELLE ──
     c.fillStyle = '#f59e0b'; c.font = 'bold 88px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
     c.shadowColor = '#f59e0b'; c.shadowBlur = 28;
     c.fillText('ATTESTATION OFFICIELLE', W/2, 260);
     c.shadowBlur = 0;
 
-    // ── Trait séparateur ──
     const sep = c.createLinearGradient(120,0,W-120,0);
     sep.addColorStop(0,'transparent'); sep.addColorStop(.15,'#f59e0b'); sep.addColorStop(.85,'#f59e0b'); sep.addColorStop(1,'transparent');
     c.strokeStyle = sep; c.lineWidth = 3;
     c.beginPath(); c.moveTo(120,290); c.lineTo(W-120,290); c.stroke();
 
-    // ── Nom ──
     c.fillStyle = '#ffffff'; c.font = 'bold 106px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
     c.shadowColor = 'rgba(34,197,94,.5)'; c.shadowBlur = 36;
     c.fillText(fullName, W/2, 420);
     c.shadowBlur = 0;
 
-    // ── Profession ──
     c.fillStyle = '#22c55e'; c.font = 'bold 50px Impact, Arial Black, sans-serif';
     c.fillText(profText, W/2, 500);
 
-    // ── Badge RC2 ──
     c.fillStyle = 'rgba(124,58,237,.22)';
     roundRect(c, W/2-330, 528, 660, 72, 16); c.fill();
     c.strokeStyle = '#a855f7'; c.lineWidth = 2;
@@ -551,24 +510,20 @@ async function downloadCertificate(prenom, nom, profession) {
     c.fillStyle = '#a855f7'; c.font = 'bold 36px Impact, Arial Black, sans-serif';
     c.fillText('CFC PRO MAX  -  RC2  -  HUN EDITION', W/2, 576);
 
-    // ── TPTTPPTPTPTPTPXXXZA — centre du certificat ──
     c.fillStyle = '#22c55e'; c.font = 'bold 74px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
     c.shadowColor = '#22c55e'; c.shadowBlur = 24;
     c.fillText('TPTTPPTPTPTPTPXXXZA', W/2, 690);
     c.shadowBlur = 0;
 
-    // ── Watermark MAMA GUAVO ──
     c.save(); c.translate(W/2, H/2 + 100); c.rotate(-Math.PI/10);
     c.font = 'bold 128px Impact, Arial Black, sans-serif';
     c.fillStyle = 'rgba(245,158,11,0.05)'; c.textAlign = 'center';
     c.fillText('MAMA GUAVO APPROVED', 0, 0);
     c.restore();
 
-    // ── Trait bas ──
     c.strokeStyle = sep; c.lineWidth = 2;
     c.beginPath(); c.moveTo(120, H-170); c.lineTo(W-120, H-170); c.stroke();
 
-    // ── Textes bas ──
     c.fillStyle = '#64748b'; c.font = '26px Courier New, monospace'; c.textAlign = 'left';
     c.fillText('Emis le ' + dateStr, 120, H-130);
     c.fillText('citedesmetiers.ch/palmares2026', 120, H-90);
@@ -577,16 +532,13 @@ async function downloadCertificate(prenom, nom, profession) {
     c.fillStyle = '#3a3a5a'; c.font = '22px Courier New, monospace';
     c.fillText('Document non officiel -- usage interne HUN Edition uniquement', W/2, H-70);
 
-    // ── Étoiles coins ──
     c.fillStyle = '#f59e0b'; c.font = '34px serif'; c.textAlign = 'center';
     [[80,80],[W-80,80],[80,H-80],[W-80,H-80]].forEach(([x,y]) => c.fillText('*', x, y+12));
 
-    // ── Sprites dessinés sur le canvas — même domaine = pas de canvas taint ──
     const PX_PER_MM = W / 297;
     await drawSpriteOnCanvas(c, 'HUN.png',  Math.round(238 * PX_PER_MM), Math.round(148 * PX_PER_MM), Math.round(55 * PX_PER_MM));
     await drawSpriteOnCanvas(c, 'TUNG.png', Math.round(5   * PX_PER_MM), Math.round(155 * PX_PER_MM), Math.round(45 * PX_PER_MM));
 
-    // ── Export canvas complet → jsPDF ──
     const fullData = cv.toDataURL('image/jpeg', 0.95);
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.addImage(fullData, 'JPEG', 0, 0, 297, 210);
@@ -604,7 +556,6 @@ async function downloadCertificate(prenom, nom, profession) {
 
 function preloadSprites() {}
 
-// Utilitaire : rectangle arrondi pour canvas
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -689,11 +640,6 @@ function launchConfetti() {
 
 // ─── Rendu des résultats ──────────────────────────────────────
 
-/**
- * Affiche le résultat selon qui est trouvé.
- * Mode spécial uniquement pour Alain Addor.
- * Pour tout autre nom : affiche le nom recherché + profession détectée.
- */
 function renderSuccess(matchResults, prenom, nom) {
   const zone = document.getElementById('result-zone');
   const first = matchResults[0];
@@ -707,7 +653,6 @@ function renderSuccess(matchResults, prenom, nom) {
   const rawLine = `<div class="result-lines">▸ ${escapeHtml(first.line)}</div>`;
 
   if (isAlainAddor(prenom, nom)) {
-    // ── MODE BRAINROT SPÉCIAL ALAIN ADDOR ──
     zone.innerHTML = `
       <div class="result-success">
         <div class="stamp-valid">VALIDÉ<br>HUN EDITION</div>
@@ -732,7 +677,6 @@ function renderSuccess(matchResults, prenom, nom) {
     triggerGoldFlash();
     setTimeout(showAchievement, 600);
   } else {
-    // ── MODE NORMAL ──
     zone.innerHTML = `
       <div class="result-success result-success-normal">
         <div class="result-sprites">
@@ -897,13 +841,13 @@ const TERMINAL_MAIN = [
   { text: 'Checking PDF parser...', status: 'OK', sc: 'term-ok' },
   { text: 'Checking HUN Engine...', status: 'OK', sc: 'term-ok' },
   { text: 'Checking Tung Tung Sahur...', status: 'OK', sc: 'term-ok' },
-  null, // easter egg slot 1
+  null,
   { text: 'Searching Wesley...', status: 'ERROR', sc: 'term-err' },
   { text: 'Searching Wesley (2nd try)...', status: 'ERROR', sc: 'term-err' },
   { text: 'Searching Wesley (3rd try)...', status: 'TOO RETARDED', sc: 'term-err' },
   { text: 'Cancelling Wesley...' },
   { text: 'Loading HUN Search Engine...', status: '✔ READY', sc: 'term-ok' },
-  null, // easter egg slot 2
+  null,
   { text: 'Reading palmarès...' },
   { text: 'Searching candidate...' },
   { text: 'Analyzing TPTPTPTTPTPXYZATPA...', cls: 'term-warn' },
@@ -957,7 +901,6 @@ function showTerminalLoading() {
   `;
   zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Pick 2 random easter eggs
   const eggs = [...TERMINAL_EGGS].sort(() => Math.random() - .5).slice(0, 2);
   const sequence = TERMINAL_MAIN.map(l => l === null ? eggs.shift() : l).filter(Boolean);
   const total = sequence.length;
@@ -1007,7 +950,6 @@ function showTerminalLoading() {
       if (_termAbort || idx >= sequence.length) { resolve(); return; }
       const line = sequence[idx++];
       await addLine(line);
-      // Update progress
       _fakeProgress = Math.round((idx / total) * 90);
       const bar = document.getElementById('fake-progress-bar');
       const pct = document.getElementById('fake-progress-pct');
@@ -1037,7 +979,6 @@ function finishTerminal() {
   if (pct) pct.textContent = '100%';
 }
 
-// Legacy stubs (resetForm uses clearInterval on these)
 function showSearchingAnimation() {}
 function finishLoadingAnimation(cb) { cb(); }
 
@@ -1049,7 +990,6 @@ async function checkPalmares() {
   const profession = document.getElementById('input-profession').value.trim();
   const texte      = document.getElementById('textarea-palmares').value.trim();
 
-  // Validation
   let hasError = false;
   ['input-prenom','input-nom'].forEach(id => document.getElementById(id).classList.remove('error'));
   document.getElementById('textarea-palmares').classList.remove('error');
@@ -1069,12 +1009,10 @@ async function checkPalmares() {
   }
   if (hasError) return;
 
-  // QCM
   if (!speedrunMode) {
     await showQCM();
   }
 
-  // Lancer la recherche en parallèle (instantané, juste du string matching)
   const searchPromise = Promise.resolve().then(() => {
     const lines       = texte.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const nameMatches = lines.filter(l => lineMatchesName(l, prenom, nom));
@@ -1083,7 +1021,6 @@ async function checkPalmares() {
     return { lines, pool };
   });
 
-  // Terminal brainrot (ou résultat direct en speedrun)
   if (!speedrunMode) {
     await showTerminalLoading();
     finishTerminal();
@@ -1118,12 +1055,11 @@ function updateDebugPanel(allLines, matchLines, prenom, nom) {
   if (!panel || panel.classList.contains('hidden')) return;
 
   const matchSet = new Set(matchLines);
-  const ctx = 4; // lignes de contexte autour du match
+  const ctx = 4;
 
   let html = `<div class="debug-title">🔬 Debug — ${allLines.length} lignes extraites</div>`;
 
   if (matchLines.length === 0) {
-    // Cherche quand même les lignes les plus proches (contient au moins prénom ou nom)
     const near = allLines.filter(l =>
       normalize(l).includes(normalize(prenom || '')) ||
       normalize(l).includes(normalize(nom || ''))
@@ -1248,7 +1184,6 @@ dropZone.addEventListener('drop', async e => {
   await loadPdfBuffer(await file.arrayBuffer(), file.name);
 });
 
-// Précharge les sprites dès que la page est prête
 preloadSprites();
 
 window.addEventListener('resize', () => {
