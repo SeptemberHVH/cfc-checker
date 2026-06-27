@@ -641,6 +641,64 @@ async function preloadVictoire() {
   } catch(e) {}
 }
 
+let _osuBuffer = null;
+let _osuSource = null;
+
+async function preloadOsu() {
+  try {
+    const res = await fetch('./OSU.MP3');
+    const buf = await res.arrayBuffer();
+    _osuBuffer = await getAudioCtx().decodeAudioData(buf);
+  } catch(e) {}
+}
+
+function playOsuMusic() {
+  if (!soundEnabled || !_osuBuffer) return;
+  stopOsuMusic();
+  try {
+    const ctx  = getAudioCtx();
+    ctx.resume().then(() => {
+      const gain = ctx.createGain();
+      gain.gain.value = 0.6;
+      gain.connect(ctx.destination);
+      _osuSource = ctx.createBufferSource();
+      _osuSource.buffer = _osuBuffer;
+      _osuSource.connect(gain);
+      _osuSource.start(0);
+      _osuSource.onended = () => { _osuSource = null; };
+    });
+  } catch(e) {}
+}
+
+function stopOsuMusic() {
+  if (_osuSource) {
+    try { _osuSource.stop(); } catch(e) {}
+    _osuSource = null;
+  }
+}
+
+function _playLogoSound() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      // Accord montant doux — impression d'apparition
+      [440, 554, 659, 880].forEach((freq, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.07;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.12, t + .06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + .5);
+        osc.start(t); osc.stop(t + .55);
+      });
+    });
+  } catch(e) {}
+}
+
 function stopVictoire() {
   if (_victoireSource) {
     try { _victoireSource.stop(); } catch(e) {}
@@ -983,6 +1041,28 @@ function showQCM() {
 
 function showOsuGame() {
   return new Promise(resolve => {
+    // ── Phase 1 : logo OSUHUN ──
+    const logoScreen = document.createElement('div');
+    logoScreen.className = 'osu-logo-screen';
+    logoScreen.innerHTML = `<img src="./OSUHUN.png" class="osu-logo-img" alt="HUN" />`;
+    document.body.appendChild(logoScreen);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      logoScreen.classList.add('osu-logo-in');
+      _playLogoSound();
+    }));
+
+    setTimeout(() => {
+      logoScreen.classList.add('osu-logo-out');
+      setTimeout(() => {
+        logoScreen.remove();
+        _startOsuGame(resolve);
+      }, 500);
+    }, 1200);
+  });
+}
+
+function _startOsuGame(resolve) {
     const game = document.createElement('div');
     game.className = 'osu-overlay';
     game.innerHTML = `
@@ -1002,6 +1082,8 @@ function showOsuGame() {
     `;
     document.body.appendChild(game);
     requestAnimationFrame(() => requestAnimationFrame(() => game.classList.add('osu-show')));
+
+    playOsuMusic();
 
     const field = game.querySelector('#osu-field');
 
@@ -1072,6 +1154,7 @@ function showOsuGame() {
     }
 
     function completeGame() {
+      stopOsuMusic();
       field.style.opacity = '0';
       setTimeout(() => {
         field.style.display = 'none';
@@ -1098,7 +1181,6 @@ function showOsuGame() {
     }
 
     setTimeout(() => spawnCircle(0), 350);
-  });
 }
 
 // ─── Terminal de chargement brainrot ─────────────────────────
@@ -1466,6 +1548,7 @@ dropZone.addEventListener('drop', async e => {
 
 preloadSprites();
 preloadVictoire();
+preloadOsu();
 
 window.addEventListener('resize', () => {
   const canvas = document.getElementById('confetti-canvas');
