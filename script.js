@@ -1287,21 +1287,30 @@ function showOsuGame() {
     // ── Phase 1 : logo OSUHUN ──
     const logoScreen = document.createElement('div');
     logoScreen.className = 'osu-logo-screen';
-    logoScreen.innerHTML = `<img src="./OSUHUN.png" class="osu-logo-img" alt="HUN" />`;
     document.body.appendChild(logoScreen);
 
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      logoScreen.classList.add('osu-logo-in');
-      _playLogoSound();
-    }));
+    const logoImg = new Image();
+    logoImg.className = 'osu-logo-img';
+    logoImg.alt = 'HUN';
+    logoScreen.appendChild(logoImg);
 
-    setTimeout(() => {
-      logoScreen.classList.add('osu-logo-out');
+    function _showLogo() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        logoScreen.classList.add('osu-logo-in');
+        _playLogoSound();
+      }));
       setTimeout(() => {
-        logoScreen.remove();
-        _startOsuGame(resolve);
-      }, 500);
-    }, 1200);
+        logoScreen.classList.add('osu-logo-out');
+        setTimeout(() => {
+          logoScreen.remove();
+          _startOsuGame(resolve);
+        }, 500);
+      }, 1800);
+    }
+
+    logoImg.onload  = _showLogo;
+    logoImg.onerror = _showLogo; // continue même si l'image échoue
+    logoImg.src = './OSUHUN.png';
   });
 }
 
