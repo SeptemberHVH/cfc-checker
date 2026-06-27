@@ -663,7 +663,7 @@ let _osuSource = null;
 
 async function preloadOsu() {
   try {
-    const res = await fetch('./OSU.MP3');
+    const res = await fetch('./OSU.mp3');
     const buf = await res.arrayBuffer();
     _osuBuffer = await getAudioCtx().decodeAudioData(buf);
   } catch(e) {}
