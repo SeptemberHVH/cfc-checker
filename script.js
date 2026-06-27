@@ -1431,6 +1431,233 @@ function showOsuResults(onContinue) {
   });
 }
 
+function _runOsuSlider(fieldEl, config, onDone) {
+  fieldEl.innerHTML = '';
+  fieldEl.style.opacity = '1';
+
+  const W = fieldEl.clientWidth  || 560;
+  const H = fieldEl.clientHeight || 360;
+
+  const cvs = document.createElement('canvas');
+  cvs.width  = W; cvs.height = H;
+  cvs.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none';
+  fieldEl.style.position = 'relative';
+  fieldEl.appendChild(cvs);
+  const ctx = cvs.getContext('2d');
+
+  // Control points in pixels
+  const P = config.pts.map(p => ({ x: p.x * W, y: p.y * H }));
+
+  function qBez(t, a, b, c) {
+    const u = 1 - t;
+    return { x: u*u*a.x + 2*u*t*b.x + t*t*c.x, y: u*u*a.y + 2*u*t*b.y + t*t*c.y };
+  }
+
+  // Pre-compute path for drawing
+  const STEPS = 80;
+  const pathPts = Array.from({ length: STEPS + 1 }, (_, i) => qBez(i / STEPS, P[0], P[1], P[2]));
+
+  // Ball position: reverse means 0→1 then 1→0
+  function ballAt(t) {
+    if (!config.reverse) return qBez(t, P[0], P[1], P[2]);
+    const t2 = t <= .5 ? t * 2 : (1 - t) * 2;
+    return qBez(t2, P[0], P[1], P[2]);
+  }
+
+  const HEAD_R    = Math.min(W, H) * 0.072;
+  const TRACK_W   = HEAD_R * 1.45;
+  const BALL_R    = HEAD_R * 0.84;
+  const APPROACH  = 850;   // ms approach ring shrinks
+  const TRAVEL    = config.duration;
+
+  let phase       = 'approach';
+  let startTime   = performance.now();
+  let activeStart = 0;
+  let holding     = false;
+  let outOfRange  = false;
+  let cursor      = { x: -999, y: -999 };
+  let rafId;
+
+  // ── Draw functions ─────────────────────────────────────────
+
+  function drawBody() {
+    ctx.lineCap  = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pathPts[0].x, pathPts[0].y);
+    for (let i = 1; i <= STEPS; i++) ctx.lineTo(pathPts[i].x, pathPts[i].y);
+    ctx.strokeStyle = 'rgba(255,255,255,.22)';
+    ctx.lineWidth   = TRACK_W + 8;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(120,60,220,.5)';
+    ctx.lineWidth   = TRACK_W;
+    ctx.stroke();
+  }
+
+  function drawEndCircle() {
+    const ep = pathPts[STEPS];
+    ctx.beginPath();
+    ctx.arc(ep.x, ep.y, HEAD_R, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(ep.x, ep.y, HEAD_R - 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(120,60,220,.25)';
+    ctx.fill();
+    if (config.reverse) {
+      ctx.fillStyle  = 'rgba(255,255,255,.85)';
+      ctx.font       = `bold ${HEAD_R * .9}px Rajdhani,sans-serif`;
+      ctx.textAlign  = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('↺', ep.x, ep.y);
+    }
+  }
+
+  function drawTicks() {
+    const tickTs = config.reverse ? [.25, .5, .75] : [.33, .66];
+    tickTs.forEach(t => {
+      const p = qBez(t, P[0], P[1], P[2]);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, HEAD_R * .14, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,.75)';
+      ctx.fill();
+    });
+  }
+
+  function drawHead(approachProgress) {
+    const hp = pathPts[0];
+    // Head fill
+    ctx.beginPath();
+    ctx.arc(hp.x, hp.y, HEAD_R, 0, Math.PI * 2);
+    const pulse = 0.55 + 0.2 * Math.sin(performance.now() * 0.008);
+    ctx.fillStyle = `rgba(168,85,247,${pulse})`;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+    // Number
+    ctx.fillStyle      = '#fff';
+    ctx.font           = `bold ${HEAD_R}px Bebas Neue,sans-serif`;
+    ctx.textAlign      = 'center';
+    ctx.textBaseline   = 'middle';
+    ctx.fillText(config.num, hp.x, hp.y);
+    // Approach ring (starts large, shrinks to head)
+    const ringR = HEAD_R + (1 - approachProgress) * HEAD_R * 2.8;
+    ctx.beginPath();
+    ctx.arc(hp.x, hp.y, ringR, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(168,85,247,${.9 - approachProgress * .3})`;
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+  }
+
+  function drawBall(bp) {
+    const color = outOfRange ? '#ef4444' : '#fff';
+    const glow  = outOfRange ? 'rgba(239,68,68,' : 'rgba(168,85,247,';
+    // Outer glow
+    const grad = ctx.createRadialGradient(bp.x, bp.y, 0, bp.x, bp.y, BALL_R * 2);
+    grad.addColorStop(0,   glow + '.7)');
+    grad.addColorStop(.6,  glow + '.3)');
+    grad.addColorStop(1,   glow + '0)');
+    ctx.beginPath();
+    ctx.arc(bp.x, bp.y, BALL_R * 2, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // Ball
+    ctx.beginPath();
+    ctx.arc(bp.x, bp.y, BALL_R, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.8)' : 'rgba(168,85,247,.9)';
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+    // Follow ring on cursor
+    if (phase === 'active') {
+      ctx.beginPath();
+      ctx.arc(bp.x, bp.y, HEAD_R * 1.9, 0, Math.PI * 2);
+      ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.35)' : 'rgba(255,255,255,.18)';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+  }
+
+  // ── Main render loop ────────────────────────────────────────
+
+  function frame(now) {
+    ctx.clearRect(0, 0, W, H);
+    drawBody();
+    drawTicks();
+    drawEndCircle();
+
+    if (phase === 'approach') {
+      const prog = Math.min(1, (now - startTime) / APPROACH);
+      drawHead(prog);
+      rafId = requestAnimationFrame(frame);
+
+    } else if (phase === 'active') {
+      const t  = Math.min(1, (now - activeStart) / TRAVEL);
+      const bp = ballAt(t);
+
+      const dx = cursor.x - bp.x;
+      const dy = cursor.y - bp.y;
+      outOfRange = !holding || Math.sqrt(dx * dx + dy * dy) > HEAD_R * 2.5;
+
+      drawBall(bp);
+
+      if (t >= 1) {
+        phase = 'done';
+        _playClickBeep();
+        // Flash green
+        ctx.fillStyle = 'rgba(34,197,94,.18)';
+        ctx.fillRect(0, 0, W, H);
+        setTimeout(onDone, 320);
+      } else {
+        rafId = requestAnimationFrame(frame);
+      }
+    }
+  }
+
+  // ── Input ───────────────────────────────────────────────────
+
+  cvs.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (phase === 'active') { holding = true; cvs.setPointerCapture(e.pointerId); return; }
+    if (phase !== 'approach') return;
+    const rect = cvs.getBoundingClientRect();
+    const cx   = (e.clientX - rect.left) * (W / rect.width);
+    const cy   = (e.clientY - rect.top)  * (H / rect.height);
+    const dx   = cx - pathPts[0].x;
+    const dy   = cy - pathPts[0].y;
+    if (Math.sqrt(dx * dx + dy * dy) <= HEAD_R * 1.7) {
+      cancelAnimationFrame(rafId);
+      phase = 'active';
+      activeStart = performance.now();
+      holding = true;
+      cvs.setPointerCapture(e.pointerId);
+      _playClickBeep();
+      rafId = requestAnimationFrame(frame);
+    }
+  });
+
+  cvs.addEventListener('pointermove', e => {
+    const rect = cvs.getBoundingClientRect();
+    cursor.x   = (e.clientX - rect.left) * (W / rect.width);
+    cursor.y   = (e.clientY - rect.top)  * (H / rect.height);
+  });
+
+  cvs.addEventListener('pointerup',   () => { holding = false; });
+  cvs.addEventListener('pointercancel', () => { holding = false; });
+
+  cvs.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const rect = cvs.getBoundingClientRect();
+    cursor.x = (e.touches[0].clientX - rect.left) * (W / rect.width);
+    cursor.y = (e.touches[0].clientY - rect.top)  * (H / rect.height);
+  }, { passive: false });
+
+  rafId = requestAnimationFrame(frame);
+}
+
 function _startOsuGame(resolve) {
     const game = document.createElement('div');
     game.className = 'osu-overlay';
@@ -1490,36 +1717,17 @@ function _startOsuGame(resolve) {
     }
 
     function showSlider() {
-      field.innerHTML = `
-        <div class="osu-slider-wrap">
-          <div class="osu-slider-hint">→ FAITES GLISSER →</div>
-          <div class="osu-slider-track" id="osu-track">
-            <div class="osu-slider-prog" id="osu-prog"></div>
-            <div class="osu-slider-knob" id="osu-knob"></div>
-          </div>
-        </div>
-      `;
-      const track = field.querySelector('#osu-track');
-      const prog  = field.querySelector('#osu-prog');
-      const knob  = field.querySelector('#osu-knob');
-      let dragging = false, done = false;
-
-      function setPos(clientX) {
-        const r = track.getBoundingClientRect();
-        const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
-        knob.style.left  = (p * 100) + '%';
-        prog.style.width = (p * 100) + '%';
-        if (p >= .92 && !done) { done = true; completeGame(); }
-      }
-
-      knob.addEventListener('pointerdown', e => { dragging = true; knob.setPointerCapture(e.pointerId); });
-      knob.addEventListener('pointermove', e => { if (dragging) setPos(e.clientX); });
-      knob.addEventListener('pointerup',   () => { dragging = false; });
-      // mobile touch fallback on track
-      track.addEventListener('touchmove', e => {
-        e.preventDefault();
-        setPos(e.touches[0].clientX);
-      }, { passive: false });
+      _runOsuSlider(field, {
+        pts: [{ x: .15, y: .55 }, { x: .5, y: .15 }, { x: .85, y: .55 }],
+        reverse: false, num: 4, duration: 1600
+      }, () => {
+        setTimeout(() => {
+          _runOsuSlider(field, {
+            pts: [{ x: .82, y: .3 }, { x: .4, y: .75 }, { x: .18, y: .38 }],
+            reverse: true, num: 5, duration: 2000
+          }, completeGame);
+        }, 350);
+      });
     }
 
     function completeGame() {
