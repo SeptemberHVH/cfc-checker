@@ -652,15 +652,17 @@ function playVictoire() {
   if (!soundEnabled || !_victoireBuffer) return;
   stopVictoire();
   try {
-    const ctx  = getAudioCtx();
-    const gain = ctx.createGain();
-    gain.gain.value = 0.7;
-    gain.connect(ctx.destination);
-    _victoireSource = ctx.createBufferSource();
-    _victoireSource.buffer = _victoireBuffer;
-    _victoireSource.connect(gain);
-    _victoireSource.start(0);
-    _victoireSource.onended = () => { _victoireSource = null; };
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const gain = ctx.createGain();
+      gain.gain.value = 0.7;
+      gain.connect(ctx.destination);
+      _victoireSource = ctx.createBufferSource();
+      _victoireSource.buffer = _victoireBuffer;
+      _victoireSource.connect(gain);
+      _victoireSource.start(0);
+      _victoireSource.onended = () => { _victoireSource = null; };
+    });
   } catch(e) {}
 }
 
@@ -890,6 +892,42 @@ document.getElementById('btn-mode-manual').addEventListener('click', () => setMo
 
 // ─── QCM avant la recherche ───────────────────────────────────
 
+function _playErrorBeep() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + .28);
+      gain.gain.setValueAtTime(.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .3);
+      osc.start(); osc.stop(ctx.currentTime + .3);
+    });
+  } catch(e) {}
+}
+
+function _playClickBeep() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + .08);
+      gain.gain.setValueAtTime(.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .1);
+      osc.start(); osc.stop(ctx.currentTime + .1);
+    });
+  } catch(e) {}
+}
+
 function showQCM() {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
@@ -910,34 +948,156 @@ function showQCM() {
     document.body.appendChild(overlay);
     requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('qcm-show')));
 
-    function closeQCM() {
+    // ── Bouton OUI — mauvaise réponse ──
+    let ouiLocked = false;
+    overlay.querySelector('#qcm-oui').addEventListener('click', function() {
+      if (ouiLocked) return;
+      _playErrorBeep();
+      this.classList.add('qcm-oui-shake');
+      const res = overlay.querySelector('#qcm-result');
+      res.innerHTML = `
+        <span class="term-err">❌ Réponse incorrecte.</span><br>
+        <span class="qcm-err-sub">Les vrais employés de commerce lisent les consignes.</span>
+      `;
+      res.classList.add('show');
+      setTimeout(() => {
+        this.classList.remove('qcm-oui-shake');
+        this.disabled = true;
+        ouiLocked = true;
+        this.classList.add('qcm-btn-dead');
+      }, 1000);
+    });
+
+    // ── Bouton NON — lance le mini-jeu ──
+    overlay.querySelector('#qcm-non').addEventListener('click', () => {
       overlay.classList.add('qcm-hide');
-      setTimeout(() => { overlay.remove(); resolve(); }, 450);
+      setTimeout(() => {
+        overlay.remove();
+        showOsuGame().then(resolve);
+      }, 300);
+    });
+  });
+}
+
+// ─── Mini-jeu OSU ────────────────────────────────────────────
+
+function showOsuGame() {
+  return new Promise(resolve => {
+    const game = document.createElement('div');
+    game.className = 'osu-overlay';
+    game.innerHTML = `
+      <div class="osu-container">
+        <div class="osu-header">
+          <span class="osu-title">INTERFACE TEST</span>
+          <span class="osu-sub">CLIQUEZ LES CERCLES</span>
+        </div>
+        <div class="osu-field" id="osu-field"></div>
+        <div class="osu-finish" id="osu-finish" style="display:none">
+          <div class="osu-finish-bar-label">INTERFACE SKILLS</div>
+          <div class="osu-finish-track"><div class="osu-finish-fill" id="osu-finish-fill"></div></div>
+          <div class="osu-finish-pct" id="osu-finish-pct">0%</div>
+          <div class="osu-finish-done" id="osu-finish-done">✔ INTERFACE VALIDÉE — HUN APPROVED</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(game);
+    requestAnimationFrame(() => requestAnimationFrame(() => game.classList.add('osu-show')));
+
+    const field = game.querySelector('#osu-field');
+
+    const CIRCLES = [
+      { x: 22, y: 38 },
+      { x: 68, y: 22 },
+      { x: 48, y: 68 },
+    ];
+    let step = 0;
+
+    function spawnCircle(idx) {
+      if (idx >= CIRCLES.length) { showSlider(); return; }
+      const { x, y } = CIRCLES[idx];
+      const el = document.createElement('div');
+      el.className = 'osu-circle';
+      el.style.left = x + '%';
+      el.style.top  = y + '%';
+      el.innerHTML  = `<span class="osu-num">${idx + 1}</span><span class="osu-ring"></span>`;
+      field.appendChild(el);
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('osu-circle-in')));
+
+      function hit(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        el.removeEventListener('click', hit);
+        el.removeEventListener('touchstart', hit);
+        _playClickBeep();
+        el.classList.add('osu-hit');
+        setTimeout(() => el.remove(), 350);
+        step++;
+        setTimeout(() => spawnCircle(step), 280);
+      }
+      el.addEventListener('click', hit);
+      el.addEventListener('touchstart', hit, { passive: false });
     }
 
-    overlay.querySelector('#qcm-non').addEventListener('click', () => {
-      overlay.querySelector('#qcm-options').style.display = 'none';
-      const res = overlay.querySelector('#qcm-result');
-      res.innerHTML = [
-        '<span class="term-err">❌ Compétence manquante...</span>',
-        'Formation accélérée...',
-        '<span class="qcm-bar term-ok">████████████████</span>',
-        '<span class="term-ok">✔ Interface acquise.</span>',
-      ].join('<br>');
-      res.classList.add('show');
-      setTimeout(closeQCM, 2000);
-    });
+    function showSlider() {
+      field.innerHTML = `
+        <div class="osu-slider-wrap">
+          <div class="osu-slider-hint">→ FAITES GLISSER →</div>
+          <div class="osu-slider-track" id="osu-track">
+            <div class="osu-slider-prog" id="osu-prog"></div>
+            <div class="osu-slider-knob" id="osu-knob"></div>
+          </div>
+        </div>
+      `;
+      const track = field.querySelector('#osu-track');
+      const prog  = field.querySelector('#osu-prog');
+      const knob  = field.querySelector('#osu-knob');
+      let dragging = false, done = false;
 
-    overlay.querySelector('#qcm-oui').addEventListener('click', () => {
-      overlay.querySelector('#qcm-options').style.display = 'none';
-      const res = overlay.querySelector('#qcm-result');
-      res.innerHTML = [
-        '<span class="term-ok">✔ Niveau CFC PRO MAX détecté.</span>',
-        '<span class="term-warn">HUN APPROVED.</span>',
-      ].join('<br>');
-      res.classList.add('show');
-      setTimeout(closeQCM, 1300);
-    });
+      function setPos(clientX) {
+        const r = track.getBoundingClientRect();
+        const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+        knob.style.left  = (p * 100) + '%';
+        prog.style.width = (p * 100) + '%';
+        if (p >= .92 && !done) { done = true; completeGame(); }
+      }
+
+      knob.addEventListener('pointerdown', e => { dragging = true; knob.setPointerCapture(e.pointerId); });
+      knob.addEventListener('pointermove', e => { if (dragging) setPos(e.clientX); });
+      knob.addEventListener('pointerup',   () => { dragging = false; });
+      // mobile touch fallback on track
+      track.addEventListener('touchmove', e => {
+        e.preventDefault();
+        setPos(e.touches[0].clientX);
+      }, { passive: false });
+    }
+
+    function completeGame() {
+      field.style.opacity = '0';
+      setTimeout(() => {
+        field.style.display = 'none';
+        const fin  = game.querySelector('#osu-finish');
+        const fill = game.querySelector('#osu-finish-fill');
+        const pct  = game.querySelector('#osu-finish-pct');
+        const done = game.querySelector('#osu-finish-done');
+        fin.style.display = 'block';
+        let v = 0;
+        const iv = setInterval(() => {
+          v = Math.min(100, v + 5);
+          fill.style.width = v + '%';
+          pct.textContent  = v + '%';
+          if (v >= 100) {
+            clearInterval(iv);
+            done.classList.add('osu-done-show');
+            setTimeout(() => {
+              game.classList.add('osu-hide');
+              setTimeout(() => { game.remove(); resolve(); }, 450);
+            }, 900);
+          }
+        }, 18);
+      }, 200);
+    }
+
+    setTimeout(() => spawnCircle(0), 350);
   });
 }
 
