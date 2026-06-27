@@ -1138,6 +1138,33 @@ input.error, textarea.error {
 .qcm-oui-shake { animation: qcm-shake .55s ease both; }
 .qcm-btn-dead  { opacity: .3 !important; cursor: not-allowed !important; filter: grayscale(1); pointer-events: none; }
 
+/* ─── Écran logo OSU HUN ─────────────────────────────────── */
+
+.osu-logo-screen {
+  position: fixed; inset: 0; z-index: 6500;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity .45s ease;
+  pointer-events: none;
+}
+.osu-logo-screen.osu-logo-in  { opacity: 1; }
+.osu-logo-screen.osu-logo-out { opacity: 0; }
+
+.osu-logo-img {
+  max-width: min(320px, 70vw);
+  max-height: 50vh;
+  object-fit: contain;
+  filter: drop-shadow(0 0 40px rgba(168,85,247,.8)) drop-shadow(0 0 80px rgba(168,85,247,.4));
+  animation: osu-logo-pulse 1.2s ease-in-out;
+}
+
+@keyframes osu-logo-pulse {
+  0%   { transform: scale(.85); filter: drop-shadow(0 0 0 rgba(168,85,247,0)); }
+  40%  { transform: scale(1.04); filter: drop-shadow(0 0 60px rgba(168,85,247,.9)); }
+  100% { transform: scale(1);   filter: drop-shadow(0 0 40px rgba(168,85,247,.8)); }
+}
+
 /* ─── Mini-jeu OSU ────────────────────────────────────────── */
 
 .osu-overlay {
