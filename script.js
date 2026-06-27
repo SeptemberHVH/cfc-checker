@@ -393,6 +393,22 @@ function setPdfStatus(msg, type = '') {
   el.className = 'pdf-status' + (type ? ' ' + type : '');
 }
 
+function extractPdfDate(url) {
+  const m = url.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})/);
+  if (!m) return null;
+  return `${m[3]}.${m[2]}.${m[1]} à ${m[4]}h${m[5]}`;
+}
+
+function setPdfDate(url) {
+  const el = document.getElementById('pdf-date');
+  if (!el) return;
+  const date = extractPdfDate(url);
+  if (date) {
+    el.textContent = `📅 PDF trouvé — mis à jour le ${date}`;
+    el.className = 'pdf-date show';
+  }
+}
+
 function setPdfDropLoaded(filename) {
   const zone = document.getElementById('pdf-drop-zone');
   zone.classList.add('loaded');
@@ -446,6 +462,7 @@ async function fetchPdfAuto() {
       btn.classList.add('success');
       label.textContent = 'PDF chargé !';
       icon.textContent  = '✅';
+      setPdfDate(src.url.includes('palmares.pdf') ? PDF_URL : src.url);
       await loadPdfBuffer(buffer, 'palmares.pdf');
       return;
     } catch (_) {
@@ -749,6 +766,88 @@ function showAchievement() {
   setTimeout(() => toast.classList.remove('show'), 5000);
 }
 
+// ─── Alain Addor — Rewards sequence ──────────────────────────
+
+function _playRewardBeep(freq = 880, dur = 0.18) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t); osc.stop(t + dur + 0.05);
+    });
+  } catch(e) {}
+}
+
+function showAlainRewards() {
+  const items = [
+    { label: '+1 000',      sub: 'SOCIAL CREDIT',   color: '#a855f7', glow: 'rgba(168,85,247,.7)',  freq: 660  },
+    { label: '+250',        sub: 'HUN POINTS',       color: '#f59e0b', glow: 'rgba(245,158,11,.7)',  freq: 770  },
+    { label: '+999',        sub: 'INTERFACE XP',     color: '#22c55e', glow: 'rgba(34,197,94,.7)',   freq: 880  },
+    { label: '+1',          sub: 'CFC PRO MAX',      color: '#06b6d4', glow: 'rgba(6,182,212,.7)',   freq: 1046 },
+  ];
+
+  // Container for floating reward chips
+  const wrap = document.createElement('div');
+  wrap.id = 'alain-rewards-wrap';
+  document.body.appendChild(wrap);
+
+  let delay = 0;
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      const chip = document.createElement('div');
+      chip.className = 'alain-reward-chip';
+      chip.style.setProperty('--rc', item.color);
+      chip.style.setProperty('--rg', item.glow);
+      chip.style.top = `${22 + i * 13}%`;
+      chip.innerHTML = `<span class="arc-num">${item.label}</span><span class="arc-sub">${item.sub}</span>`;
+      wrap.appendChild(chip);
+      requestAnimationFrame(() => requestAnimationFrame(() => chip.classList.add('arc-in')));
+      _playRewardBeep(item.freq, 0.22);
+      setTimeout(() => chip.classList.add('arc-out'), 1400);
+      setTimeout(() => chip.remove(), 1900);
+    }, delay);
+    delay += 620;
+  });
+
+  // Big reward card after all chips
+  setTimeout(() => {
+    _playRewardBeep(1318, 0.6);
+    setTimeout(() => _playRewardBeep(1568, 0.5), 120);
+    setTimeout(() => _playRewardBeep(2093, 0.8), 260);
+
+    const card = document.createElement('div');
+    card.id = 'alain-reward-card';
+    card.innerHTML = `
+      <div class="arc-card-inner">
+        <div class="arc-card-line">══════════════════════════</div>
+        <div class="arc-card-trophy">🏆</div>
+        <div class="arc-card-label">REWARD UNLOCKED</div>
+        <div class="arc-card-title">SOCIAL CREDIT</div>
+        <div class="arc-card-value">+999 999 999</div>
+        <div class="arc-card-edition">HUN EDITION</div>
+        <div class="arc-card-line">══════════════════════════</div>
+      </div>
+    `;
+    document.body.appendChild(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('arc-card-in')));
+    setTimeout(() => {
+      card.classList.add('arc-card-out');
+      setTimeout(() => card.remove(), 700);
+    }, 2600);
+
+    setTimeout(() => wrap.remove(), 3400);
+  }, delay + 200);
+}
+
 // ─── Gold flash ───────────────────────────────────────────────
 
 function triggerGoldFlash() {
@@ -843,6 +942,7 @@ function renderSuccess(matchResults, prenom, nom) {
     `;
     triggerGoldFlash();
     setTimeout(showAchievement, 600);
+    setTimeout(showAlainRewards, 1800);
   } else {
     // ── MODE NORMAL ──
     zone.innerHTML = `
