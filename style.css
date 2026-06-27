@@ -1123,6 +1123,209 @@ input.error, textarea.error {
 .qcm-result.show { display: block; }
 
 .qcm-bar { color: #22c55e; }
+.qcm-err-sub { color: #475569; font-size: 11px; letter-spacing: .5px; }
+
+/* Bouton OUI — mauvaise réponse */
+@keyframes qcm-shake {
+  0%,100% { transform: translateX(0) rotate(0deg); }
+  15%      { transform: translateX(-8px) rotate(-2deg); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  30%      { transform: translateX(8px)  rotate(2deg);  background: rgba(239,68,68,.08); }
+  45%      { transform: translateX(-6px) rotate(-1deg); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  60%      { transform: translateX(6px)  rotate(1deg);  background: rgba(239,68,68,.08); }
+  75%      { transform: translateX(-3px); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  90%      { transform: translateX(3px); }
+}
+.qcm-oui-shake { animation: qcm-shake .55s ease both; }
+.qcm-btn-dead  { opacity: .3 !important; cursor: not-allowed !important; filter: grayscale(1); pointer-events: none; }
+
+/* ─── Mini-jeu OSU ────────────────────────────────────────── */
+
+.osu-overlay {
+  position: fixed; inset: 0; z-index: 6000;
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.osu-overlay.osu-show { opacity: 1; }
+.osu-overlay.osu-hide { opacity: 0; pointer-events: none; }
+
+.osu-container {
+  width: min(500px, 96vw);
+  background: #030309;
+  border: 1px solid rgba(168,85,247,.5);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 0 80px rgba(168,85,247,.2), inset 0 1px 0 rgba(168,85,247,.1);
+  animation: qcm-in .35s cubic-bezier(.22,1,.36,1) both;
+}
+
+.osu-header { text-align: center; margin-bottom: 18px; }
+.osu-title {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 28px;
+  letter-spacing: 5px;
+  color: var(--violet-glow);
+  text-shadow: 0 0 20px rgba(168,85,247,.6);
+}
+.osu-sub {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+}
+
+.osu-field {
+  position: relative;
+  height: 200px;
+  background: rgba(5,5,12,.8);
+  border: 1px solid #0f0f20;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: opacity .2s;
+}
+
+/* Circles */
+.osu-circle {
+  position: absolute;
+  width: 64px; height: 64px;
+  transform: translate(-50%, -50%) scale(0);
+  cursor: pointer;
+  user-select: none;
+  transition: transform .18s cubic-bezier(.175,.885,.32,1.275);
+}
+.osu-circle-in { transform: translate(-50%, -50%) scale(1); }
+.osu-circle.osu-hit { transform: translate(-50%, -50%) scale(1.6) !important; opacity: 0; transition: transform .3s ease, opacity .3s ease; }
+
+.osu-num {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(124,58,237,.25);
+  border: 2px solid var(--violet-glow);
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 22px;
+  letter-spacing: 0;
+  box-shadow: 0 0 20px rgba(168,85,247,.5), inset 0 0 14px rgba(168,85,247,.15);
+  z-index: 1;
+}
+
+.osu-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(168,85,247,.7);
+  animation: osu-approach 1.2s linear forwards;
+}
+
+@keyframes osu-approach {
+  from { transform: scale(1.8); opacity: .5; }
+  to   { transform: scale(1.05); opacity: 1; }
+}
+
+/* Explosion verte au clic */
+.osu-circle.osu-hit .osu-num {
+  background: rgba(34,197,94,.35);
+  border-color: var(--green-glow);
+  box-shadow: 0 0 40px rgba(34,197,94,.8), inset 0 0 20px rgba(34,197,94,.3);
+  color: var(--green-glow);
+}
+
+/* Slider */
+.osu-slider-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 16px;
+}
+.osu-slider-hint {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--violet-glow);
+  animation: blink-dot 1s step-end infinite;
+}
+.osu-slider-track {
+  position: relative;
+  width: 88%;
+  height: 12px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.osu-slider-prog {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--violet) 0%, var(--violet-glow) 100%);
+  border-radius: 999px;
+  width: 0%;
+  box-shadow: 0 0 10px rgba(168,85,247,.6);
+  transition: width .04s linear;
+}
+.osu-slider-knob {
+  position: absolute;
+  top: 50%; left: 0%;
+  transform: translate(-50%, -50%);
+  width: 28px; height: 28px;
+  background: var(--violet-glow);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 18px rgba(168,85,247,.8);
+  border: 2px solid #fff;
+  touch-action: none;
+  transition: left .04s linear;
+}
+.osu-slider-knob:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.15); }
+
+/* Finish bar */
+.osu-finish {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.osu-finish-bar-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--violet-glow);
+  margin-bottom: 10px;
+}
+.osu-finish-track {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.osu-finish-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--violet) 0%, var(--green) 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(34,197,94,.5);
+  transition: width .04s linear;
+}
+.osu-finish-pct {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--violet-glow);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+.osu-finish-done {
+  font-family: var(--font-title);
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: var(--green-glow);
+  text-shadow: 0 0 20px var(--green-glow);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.osu-finish-done.osu-done-show { opacity: 1; transform: translateY(0); }
 
 /* ─── Terminal de chargement ──────────────────────────────── */
 
