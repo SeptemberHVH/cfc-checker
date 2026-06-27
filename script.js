@@ -1126,13 +1126,156 @@ function showQCM() {
       }, 1000);
     });
 
-    // ── Bouton NON — lance le mini-jeu ──
+    // ── Bouton NON — roue puis mini-jeu ──
     overlay.querySelector('#qcm-non').addEventListener('click', () => {
       overlay.classList.add('qcm-hide');
       setTimeout(() => {
         overlay.remove();
-        showOsuGame().then(resolve);
+        showSpinWheel().then(() => showOsuGame().then(resolve));
       }, 300);
+    });
+  });
+}
+
+// ─── Roue de la chance ───────────────────────────────────────
+
+function showSpinWheel() {
+  return new Promise(resolve => {
+    const SEGMENTS = [
+      { label: 'HUN',       color: '#a855f7', reward: '+35 HUN POINTS'      },
+      { label: 'TUNG',      color: '#f59e0b', reward: '+12 TUNG TOKENS'     },
+      { label: 'MAMA',      color: '#22c55e', reward: '+99 MAMA CREDITS'    },
+      { label: 'GUAVO',     color: '#06b6d4', reward: '+77 GUAVO XP'        },
+      { label: 'INTERFACE', color: '#e91e8c', reward: '+50 INTERFACE SKILLS' },
+      { label: 'WESLEY',    color: '#ef4444', reward: '-10 SOCIAL CREDIT'   },
+    ];
+    const N = SEGMENTS.length;
+    const WINNER_IDX = 0; // toujours HUN
+
+    const overlay = document.createElement('div');
+    overlay.id = 'spin-overlay';
+    overlay.innerHTML = `
+      <div class="spin-box">
+        <div class="spin-title">🎰 ROUE DE LA CHANCE</div>
+        <div class="spin-subtitle">Tente ta chance avant la game</div>
+        <div class="spin-arena">
+          <canvas id="spin-canvas" width="320" height="320"></canvas>
+          <div class="spin-needle"></div>
+        </div>
+        <div class="spin-result" id="spin-result"></div>
+        <button class="spin-btn" id="spin-btn">▶ TOURNER</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('spin-in')));
+
+    const canvas = overlay.querySelector('#spin-canvas');
+    const ctx    = canvas.getContext('2d');
+    const cx = 160, cy = 160, r = 148;
+    let currentAngle = 0;
+
+    function drawWheel(angle) {
+      ctx.clearRect(0, 0, 320, 320);
+      const slice = (Math.PI * 2) / N;
+      SEGMENTS.forEach((seg, i) => {
+        const start = angle + i * slice;
+        const end   = start + slice;
+        // Segment fill
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, end);
+        ctx.closePath();
+        ctx.fillStyle = seg.color;
+        ctx.globalAlpha = .85;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Border
+        ctx.strokeStyle = 'rgba(255,255,255,.18)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Label
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(start + slice / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 15px Rajdhani, sans-serif';
+        ctx.shadowColor = 'rgba(0,0,0,.7)';
+        ctx.shadowBlur = 6;
+        ctx.fillText(seg.label, r - 12, 5);
+        ctx.restore();
+      });
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#060412';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    drawWheel(0);
+
+    let spinning = false;
+    overlay.querySelector('#spin-btn').addEventListener('click', function() {
+      if (spinning) return;
+      spinning = true;
+      this.disabled = true;
+      this.textContent = '⏳ EN COURS...';
+
+      // Target angle: land needle (top = -π/2) on winner segment center
+      const slice = (Math.PI * 2) / N;
+      // Needle at top = angle offset -π/2
+      // Segment i center at: angle + i*slice + slice/2
+      // We want that = -π/2 (mod 2π)  → angle = -π/2 - (WINNER_IDX*slice + slice/2)
+      const extraSpins  = 6 * Math.PI * 2; // 6 full turns
+      const targetOffset = -Math.PI / 2 - (WINNER_IDX * slice + slice / 2);
+      const totalRotation = extraSpins + ((targetOffset - currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+      const duration = 4200;
+      const start    = performance.now();
+      const startAngle = currentAngle;
+
+      // Sound: quick ticks
+      let lastTick = -1;
+      function spinSound(progress) {
+        const tickInterval = Math.max(0.06, 0.35 * (1 - progress));
+        const ticks = Math.floor(progress * totalRotation / (Math.PI * 2 / N));
+        if (ticks !== lastTick) {
+          lastTick = ticks;
+          _playRewardBeep(440 + (ticks % 6) * 60, 0.04);
+        }
+      }
+
+      function animate(now) {
+        const elapsed = now - start;
+        const t = Math.min(1, elapsed / duration);
+        // ease out cubic
+        const ease = 1 - Math.pow(1 - t, 3);
+        currentAngle = startAngle + totalRotation * ease;
+        drawWheel(currentAngle);
+        spinSound(t);
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Show result
+          const res = overlay.querySelector('#spin-result');
+          const seg = SEGMENTS[WINNER_IDX];
+          res.innerHTML = `<span style="color:${seg.color};text-shadow:0 0 20px ${seg.color}">🎉 ${seg.reward}</span>`;
+          res.classList.add('spin-result-show');
+          _playRewardBeep(880, 0.3);
+          setTimeout(() => _playRewardBeep(1046, 0.3), 150);
+          setTimeout(() => _playRewardBeep(1318, 0.5), 320);
+
+          setTimeout(() => {
+            overlay.classList.add('spin-out');
+            setTimeout(() => { overlay.remove(); resolve(); }, 500);
+          }, 2200);
+        }
+      }
+      requestAnimationFrame(animate);
     });
   });
 }
@@ -1413,10 +1556,12 @@ const TERMINAL_MAIN = [
   { text: 'Checking HUN Engine...', status: 'OK', sc: 'term-ok' },
   { text: 'Checking Tung Tung Sahur...', status: 'OK', sc: 'term-ok' },
   null, // easter egg slot 1
+  { type: 'downloads' },
   { text: 'Searching Wesley...', status: 'ERROR', sc: 'term-err' },
   { text: 'Searching Wesley (2nd try)...', status: 'ERROR', sc: 'term-err' },
   { text: 'Searching Wesley (3rd try)...', status: 'TOO RETARDED', sc: 'term-err' },
   { text: 'Cancelling Wesley...' },
+  { type: 'gitlogs' },
   { text: 'Loading HUN Search Engine...', status: '✔ READY', sc: 'term-ok' },
   null, // easter egg slot 2
   { text: 'Reading palmarès...' },
@@ -1482,10 +1627,90 @@ function showTerminalLoading() {
 
     function addLine(line) {
       const body = document.getElementById('terminal-body');
-      if (!body) return;
+      if (!body) return Promise.resolve();
       const cursor = body.querySelector('.term-cursor');
       if (cursor) cursor.remove();
 
+      // ── Bloc téléchargements ──
+      if (line.type === 'downloads') {
+        const files = [
+          { name: 'interface.dll', ok: true  },
+          { name: 'hun.sys',       ok: true  },
+          { name: 'wesley.exe',    ok: false },
+          { name: 'brainrot.iso',  ok: true  },
+          { name: 'CFC.pdf',       ok: true  },
+        ];
+        const block = document.createElement('div');
+        block.className = 'term-dl-block';
+        block.innerHTML = `<div class="terminal-line term-warn">▶ Installing dependencies...</div>`;
+        body.appendChild(block);
+        moveCursor(body);
+        body.scrollTop = body.scrollHeight;
+        return new Promise(r => {
+          let i = 0;
+          function nextFile() {
+            if (i >= files.length) { setTimeout(r, 200); return; }
+            const f   = files[i++];
+            const row = document.createElement('div');
+            row.className = 'term-dl-row';
+            row.innerHTML = `<span class="term-dl-bar"><span class="term-dl-fill"></span></span><span class="term-dl-name">${f.name}</span><span class="term-dl-status"></span>`;
+            block.appendChild(row);
+            body.scrollTop = body.scrollHeight;
+            const fill   = row.querySelector('.term-dl-fill');
+            const status = row.querySelector('.term-dl-status');
+            let w = 0;
+            const iv = setInterval(() => {
+              w = Math.min(100, w + 8 + Math.random() * 12);
+              fill.style.width = w + '%';
+              if (w >= 100) {
+                clearInterval(iv);
+                fill.style.background = f.ok ? '#22c55e' : '#ef4444';
+                status.textContent = f.ok ? ' ✔' : ' ❌';
+                status.style.color = f.ok ? '#22c55e' : '#ef4444';
+                body.scrollTop = body.scrollHeight;
+                setTimeout(nextFile, 180);
+              }
+            }, 30);
+          }
+          setTimeout(nextFile, 100);
+        });
+      }
+
+      // ── Bloc logs GitHub ──
+      if (line.type === 'gitlogs') {
+        const commits = [
+          { msg: 'Fix Wesley',    status: 'FAILED',  ok: false },
+          { msg: 'Remove Wesley', status: 'SUCCESS', ok: true  },
+          { msg: 'Add HUN',       status: 'SUCCESS', ok: true  },
+        ];
+        const block = document.createElement('div');
+        block.className = 'term-git-block';
+        block.innerHTML = `<div class="terminal-line term-warn">▶ Fetching GitHub Actions logs...</div>`;
+        body.appendChild(block);
+        moveCursor(body);
+        body.scrollTop = body.scrollHeight;
+        return new Promise(r => {
+          let i = 0;
+          function nextCommit() {
+            if (i >= commits.length) { setTimeout(r, 200); return; }
+            const c   = commits[i++];
+            const row = document.createElement('div');
+            row.className = 'term-git-row';
+            row.innerHTML = `
+              <span class="term-git-dot ${c.ok ? 'git-ok' : 'git-fail'}"></span>
+              <span class="term-git-label">Commit :</span>
+              <span class="term-git-msg">${c.msg}</span>
+              <span class="term-git-status ${c.ok ? 'git-ok' : 'git-fail'}">${c.status}</span>
+            `;
+            block.appendChild(row);
+            body.scrollTop = body.scrollHeight;
+            setTimeout(nextCommit, 420);
+          }
+          setTimeout(nextCommit, 120);
+        });
+      }
+
+      // ── Ligne texte normale ──
       const el = document.createElement('div');
       el.className = 'terminal-line' + (line.cls ? ' ' + line.cls : '');
 
