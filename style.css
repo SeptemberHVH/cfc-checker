@@ -1809,3 +1809,259 @@ input.error, textarea.error {
   text-shadow: 0 0 16px rgba(34,197,94,.6);
   margin-bottom: 10px;
 }
+
+/* ─── OSU Results Screen ──────────────────────────────────── */
+
+#osu-results-overlay {
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(4,3,12,.92);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: scale(.96);
+  transition: opacity .4s cubic-bezier(.22,1,.36,1), transform .4s cubic-bezier(.22,1,.36,1);
+}
+
+#osu-results-overlay.osr-in  { opacity: 1; transform: scale(1); }
+#osu-results-overlay.osr-out { opacity: 0; transform: scale(1.04); transition: opacity .5s ease, transform .5s ease; }
+
+.osr-inner {
+  display: grid;
+  grid-template-areas:
+    "top   top   rank"
+    "score score rank"
+    "stats stats rank"
+    "perf  perf  rank"
+    "btn   btn   btn";
+  grid-template-columns: 1fr 1fr 260px;
+  gap: 0;
+  width: min(900px, 95vw);
+  animation: osr-fadein .5s .1s both;
+}
+
+@keyframes osr-fadein {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Top bar */
+.osr-top {
+  grid-area: top;
+  padding: 14px 22px 10px;
+}
+
+.osr-beatmap {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0,0,0,.8);
+}
+
+.osr-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  margin-top: 2px;
+}
+
+/* Score */
+.osr-score-block {
+  grid-area: score;
+  background: rgba(180,190,220,.13);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px 12px 0 0;
+  padding: 12px 22px 10px;
+  border-bottom: none;
+}
+
+.osr-score-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 2px;
+}
+
+.osr-score-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(255,255,255,.2);
+  line-height: 1;
+}
+
+/* Stats grid */
+.osr-stats-grid {
+  grid-area: stats;
+  background: rgba(100,140,210,.18);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 0 0 12px 12px;
+  padding: 14px 22px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.osr-stat {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px 1fr;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  padding-bottom: 6px;
+}
+
+.osr-stat:last-child { border-bottom: none; padding-bottom: 0; }
+
+.osr-stat-key {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.osr-300  { color: #6cf; text-shadow: 0 0 10px rgba(100,200,255,.6); }
+.osr-katu { color: #6cf; font-size: 22px; }
+.osr-100  { color: #9f9; text-shadow: 0 0 10px rgba(100,255,100,.4); }
+.osr-50   { color: #fa0; text-shadow: 0 0 10px rgba(255,180,0,.4); }
+.osr-miss { color: #f55; font-size: 18px; text-shadow: 0 0 10px rgba(255,80,80,.4); }
+
+.osr-stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 1px;
+  padding-left: 8px;
+}
+
+/* Bottom row: combo + accuracy */
+.osr-stat--bottom {
+  grid-template-columns: 80px 1fr 100px 1fr;
+  padding-top: 6px;
+}
+
+.osr-bottom-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,.55);
+}
+
+.osr-bottom-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  padding-left: 8px;
+}
+
+.osr-acc { color: #ffd700; text-shadow: 0 0 16px rgba(255,215,0,.5); }
+
+/* Rank block — right column */
+.osr-rank-block {
+  grid-area: rank;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px;
+  gap: 6px;
+}
+
+.osr-rank-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+}
+
+.osr-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 160px;
+  line-height: .85;
+  color: #f59e0b;
+  text-shadow:
+    0 0 40px rgba(245,158,11,.9),
+    0 0 80px rgba(245,158,11,.5),
+    0 4px 0 #92400e;
+  -webkit-text-stroke: 3px rgba(255,255,255,.15);
+  animation: rank-pop .5s .3s cubic-bezier(.175,.885,.32,1.275) both, rank-pulse 2s 1s ease-in-out infinite;
+}
+
+@keyframes rank-pop {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+@keyframes rank-pulse {
+  0%,100% { text-shadow: 0 0 40px rgba(245,158,11,.9), 0 0 80px rgba(245,158,11,.5), 0 4px 0 #92400e; }
+  50%      { text-shadow: 0 0 70px rgba(245,158,11,1),  0 0 140px rgba(245,158,11,.7), 0 4px 0 #92400e; }
+}
+
+/* Perf / "Perfect" */
+.osr-perf {
+  grid-area: perf;
+  padding: 10px 22px 4px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.osr-perf-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: 2px;
+}
+
+.osr-perf-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  line-height: 1;
+  background: linear-gradient(90deg, #f97316, #ef4444, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 20px rgba(249,115,22,.5));
+  animation: perf-slide .5s .4s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes perf-slide {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Continue button */
+.osr-continue-btn {
+  grid-area: btn;
+  margin: 18px auto 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: 1px solid rgba(147,197,253,.4);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 13px 52px;
+  text-transform: uppercase;
+  transition: transform .15s, box-shadow .2s;
+  animation: osr-fadein .4s .6s both;
+}
+
+.osr-continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(59,130,246,.5);
+}
+
+.osr-continue-btn:active { transform: translateY(0); }
+
+@media (max-width: 600px) {
+  .osr-inner {
+    grid-template-areas: "top" "score" "stats" "rank" "perf" "btn";
+    grid-template-columns: 1fr;
+  }
+  .osr-rank { font-size: 100px; }
+  .osr-score-value { font-size: 36px; }
+}
