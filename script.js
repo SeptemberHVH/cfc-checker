@@ -1162,6 +1162,123 @@ function showOsuGame() {
   });
 }
 
+function showOsuResults(onContinue) {
+  const overlay = document.createElement('div');
+  overlay.id = 'osu-results-overlay';
+
+  // Fake but satisfying stats
+  const score    = 36_267_960;
+  const count300 = 897;
+  const countKatu= 146;
+  const count100 = 0;
+  const countMeh = 0;
+  const count50  = 0;
+  const countMiss= 0;
+  const combo    = 1328;
+  const accuracy = '100,00%';
+  const rank     = 'S';
+
+  overlay.innerHTML = `
+    <div class="osr-inner">
+      <div class="osr-top">
+        <div class="osr-beatmap">HUN — Interface Validation [Insane]</div>
+        <div class="osr-meta">Played by HUN on 27.06.2026</div>
+      </div>
+
+      <div class="osr-score-block">
+        <div class="osr-score-label">Score</div>
+        <div class="osr-score-value" id="osr-score-val">0</div>
+      </div>
+
+      <div class="osr-stats-grid">
+        <div class="osr-stat">
+          <span class="osr-stat-key osr-300">300</span>
+          <span class="osr-stat-val" id="osr-v300">0x</span>
+          <span class="osr-stat-key osr-katu">激</span>
+          <span class="osr-stat-val" id="osr-vkatu">0x</span>
+        </div>
+        <div class="osr-stat">
+          <span class="osr-stat-key osr-100">100</span>
+          <span class="osr-stat-val">0x</span>
+          <span class="osr-stat-key osr-100">喝</span>
+          <span class="osr-stat-val">0x</span>
+        </div>
+        <div class="osr-stat">
+          <span class="osr-stat-key osr-50">50</span>
+          <span class="osr-stat-val">0x</span>
+          <span class="osr-stat-key osr-miss">✕</span>
+          <span class="osr-stat-val">0x</span>
+        </div>
+        <div class="osr-stat osr-stat--bottom">
+          <span class="osr-bottom-label">Combo</span>
+          <span class="osr-bottom-val">${combo}x</span>
+          <span class="osr-bottom-label">Accuracy</span>
+          <span class="osr-bottom-val osr-acc">${accuracy}</span>
+        </div>
+      </div>
+
+      <div class="osr-rank-block">
+        <div class="osr-rank" id="osr-rank">${rank}</div>
+        <div class="osr-rank-label">RANKING</div>
+      </div>
+
+      <div class="osr-perf">
+        <div class="osr-perf-label">performance</div>
+        <div class="osr-perf-value">Perfect</div>
+      </div>
+
+      <button class="osr-continue-btn" id="osr-continue-btn">▶ Continuer</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('osr-in')));
+
+  // Animate score counter
+  const scoreEl = overlay.querySelector('#osr-score-val');
+  const v300El  = overlay.querySelector('#osr-v300');
+  const vkatuEl = overlay.querySelector('#osr-vkatu');
+  let scoreAnim = 0;
+  let frame300  = 0;
+  let frameKatu = 0;
+  const totalFrames = 80;
+  let f = 0;
+  const iv = setInterval(() => {
+    f++;
+    const t = Math.min(1, f / totalFrames);
+    const ease = 1 - Math.pow(1 - t, 3);
+    scoreEl.textContent  = Math.floor(ease * score).toLocaleString('fr-CH');
+    v300El.textContent   = Math.floor(ease * count300) + 'x';
+    vkatuEl.textContent  = Math.floor(ease * countKatu) + 'x';
+    if (f >= totalFrames) clearInterval(iv);
+  }, 18);
+
+  // Play a lil beep on appear
+  if (soundEnabled) {
+    try {
+      const ctx = getAudioCtx();
+      ctx.resume().then(() => {
+        [523, 659, 784, 1046].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const g   = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = freq;
+          const t = ctx.currentTime + i * 0.09;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.14, t + .05);
+          g.gain.exponentialRampToValueAtTime(0.001, t + .5);
+          osc.start(t); osc.stop(t + .55);
+        });
+      });
+    } catch(e) {}
+  }
+
+  overlay.querySelector('#osr-continue-btn').addEventListener('click', () => {
+    overlay.classList.add('osr-out');
+    setTimeout(() => { overlay.remove(); onContinue(); }, 500);
+  });
+}
+
 function _startOsuGame(resolve) {
     const game = document.createElement('div');
     game.className = 'osu-overlay';
@@ -1273,7 +1390,10 @@ function _startOsuGame(resolve) {
             done.classList.add('osu-done-show');
             setTimeout(() => {
               game.classList.add('osu-hide');
-              setTimeout(() => { game.remove(); resolve(); }, 450);
+              setTimeout(() => {
+                game.remove();
+                showOsuResults(resolve);
+              }, 450);
             }, 900);
           }
         }, 18);
