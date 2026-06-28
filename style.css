@@ -2222,3 +2222,241 @@ input.error, textarea.error {
 .term-git-status { font-weight: 700; font-size: 11px; letter-spacing: 1px; flex-shrink: 0; }
 .term-git-status.git-ok   { color: #22c55e; }
 .term-git-status.git-fail { color: #ef4444; }
+
+/* ─── Troll glitch ────────────────────────────────────────── */
+
+@keyframes troll-glitch-anim {
+  0%   { transform: translate(0); filter: none; }
+  10%  { transform: translate(-6px, 2px); filter: hue-rotate(90deg) saturate(3); }
+  20%  { transform: translate(6px,-3px); filter: hue-rotate(180deg); clip-path: inset(20% 0 30% 0); }
+  30%  { transform: translate(-4px, 1px); filter: hue-rotate(270deg) saturate(5); clip-path: inset(0); }
+  40%  { transform: translate(8px,-2px); filter: none; }
+  50%  { transform: translate(-8px, 4px); filter: hue-rotate(45deg) contrast(3); clip-path: inset(50% 0 10% 0); }
+  60%  { transform: translate(4px,-4px); filter: none; clip-path: inset(0); }
+  70%  { transform: translate(-6px, 2px); filter: hue-rotate(135deg) saturate(4); }
+  80%  { transform: translate(6px, 0); filter: none; }
+  90%  { transform: translate(-2px, 3px); filter: hue-rotate(200deg); clip-path: inset(30% 0 20% 0); }
+  100% { transform: translate(0); filter: none; clip-path: inset(0); }
+}
+
+.troll-glitch { animation: troll-glitch-anim 0.6s ease both; }
+
+/* ─── Troll reveal ────────────────────────────────────────── */
+
+.troll-reveal {
+  text-align: center;
+  padding: 48px 32px;
+  animation: result-in .3s cubic-bezier(.22,1,.36,1);
+}
+
+.troll-emoji {
+  font-size: 80px;
+  animation: troll-bounce .4s ease-in-out infinite alternate;
+}
+
+@keyframes troll-bounce {
+  from { transform: scale(1) rotate(-5deg); }
+  to   { transform: scale(1.15) rotate(5deg); }
+}
+
+.troll-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  letter-spacing: 6px;
+  color: #22c55e;
+  text-shadow: 0 0 40px rgba(34,197,94,.8);
+  margin: 12px 0 6px;
+}
+
+.troll-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: 4px;
+  animation: blink-dot .6s step-end infinite;
+}
+
+/* ─── Speedrun timer ──────────────────────────────────────── */
+
+#speedrun-timer {
+  position: fixed;
+  top: 16px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  z-index: 2000;
+  background: rgba(6,4,18,.92);
+  border: 1.5px solid rgba(168,85,247,.5);
+  border-radius: 12px;
+  padding: 8px 24px 10px;
+  text-align: center;
+  backdrop-filter: blur(16px);
+  transition: transform .4s cubic-bezier(.22,1,.36,1);
+  min-width: 160px;
+}
+
+#speedrun-timer.sr-show { transform: translateX(-50%) translateY(0); }
+
+.sr-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+}
+
+.sr-label.sr-pb {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245,158,11,.6);
+  animation: badge-pulse 1s ease-in-out infinite;
+}
+
+.sr-time {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 3px;
+  color: #a855f7;
+  text-shadow: 0 0 20px rgba(168,85,247,.7);
+  line-height: 1.1;
+}
+
+.sr-final {
+  color: #f59e0b;
+  text-shadow: 0 0 20px rgba(245,158,11,.7);
+}
+
+.sr-cry {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+/* ─── Twitch chat ─────────────────────────────────────────── */
+
+#twitch-chat {
+  position: fixed;
+  bottom: 80px; right: -280px;
+  z-index: 1050;
+  width: 260px;
+  background: rgba(14,9,30,.92);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: right .45s cubic-bezier(.22,1,.36,1);
+  backdrop-filter: blur(16px);
+}
+
+#twitch-chat.tc-show { right: 16px; }
+
+.tc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(168,85,247,.15);
+  padding: 8px 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,.7);
+  border-bottom: 1px solid rgba(168,85,247,.2);
+}
+
+.tc-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: blink-dot .8s step-end infinite;
+}
+
+.tc-viewers { font-size: 10px; color: rgba(255,255,255,.35); }
+
+.tc-body {
+  padding: 8px;
+  height: 220px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168,85,247,.3) transparent;
+}
+
+.tc-msg {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  animation: git-row-in .2s ease both;
+}
+
+.tc-user { font-weight: 700; }
+.tc-sep  { color: rgba(255,255,255,.3); margin: 0 4px; }
+.tc-text { color: rgba(255,255,255,.8); }
+
+/* ─── Bulletin scolaire ───────────────────────────────────── */
+
+#bulletin-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(4,3,12,.88);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .35s ease;
+}
+
+#bulletin-overlay.bul-in { opacity: 1; }
+
+.bul-card {
+  background: #fff;
+  color: #1a1a2e;
+  border-radius: 12px;
+  padding: 32px 36px;
+  max-width: 580px;
+  width: 95vw;
+  box-shadow: 0 32px 80px rgba(0,0,0,.8);
+  font-family: 'Rajdhani', sans-serif;
+  animation: result-in .4s cubic-bezier(.22,1,.36,1);
+}
+
+.bul-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a1a2e; padding-bottom: 14px; }
+.bul-school { font-size: 11px; letter-spacing: 3px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+.bul-title  { font-size: 20px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.bul-student { font-size: 13px; color: #444; margin-top: 6px; }
+
+.bul-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.bul-table th {
+  background: #1a1a2e; color: #fff;
+  padding: 9px 14px; text-align: left;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+}
+.bul-row td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+.bul-row:hover td { background: #f9fafb; }
+.bul-grade { font-weight: 700; font-size: 18px; color: #16a34a; text-align: center; }
+.bul-fail td { background: rgba(254,202,202,.3); }
+.bul-fail-grade { color: #dc2626 !important; }
+
+.bul-footer { border-top: 1px solid #e5e7eb; padding-top: 14px; font-size: 13px; }
+.bul-comment { color: #555; margin-bottom: 8px; font-style: normal; }
+.bul-avg { font-weight: 700; font-size: 15px; }
+.bul-mention { color: #7c3aed; }
+
+.bul-close {
+  display: block; margin: 18px auto 0;
+  background: #1a1a2e; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 10px 32px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; letter-spacing: 1px;
+  transition: background .2s;
+}
+.bul-close:hover { background: #7c3aed; }
+
+/* ─── Terminal — sponsors ─────────────────────────────────── */
+
+.term-sponsor-block { margin: 4px 0 6px; }
+
+.term-sponsor-line {
+  color: #f59e0b !important;
+  padding-left: 8px;
+  animation: git-row-in .25s ease both;
+  text-shadow: 0 0 10px rgba(245,158,11,.4);
+}
