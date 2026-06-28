@@ -781,7 +781,12 @@ function toggleSound() {
   soundEnabled = !soundEnabled;
   localStorage.setItem('hun-sound', soundEnabled ? 'true' : 'false');
   _updateSoundBtn();
-  if (!soundEnabled) stopVictoire();
+  if (!soundEnabled) {
+    stopVictoire();
+    stopSixSeven();
+    stopOsuMusic();
+    if (typeof stopStory === 'function') stopStory();
+  }
 }
 
 // ─── Achievement Steam toast ──────────────────────────────────
@@ -1089,6 +1094,9 @@ function renderSuccess(matchResults, prenom, nom) {
   const zone = document.getElementById('result-zone');
   const first = matchResults[0];
 
+  // La musique speedrun s'arrête dès que le résultat commence
+  stopStory();
+
   const displayName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
 
   const profDisplay = first.profession
@@ -1113,33 +1121,26 @@ function renderSuccess(matchResults, prenom, nom) {
     `;
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+    // Son : NOOO LA POLIZIA pendant le faux échec
+    playStory('polizia', 0.85);
+
     setTimeout(() => {
-      // Phase 1 — glitch CSS sur le faux fail
+      // Phase 1 — le "bug" : glitch + WAIT WAIT WAIT (coupe la polizia)
       const failEl = document.getElementById('troll-fail');
       if (failEl) failEl.classList.add('troll-glitch');
-
-      // Bruit sonore
-      if (soundEnabled) {
-        try {
-          const actx = getAudioCtx();
-          actx.resume().then(() => {
-            [180, 90, 240, 60].forEach((freq, i) => {
-              const o = actx.createOscillator();
-              const g = actx.createGain();
-              o.connect(g); g.connect(actx.destination);
-              o.type = 'sawtooth'; o.frequency.value = freq;
-              const t = actx.currentTime + i * 0.06;
-              g.gain.setValueAtTime(0.12, t);
-              g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-              o.start(t); o.stop(t + 0.2);
-            });
-          });
-        } catch(e) {}
-      }
-    }, 1800);
+      // on relance le glitch tant que le son joue
+      let _gl = 0;
+      const glitchIv = setInterval(() => {
+        const el = document.getElementById('troll-fail');
+        if (!el || ++_gl > 4) { clearInterval(glitchIv); return; }
+        el.classList.remove('troll-glitch'); void el.offsetWidth; el.classList.add('troll-glitch');
+      }, 620);
+      playStory('wait', 0.9);
+    }, 2200);
 
     setTimeout(() => {
-      // Phase 2 — ON RIGOLE + gif 67 + son
+      // Phase 2 — ON RIGOLE + gif 67 + son (coupe le WAIT)
+      stopStory();
       zone.innerHTML = `
         <div class="troll-reveal" id="troll-reveal">
           <div class="troll-text">ON RIGOLE</div>
@@ -1150,10 +1151,11 @@ function renderSuccess(matchResults, prenom, nom) {
       `;
       playSixSeven();
       zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 2500);
+    }, 5000);
 
     setTimeout(() => {
       // Phase 3 — vrai résultat
+      stopStory();
       stopSixSeven();
       zone.innerHTML = `
         <div class="result-success" id="alain-result">
@@ -1189,10 +1191,8 @@ function renderSuccess(matchResults, prenom, nom) {
       setTimeout(showAlainRewards, 1800);
       setTimeout(showTwitchChat, 1200);
       startSpeedrunTimer(true);
-    }, 5200);
+    }, 7600);
 
-    // Sons du troll (échec)
-    playTungTung();
     return; // skip le bloc commun en bas
   } else {
     // ── MODE NORMAL ──
@@ -1220,6 +1220,8 @@ function renderSuccess(matchResults, prenom, nom) {
 }
 
 function renderFail(prenom, nom) {
+  stopStory();
+  stopSpeedrunTimer();
   const zone = document.getElementById('result-zone');
   const displayName = [prenom, nom].filter(Boolean).join(' ') || '(nom non saisi)';
   zone.innerHTML = `
@@ -2346,6 +2348,7 @@ function finishLoadingAnimation(cb) { cb(); }
 async function checkPalmares() {
   stopVictoire();
   stopSixSeven();
+  stopStory();
   const prenom     = document.getElementById('input-prenom').value.trim();
   const nom        = document.getElementById('input-nom').value.trim();
   const profession = document.getElementById('input-profession').value.trim();
@@ -2385,8 +2388,11 @@ async function checkPalmares() {
     return { lines, pool };
   });
 
-  // Speedrun timer démarre dès qu'on lance la recherche
-  if (!speedrunMode) startSpeedrunTimer(false);
+  // Speedrun timer démarre dès qu'on lance la recherche + musique speedrun Dream (en boucle)
+  if (!speedrunMode) {
+    startSpeedrunTimer(false);
+    playStory('speedrun', 0.5, true);
+  }
 
   // Terminal brainrot (ou résultat direct en speedrun)
   if (!speedrunMode) {
@@ -2470,6 +2476,11 @@ function toggleDebug() {
 function resetForm() {
   clearInterval(_loadingInterval);
   clearInterval(_progressInterval);
+  stopStory();
+  stopVictoire();
+  stopSixSeven();
+  stopOsuMusic();
+  stopSpeedrunTimer();
   document.getElementById('input-prenom').value = '';
   document.getElementById('input-nom').value = '';
   document.getElementById('input-profession').value = '';
@@ -2566,3 +2577,244 @@ window.addEventListener('resize', () => {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
+// ════════════════════════════════════════════════════════════
+//   BRAINROT MAX — module autonome
+// ════════════════════════════════════════════════════════════
+
+const BRAINROT_SOUNDS = {
+  vineboom:  './vineboom.mp3',
+  bruh:      './bruh.mp3',
+  pipe:      './pipe.mp3',
+  tralalero: './tralalero.mp3',
+  tungsahur: './tungsahur.mp3',
+  rizz:      './rizz.mp3',
+  speedrun:  './speedrun.mp3',
+  polizia:   './polizia.mp3',
+  wait:      './wait.mp3',
+};
+const _brBuffers = {};
+let _brSoloSource = null;
+
+// ── Canal "story" : un seul son narratif à la fois (le nouveau coupe l'ancien) ──
+let _storySource = null;
+function playStory(name, vol, loop) {
+  if (!_brBuffers[name]) return;
+  stopStory();
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const gain = ctx.createGain();
+      gain.gain.value = vol == null ? 0.8 : vol;
+      gain.connect(ctx.destination);
+      const src = ctx.createBufferSource();
+      src.buffer = _brBuffers[name];
+      src.loop = !!loop;
+      src.connect(gain);
+      src.start(0);
+      _storySource = src;
+      src.onended = () => { if (_storySource === src) _storySource = null; };
+    });
+  } catch(e) {}
+}
+function stopStory() {
+  if (_storySource) {
+    try { _storySource.stop(); } catch(e) {}
+    _storySource = null;
+  }
+}
+
+async function preloadBrainrotSounds() {
+  for (const name in BRAINROT_SOUNDS) {
+    try {
+      const res = await fetch(BRAINROT_SOUNDS[name]);
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      _brBuffers[name] = await getAudioCtx().decodeAudioData(buf);
+    } catch(e) {}
+  }
+}
+
+function playBrainrot(name, vol, solo) {
+  if (!soundEnabled || !_brBuffers[name]) return;
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      if (solo && _brSoloSource) { try { _brSoloSource.stop(); } catch(e) {} }
+      const gain = ctx.createGain();
+      gain.gain.value = vol == null ? 0.8 : vol;
+      gain.connect(ctx.destination);
+      const src = ctx.createBufferSource();
+      src.buffer = _brBuffers[name];
+      src.connect(gain);
+      src.start(0);
+      if (solo) { _brSoloSource = src; src.onended = () => { if (_brSoloSource === src) _brSoloSource = null; }; }
+    });
+  } catch(e) {}
+}
+
+// Un overlay de jeu est-il ouvert ? (on met en pause les effets plein écran)
+function _brOverlayOpen() {
+  return !!document.querySelector('.osu-overlay, #spin-overlay, .qcm-overlay, #osu-results-overlay, #bulletin-overlay, .osu-logo-screen, #troll-reveal');
+}
+
+const BR_EMOJIS = ['💀','🔥','😭','🥁','🗿','💯','🤑','👹','🐊','⚡','💜','😎','🤙','📈'];
+const BR_WORDS  = ['SKIBIDI','67','RIZZ +1000','SIGMA','OHIO','GYATT','MOG','+9999 AURA','MEWING','SHEEEESH','W','GOAT','NPC','BRAINROT','HUN APPROVED','TUNG TUNG'];
+
+// ── Curseur : traînée d'emojis ──
+function _brSpawnTrail(x, y) {
+  const e = document.createElement('div');
+  e.className = 'br-trail';
+  e.textContent = BR_EMOJIS[(Math.random() * BR_EMOJIS.length) | 0];
+  e.style.left = x + 'px';
+  e.style.top  = y + 'px';
+  document.body.appendChild(e);
+  setTimeout(() => e.remove(), 800);
+}
+
+// ── Explosion d'emojis au clic ──
+function _brBurst(x, y) {
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const e = document.createElement('div');
+    e.className = 'br-burst';
+    e.textContent = BR_EMOJIS[(Math.random() * BR_EMOJIS.length) | 0];
+    const ang = (Math.PI * 2 * i) / n + Math.random() * 0.6;
+    const dist = 60 + Math.random() * 70;
+    e.style.left = x + 'px';
+    e.style.top  = y + 'px';
+    e.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+    e.style.setProperty('--dy', (Math.sin(ang) * dist - 40) + 'px');
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), 900);
+  }
+}
+
+// ── Flash de mot brainrot ──
+function _brFlashWord() {
+  const w = document.createElement('div');
+  w.className = 'br-word';
+  w.textContent = BR_WORDS[(Math.random() * BR_WORDS.length) | 0];
+  w.style.left = (10 + Math.random() * 70) + 'vw';
+  w.style.top  = (15 + Math.random() * 60) + 'vh';
+  w.style.setProperty('--rot', (Math.random() * 30 - 15) + 'deg');
+  document.body.appendChild(w);
+  setTimeout(() => w.remove(), 900);
+}
+
+// ── Screen shake ──
+function brainrotShake() {
+  document.body.classList.remove('br-shake');
+  void document.body.offsetWidth;
+  document.body.classList.add('br-shake');
+  setTimeout(() => document.body.classList.remove('br-shake'), 500);
+}
+
+// ── Marquee défilant (ticker brainrot) ──
+function _brBuildMarquee() {
+  const seg = ' 🥁 TUNG TUNG TUNG SAHUR 🐊 TRALALERO TRALALA 💀 67 💀 SKIBIDI RIZZ OHIO 🗿 SIGMA AURA +9999 ⚡ HUN APPROVED 🥁 BONEKA AMBALABU 💯 MAMA GUAVO 🔥 ';
+  const bar = document.createElement('div');
+  bar.id = 'br-marquee';
+  bar.innerHTML = `<div class="br-marquee-track">${seg.repeat(4)}</div>`;
+  document.body.appendChild(bar);
+}
+
+// ── Soundboard flottant ──
+function _brBuildSoundboard() {
+  const SB = [
+    { name: 'vineboom',  emoji: '💥', label: 'BOOM' },
+    { name: 'tungsahur', emoji: '🥁', label: 'TUNG' },
+    { name: 'tralalero', emoji: '🐊', label: 'TRALA' },
+    { name: 'bruh',      emoji: '💀', label: 'BRUH' },
+    { name: 'rizz',      emoji: '🗿', label: 'RIZZ' },
+    { name: 'pipe',      emoji: '🔧', label: 'PIPE' },
+  ];
+  const wrap = document.createElement('div');
+  wrap.id = 'br-soundboard';
+  wrap.className = 'br-collapsed';
+  wrap.innerHTML = `
+    <div class="br-sb-panel">
+      ${SB.map(s => `<button class="br-sb-btn" data-sound="${s.name}"><span>${s.emoji}</span>${s.label}</button>`).join('')}
+    </div>
+    <button id="br-sb-toggle" title="Soundboard brainrot">🧠</button>
+  `;
+  document.body.appendChild(wrap);
+
+  wrap.querySelector('#br-sb-toggle').addEventListener('click', e => {
+    e.stopPropagation();
+    wrap.classList.toggle('br-collapsed');
+    playBrainrot('vineboom', 0.4);
+  });
+  wrap.querySelectorAll('.br-sb-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const long = ['tungsahur', 'tralalero'].includes(btn.dataset.sound);
+      playBrainrot(btn.dataset.sound, 0.9, long);
+      btn.classList.remove('br-sb-pop'); void btn.offsetWidth; btn.classList.add('br-sb-pop');
+    });
+  });
+}
+
+// ── Floaters images (réutilise les assets existants) ──
+function _brBuildFloaters() {
+  const imgs = [
+    { src: './67.gif',  cls: 'br-float-1' },
+    { src: './HUN.png', cls: 'br-float-2' },
+    { src: './67.gif',  cls: 'br-float-3' },
+  ];
+  imgs.forEach(o => {
+    const im = document.createElement('img');
+    im.src = o.src;
+    im.className = 'br-floater ' + o.cls;
+    im.alt = '';
+    im.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(im);
+  });
+}
+
+// ── Init global ──
+function initBrainrotMax() {
+  preloadBrainrotSounds();
+  _brBuildMarquee();
+  _brBuildSoundboard();
+  _brBuildFloaters();
+
+  // Curseur traînée (throttle)
+  let _lastTrail = 0;
+  document.addEventListener('pointermove', e => {
+    if (_brOverlayOpen()) return;
+    const now = performance.now();
+    if (now - _lastTrail < 55) return;
+    _lastTrail = now;
+    _brSpawnTrail(e.clientX, e.clientY);
+  }, { passive: true });
+
+  // Clic = explosion d'emojis (+ boom sur les boutons)
+  document.addEventListener('click', e => {
+    if (_brOverlayOpen()) return;
+    if (e.target.closest('#br-soundboard')) return;
+    _brBurst(e.clientX, e.clientY);
+    const onBtn = e.target.closest('button, .mode-btn, .btn-primary, .btn-pdf-auto');
+    if (onBtn && Math.random() < 0.5) playBrainrot('vineboom', 0.45);
+  });
+
+  // Flash de mots brainrot
+  setInterval(() => {
+    if (_brOverlayOpen() || document.hidden) return;
+    if (Math.random() < 0.65) _brFlashWord();
+  }, 4500);
+
+  // Vine boom + shake sur le bouton Vérifier
+  const checkBtn = document.getElementById('btn-check');
+  if (checkBtn) checkBtn.addEventListener('click', () => {
+    playBrainrot('vineboom', 0.7);
+    brainrotShake();
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBrainrotMax);
+} else {
+  initBrainrotMax();
+}
