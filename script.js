@@ -694,6 +694,42 @@ function stopOsuMusic() {
   }
 }
 
+let _sixSevenBuffer = null;
+let _sixSevenSource = null;
+
+async function preloadSixSeven() {
+  try {
+    const res = await fetch('./67.mp3');
+    const buf = await res.arrayBuffer();
+    _sixSevenBuffer = await getAudioCtx().decodeAudioData(buf);
+  } catch(e) {}
+}
+
+function playSixSeven() {
+  if (!soundEnabled || !_sixSevenBuffer) return;
+  stopSixSeven();
+  try {
+    const ctx = getAudioCtx();
+    ctx.resume().then(() => {
+      const gain = ctx.createGain();
+      gain.gain.value = 0.85;
+      gain.connect(ctx.destination);
+      _sixSevenSource = ctx.createBufferSource();
+      _sixSevenSource.buffer = _sixSevenBuffer;
+      _sixSevenSource.connect(gain);
+      _sixSevenSource.start(0);
+      _sixSevenSource.onended = () => { _sixSevenSource = null; };
+    });
+  } catch(e) {}
+}
+
+function stopSixSeven() {
+  if (_sixSevenSource) {
+    try { _sixSevenSource.stop(); } catch(e) {}
+    _sixSevenSource = null;
+  }
+}
+
 function _playLogoSound() {
   if (!soundEnabled) return;
   try {
@@ -1103,18 +1139,22 @@ function renderSuccess(matchResults, prenom, nom) {
     }, 1800);
 
     setTimeout(() => {
-      // Phase 2 — affiche le "on rigole"
+      // Phase 2 — ON RIGOLE + gif 67 + son
       zone.innerHTML = `
         <div class="troll-reveal" id="troll-reveal">
-          <div class="troll-emoji">😂</div>
           <div class="troll-text">ON RIGOLE</div>
-          <div class="troll-sub">...</div>
+          <div class="troll-gif-wrap">
+            <img src="./67.gif" class="troll-gif" alt="67" />
+          </div>
         </div>
       `;
+      playSixSeven();
+      zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 2500);
 
     setTimeout(() => {
       // Phase 3 — vrai résultat
+      stopSixSeven();
       zone.innerHTML = `
         <div class="result-success" id="alain-result">
           <div class="stamp-valid">VALIDÉ<br>HUN EDITION</div>
@@ -1149,7 +1189,7 @@ function renderSuccess(matchResults, prenom, nom) {
       setTimeout(showAlainRewards, 1800);
       setTimeout(showTwitchChat, 1200);
       startSpeedrunTimer(true);
-    }, 3600);
+    }, 5200);
 
     // Sons du troll (échec)
     playTungTung();
@@ -1652,8 +1692,8 @@ function _runOsuSlider(fieldEl, config, onDone) {
 
   const cvs = document.createElement('canvas');
   cvs.width  = W; cvs.height = H;
-  cvs.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none';
-  fieldEl.style.position = 'relative';
+  cvs.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:none;touch-action:none';
+  // field est déjà position:absolute (ancêtre positionné) → ne pas écraser
   fieldEl.appendChild(cvs);
   const ctx = cvs.getContext('2d');
 
@@ -1698,10 +1738,10 @@ function _runOsuSlider(fieldEl, config, onDone) {
     ctx.beginPath();
     ctx.moveTo(pathPts[0].x, pathPts[0].y);
     for (let i = 1; i <= STEPS; i++) ctx.lineTo(pathPts[i].x, pathPts[i].y);
-    ctx.strokeStyle = 'rgba(255,255,255,.22)';
+    ctx.strokeStyle = 'rgba(255,255,255,.28)';
     ctx.lineWidth   = TRACK_W + 8;
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(120,60,220,.5)';
+    ctx.strokeStyle = 'rgba(255,102,170,.45)';
     ctx.lineWidth   = TRACK_W;
     ctx.stroke();
   }
@@ -1715,7 +1755,7 @@ function _runOsuSlider(fieldEl, config, onDone) {
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(ep.x, ep.y, HEAD_R - 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(120,60,220,.25)';
+    ctx.fillStyle = 'rgba(255,102,170,.22)';
     ctx.fill();
     if (config.reverse) {
       ctx.fillStyle  = 'rgba(255,255,255,.85)';
@@ -1743,7 +1783,7 @@ function _runOsuSlider(fieldEl, config, onDone) {
     ctx.beginPath();
     ctx.arc(hp.x, hp.y, HEAD_R, 0, Math.PI * 2);
     const pulse = 0.55 + 0.2 * Math.sin(performance.now() * 0.008);
-    ctx.fillStyle = `rgba(168,85,247,${pulse})`;
+    ctx.fillStyle = `rgba(255,102,170,${pulse})`;
     ctx.fill();
     ctx.strokeStyle = '#fff';
     ctx.lineWidth   = 3;
@@ -1758,14 +1798,14 @@ function _runOsuSlider(fieldEl, config, onDone) {
     const ringR = HEAD_R + (1 - approachProgress) * HEAD_R * 2.8;
     ctx.beginPath();
     ctx.arc(hp.x, hp.y, ringR, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(168,85,247,${.9 - approachProgress * .3})`;
+    ctx.strokeStyle = `rgba(255,102,170,${.9 - approachProgress * .3})`;
     ctx.lineWidth   = 3;
     ctx.stroke();
   }
 
   function drawBall(bp) {
     const color = outOfRange ? '#ef4444' : '#fff';
-    const glow  = outOfRange ? 'rgba(239,68,68,' : 'rgba(168,85,247,';
+    const glow  = outOfRange ? 'rgba(239,68,68,' : 'rgba(255,102,170,';
     // Outer glow
     const grad = ctx.createRadialGradient(bp.x, bp.y, 0, bp.x, bp.y, BALL_R * 2);
     grad.addColorStop(0,   glow + '.7)');
@@ -1780,7 +1820,7 @@ function _runOsuSlider(fieldEl, config, onDone) {
     ctx.arc(bp.x, bp.y, BALL_R, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.8)' : 'rgba(168,85,247,.9)';
+    ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.8)' : 'rgba(255,102,170,.9)';
     ctx.lineWidth   = 3;
     ctx.stroke();
     // Follow ring on cursor
@@ -1874,12 +1914,21 @@ function _startOsuGame(resolve) {
     const game = document.createElement('div');
     game.className = 'osu-overlay';
     game.innerHTML = `
-      <div class="osu-container">
-        <div class="osu-header">
-          <span class="osu-title">INTERFACE TEST</span>
-          <span class="osu-sub">CLIQUEZ LES CERCLES</span>
+      <div class="osu-stage">
+        <div class="osu-hud-top">
+          <div class="osu-song">
+            <span class="osu-song-title">HUN — Interface Validation</span>
+            <span class="osu-diff">[INSANE ★ 6.7]</span>
+          </div>
+          <div class="osu-acc" id="osu-acc">100.00%</div>
         </div>
-        <div class="osu-field" id="osu-field"></div>
+        <div class="osu-health"><div class="osu-health-fill" id="osu-health"></div></div>
+        <div class="osu-playarea" id="osu-playarea">
+          <div class="osu-field" id="osu-field"></div>
+          <div class="osu-judge-layer" id="osu-judge"></div>
+          <div class="osu-combo" id="osu-combo"><b id="osu-combo-n">0</b>x</div>
+          <div class="osu-cursor" id="osu-cursor"></div>
+        </div>
         <div class="osu-finish" id="osu-finish" style="display:none">
           <div class="osu-finish-bar-label">INTERFACE SKILLS</div>
           <div class="osu-finish-track"><div class="osu-finish-fill" id="osu-finish-fill"></div></div>
@@ -1893,12 +1942,61 @@ function _startOsuGame(resolve) {
 
     playOsuMusic();
 
-    const field = game.querySelector('#osu-field');
+    const field    = game.querySelector('#osu-field');
+    const playarea = game.querySelector('#osu-playarea');
+    const judgeL   = game.querySelector('#osu-judge');
+    const comboN   = game.querySelector('#osu-combo-n');
+    const comboEl  = game.querySelector('#osu-combo');
+    const cursorEl = game.querySelector('#osu-cursor');
+
+    // ── Combo & jugements ──
+    let combo = 0;
+    function bumpCombo() {
+      combo++;
+      comboN.textContent = combo;
+      comboEl.classList.remove('osu-combo-pop');
+      void comboEl.offsetWidth;
+      comboEl.classList.add('osu-combo-pop');
+    }
+    function addJudge(xPct, yPct, kind) {
+      const j = document.createElement('div');
+      j.className = 'osu-judge osu-judge-' + (kind || '300');
+      j.textContent = kind === 'perfect' ? 'PERFECT' : '300';
+      j.style.left = xPct + '%';
+      j.style.top  = yPct + '%';
+      judgeL.appendChild(j);
+      setTimeout(() => j.remove(), 700);
+    }
+
+    // ── Curseur + traînée (suit la souris sur toute la zone) ──
+    let lastTrail = 0;
+    function onMove(clientX, clientY) {
+      const r = playarea.getBoundingClientRect();
+      const x = clientX - r.left;
+      const y = clientY - r.top;
+      if (x < 0 || y < 0 || x > r.width || y > r.height) { cursorEl.style.opacity = '0'; return; }
+      cursorEl.style.opacity = '1';
+      cursorEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      const now = performance.now();
+      if (now - lastTrail > 16) {
+        lastTrail = now;
+        const dot = document.createElement('div');
+        dot.className = 'osu-trail';
+        dot.style.left = x + 'px';
+        dot.style.top  = y + 'px';
+        playarea.appendChild(dot);
+        setTimeout(() => dot.remove(), 360);
+      }
+    }
+    playarea.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
+    playarea.addEventListener('touchmove',  e => { if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
 
     const CIRCLES = [
-      { x: 22, y: 38 },
-      { x: 68, y: 22 },
-      { x: 48, y: 68 },
+      { x: 24, y: 40 },
+      { x: 70, y: 26 },
+      { x: 46, y: 70 },
+      { x: 78, y: 64 },
+      { x: 30, y: 22 },
     ];
     let step = 0;
 
@@ -1909,7 +2007,7 @@ function _startOsuGame(resolve) {
       el.className = 'osu-circle';
       el.style.left = x + '%';
       el.style.top  = y + '%';
-      el.innerHTML  = `<span class="osu-num">${idx + 1}</span><span class="osu-ring"></span>`;
+      el.innerHTML  = `<span class="osu-num">${idx + 1}</span><span class="osu-ring"></span><span class="osu-burst"></span>`;
       field.appendChild(el);
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('osu-circle-in')));
 
@@ -1920,9 +2018,11 @@ function _startOsuGame(resolve) {
         el.removeEventListener('touchstart', hit);
         _playClickBeep();
         el.classList.add('osu-hit');
-        setTimeout(() => el.remove(), 350);
+        bumpCombo();
+        addJudge(x, y, '300');
+        setTimeout(() => el.remove(), 400);
         step++;
-        setTimeout(() => spawnCircle(step), 280);
+        setTimeout(() => spawnCircle(step), 240);
       }
       el.addEventListener('click', hit);
       el.addEventListener('touchstart', hit, { passive: false });
@@ -1930,23 +2030,31 @@ function _startOsuGame(resolve) {
 
     function showSlider() {
       _runOsuSlider(field, {
-        pts: [{ x: .15, y: .55 }, { x: .5, y: .15 }, { x: .85, y: .55 }],
-        reverse: false, num: 4, duration: 1600
+        pts: [{ x: .15, y: .55 }, { x: .5, y: .12 }, { x: .85, y: .55 }],
+        reverse: false, num: 6, duration: 1600
       }, () => {
+        bumpCombo();
+        addJudge(85, 55, 'perfect');
         setTimeout(() => {
           _runOsuSlider(field, {
-            pts: [{ x: .82, y: .3 }, { x: .4, y: .75 }, { x: .18, y: .38 }],
-            reverse: true, num: 5, duration: 2000
-          }, completeGame);
-        }, 350);
+            pts: [{ x: .82, y: .3 }, { x: .4, y: .8 }, { x: .18, y: .35 }],
+            reverse: true, num: 7, duration: 2000
+          }, () => {
+            bumpCombo();
+            addJudge(18, 35, 'perfect');
+            completeGame();
+          });
+        }, 320);
       });
     }
 
     function completeGame() {
       stopOsuMusic();
+      cursorEl.style.opacity = '0';
       field.style.opacity = '0';
       setTimeout(() => {
         field.style.display = 'none';
+        comboEl.style.display = 'none';
         const fin  = game.querySelector('#osu-finish');
         const fill = game.querySelector('#osu-finish-fill');
         const pct  = game.querySelector('#osu-finish-pct');
@@ -1972,7 +2080,7 @@ function _startOsuGame(resolve) {
       }, 200);
     }
 
-    setTimeout(() => spawnCircle(0), 350);
+    setTimeout(() => spawnCircle(0), 400);
 }
 
 // ─── Terminal de chargement brainrot ─────────────────────────
@@ -2237,6 +2345,7 @@ function finishLoadingAnimation(cb) { cb(); }
 
 async function checkPalmares() {
   stopVictoire();
+  stopSixSeven();
   const prenom     = document.getElementById('input-prenom').value.trim();
   const nom        = document.getElementById('input-nom').value.trim();
   const profession = document.getElementById('input-profession').value.trim();
@@ -2449,6 +2558,7 @@ dropZone.addEventListener('drop', async e => {
 preloadSprites();
 preloadVictoire();
 preloadOsu();
+preloadSixSeven();
 setPdfDate(PDF_URL);
 
 window.addEventListener('resize', () => {
