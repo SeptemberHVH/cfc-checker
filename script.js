@@ -898,6 +898,150 @@ function launchConfetti() {
   draw();
 }
 
+// ─── Speedrun timer ──────────────────────────────────────────
+
+let _srStart = null;
+let _srInterval = null;
+
+function startSpeedrunTimer(isPB) {
+  // Cleanup any existing
+  stopSpeedrunTimer();
+  let el = document.getElementById('speedrun-timer');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'speedrun-timer';
+    document.body.appendChild(el);
+  }
+  _srStart = Date.now();
+  function fmt(ms) {
+    const s = Math.floor(ms / 1000);
+    const cs = Math.floor((ms % 1000) / 10);
+    return `${String(s).padStart(2,'0')}:${String(cs).padStart(2,'0')}`;
+  }
+  el.innerHTML = `<div class="sr-label">⏱ WORLD RECORD</div><div class="sr-time" id="sr-time">00:00</div>`;
+  el.classList.add('sr-show');
+  _srInterval = setInterval(() => {
+    const t = document.getElementById('sr-time');
+    if (t) t.textContent = fmt(Date.now() - _srStart);
+  }, 10);
+
+  if (isPB) {
+    setTimeout(() => {
+      clearInterval(_srInterval);
+      const elapsed = Date.now() - _srStart;
+      el.innerHTML = `
+        <div class="sr-label sr-pb">🏁 NEW PB</div>
+        <div class="sr-time sr-final">${fmt(elapsed)}</div>
+        <div class="sr-cry">😭 GG WP</div>
+      `;
+    }, 3800);
+    setTimeout(() => { el.classList.remove('sr-show'); setTimeout(() => el.remove(), 500); }, 9000);
+  }
+}
+
+function stopSpeedrunTimer() {
+  clearInterval(_srInterval);
+  const el = document.getElementById('speedrun-timer');
+  if (el) el.remove();
+}
+
+// ─── Twitch chat ──────────────────────────────────────────────
+
+const TWITCH_MSGS = [
+  { user: 'HUN123',       color: '#a855f7', msg: 'INCROYABLE !!!!' },
+  { user: 'MamaGuavo',    color: '#22c55e', msg: 'JE LE SAVAIS' },
+  { user: 'WesleyGaming', color: '#ef4444', msg: 'c moi ?' },
+  { user: 'TungFan',      color: '#f59e0b', msg: 'TUNG TUNG SAHUR 🥁' },
+  { user: 'HUN123',       color: '#a855f7', msg: 'ALAIN ADDOR MVP' },
+  { user: 'Interface99',  color: '#06b6d4', msg: 'interface validée gg' },
+  { user: 'BrainrotMax',  color: '#e91e8c', msg: 'PPP PPP' },
+  { user: 'MamaGuavo',    color: '#22c55e', msg: 'EZ CLAP' },
+  { user: 'WesleyGaming', color: '#ef4444', msg: 'nooooon' },
+  { user: 'TungFan',      color: '#f59e0b', msg: '🥁🥁🥁🥁🥁' },
+  { user: 'CFCViewer',    color: '#a855f7', msg: 'il est fort ce mec' },
+  { user: 'Interface99',  color: '#06b6d4', msg: 'LECTEUR DE PDF CERTIFIÉ' },
+];
+
+function showTwitchChat() {
+  if (document.getElementById('twitch-chat')) return;
+  const chat = document.createElement('div');
+  chat.id = 'twitch-chat';
+  chat.innerHTML = `
+    <div class="tc-header">
+      <span class="tc-dot"></span> LIVE CHAT
+      <span class="tc-viewers">👁 1 337 viewers</span>
+    </div>
+    <div class="tc-body" id="tc-body"></div>
+  `;
+  document.body.appendChild(chat);
+  requestAnimationFrame(() => requestAnimationFrame(() => chat.classList.add('tc-show')));
+
+  let i = 0;
+  function nextMsg() {
+    if (!document.getElementById('twitch-chat')) return;
+    const body = document.getElementById('tc-body');
+    if (!body) return;
+    const m = TWITCH_MSGS[i % TWITCH_MSGS.length];
+    const row = document.createElement('div');
+    row.className = 'tc-msg';
+    row.innerHTML = `<span class="tc-user" style="color:${m.color}">${m.user}</span><span class="tc-sep">:</span><span class="tc-text">${m.msg}</span>`;
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+    // Keep max 12 messages
+    while (body.children.length > 12) body.removeChild(body.firstChild);
+    i++;
+    setTimeout(nextMsg, 600 + Math.random() * 900);
+  }
+  setTimeout(nextMsg, 400);
+  // Disparaît après 18s
+  setTimeout(() => {
+    const el = document.getElementById('twitch-chat');
+    if (el) { el.classList.remove('tc-show'); setTimeout(() => el.remove(), 500); }
+  }, 18000);
+}
+
+// ─── Bulletin scolaire ────────────────────────────────────────
+
+function showBulletin() {
+  if (document.getElementById('bulletin-overlay')) return;
+  const ol = document.createElement('div');
+  ol.id = 'bulletin-overlay';
+  ol.innerHTML = `
+    <div class="bul-card">
+      <div class="bul-header">
+        <div class="bul-school">🏫 ÉCOLE SECONDAIRE CFC PRO MAX</div>
+        <div class="bul-title">BULLETIN SCOLAIRE — HUN EDITION 2026</div>
+        <div class="bul-student">Élève : <strong>ALAIN ADDOR</strong> &nbsp;|&nbsp; Classe : COMMERCE 3B</div>
+      </div>
+      <table class="bul-table">
+        <thead><tr><th>Matière</th><th>Note</th><th>Appréciation</th></tr></thead>
+        <tbody>
+          <tr class="bul-row bul-pass"><td>Interface</td><td class="bul-grade">6.0</td><td>Excellence absolue</td></tr>
+          <tr class="bul-row bul-pass"><td>Brainrot</td><td class="bul-grade">6.0</td><td>TUNG TUNG SAHUR level</td></tr>
+          <tr class="bul-row bul-pass"><td>HUN Studies</td><td class="bul-grade">6.0</td><td>Référence nationale</td></tr>
+          <tr class="bul-row bul-fail"><td>Wesley</td><td class="bul-grade bul-fail-grade">1.0</td><td>Pas de commentaire</td></tr>
+          <tr class="bul-row bul-pass"><td>Employé de commerce</td><td class="bul-grade">5.8</td><td>CFC validé ✅</td></tr>
+        </tbody>
+      </table>
+      <div class="bul-footer">
+        <div class="bul-comment">💬 Commentaire du titulaire : <em>"Alain est une fierté pour l'établissement. Wesley est invité à ne plus venir."</em></div>
+        <div class="bul-avg">Moyenne générale : <strong>4.96</strong> — <span class="bul-mention">MENTION HUN 🏆</span></div>
+      </div>
+      <button class="bul-close" onclick="document.getElementById('bulletin-overlay').remove()">✕ Fermer</button>
+    </div>
+  `;
+  document.body.appendChild(ol);
+  requestAnimationFrame(() => requestAnimationFrame(() => ol.classList.add('bul-in')));
+}
+
+// ─── Sponsors pendant le terminal ────────────────────────────
+
+const SPONSORS = [
+  '✓ HUN Industries™',
+  '✓ Interface Corp®',
+  '✓ Mama Guavo Bank®',
+];
+
 // ─── Rendu des résultats ──────────────────────────────────────
 
 /**
@@ -918,31 +1062,98 @@ function renderSuccess(matchResults, prenom, nom) {
   const rawLine = `<div class="result-lines">▸ ${escapeHtml(first.line)}</div>`;
 
   if (isAlainAddor(prenom, nom)) {
-    // ── MODE BRAINROT SPÉCIAL ALAIN ADDOR ──
+    // ── TROLL : faux échec pendant 1.8s puis glitch ──
     zone.innerHTML = `
-      <div class="result-success">
-        <div class="stamp-valid">VALIDÉ<br>HUN EDITION</div>
-        <div class="brainrot-banner">🥁🥁🥁</div>
-        <div class="result-sprites">
-          <img src="TUNG.png" class="result-sprite-tung" alt="Tung Tung" />
-          <img src="HUN.png"  class="result-sprite-hun"  alt="HUN" />
+      <div class="result-fail" id="troll-fail">
+        <div class="result-sprites" style="justify-content:center;margin-bottom:12px">
+          <img src="TUNG.png" class="result-sprite-tung" style="opacity:.5;filter:grayscale(.6)" alt="" />
         </div>
-        <div class="result-title">✅ ALAIN ADDOR VALIDÉ</div>
-        <div class="result-subtitle">CFC EMPLOYÉ DE COMMERCE PRO MAX<br>HUN EDITION 🇨🇭</div>
-        <div class="result-badge">🥁 Tung Tung AH MAMA GUAVO Approved 🥁</div>
-        <div class="result-badge result-badge-2">🐊 Tralalero Tralala 🐊</div>
-        <div class="result-bonjour">👋 Bonjour Alain — BONEKA AMBALABU !!!</div>
-        ${profDisplay}
-        ${rawLine}
-        <button class="btn-certif" id="btn-certif" type="button"
-          onclick="downloadCertificate('${escapeHtml(prenom)}','${escapeHtml(nom)}','${escapeHtml(first.profession||'Employé de commerce CFC')}')">
-          📜 Télécharger l'attestation PDF
-        </button>
+        <div class="result-title">❌ Aucun résultat</div>
+        <div class="result-msg">
+          <strong>ALAIN ADDOR</strong> n'apparaît pas dans le texte chargé.<br><br>
+          Le palmarès est peut-être incomplet ou le nom est orthographié différemment.
+        </div>
       </div>
     `;
-    triggerGoldFlash();
-    setTimeout(showAchievement, 600);
-    setTimeout(showAlainRewards, 1800);
+    zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    setTimeout(() => {
+      // Phase 1 — glitch CSS sur le faux fail
+      const failEl = document.getElementById('troll-fail');
+      if (failEl) failEl.classList.add('troll-glitch');
+
+      // Bruit sonore
+      if (soundEnabled) {
+        try {
+          const actx = getAudioCtx();
+          actx.resume().then(() => {
+            [180, 90, 240, 60].forEach((freq, i) => {
+              const o = actx.createOscillator();
+              const g = actx.createGain();
+              o.connect(g); g.connect(actx.destination);
+              o.type = 'sawtooth'; o.frequency.value = freq;
+              const t = actx.currentTime + i * 0.06;
+              g.gain.setValueAtTime(0.12, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+              o.start(t); o.stop(t + 0.2);
+            });
+          });
+        } catch(e) {}
+      }
+    }, 1800);
+
+    setTimeout(() => {
+      // Phase 2 — affiche le "on rigole"
+      zone.innerHTML = `
+        <div class="troll-reveal" id="troll-reveal">
+          <div class="troll-emoji">😂</div>
+          <div class="troll-text">ON RIGOLE</div>
+          <div class="troll-sub">...</div>
+        </div>
+      `;
+    }, 2500);
+
+    setTimeout(() => {
+      // Phase 3 — vrai résultat
+      zone.innerHTML = `
+        <div class="result-success" id="alain-result">
+          <div class="stamp-valid">VALIDÉ<br>HUN EDITION</div>
+          <div class="brainrot-banner">🥁🥁🥁</div>
+          <div class="result-sprites">
+            <img src="TUNG.png" class="result-sprite-tung" alt="Tung Tung" />
+            <img src="HUN.png"  class="result-sprite-hun"  alt="HUN" />
+          </div>
+          <div class="result-title">✅ ALAIN ADDOR VALIDÉ</div>
+          <div class="result-subtitle">CFC EMPLOYÉ DE COMMERCE PRO MAX<br>HUN EDITION 🇨🇭</div>
+          <div class="result-badge">🥁 Tung Tung AH MAMA GUAVO Approved 🥁</div>
+          <div class="result-badge result-badge-2">🐊 Tralalero Tralala 🐊</div>
+          <div class="result-bonjour">👋 Bonjour Alain — BONEKA AMBALABU !!!</div>
+          ${profDisplay}
+          ${rawLine}
+          <button class="btn-certif" id="btn-certif" type="button"
+            onclick="downloadCertificate('${escapeHtml(prenom)}','${escapeHtml(nom)}','${escapeHtml(first.profession||'Employé de commerce CFC')}')">
+            📜 Télécharger l'attestation PDF
+          </button>
+          <button class="btn-certif" id="btn-bulletin" type="button" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border-color:#3b82f6;margin-top:8px"
+            onclick="showBulletin()">
+            📋 Voir le bulletin scolaire
+          </button>
+        </div>
+      `;
+      triggerGoldFlash();
+      playVictoire();
+      launchConfetti();
+      playTungTung();
+      zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(showAchievement, 600);
+      setTimeout(showAlainRewards, 1800);
+      setTimeout(showTwitchChat, 1200);
+      startSpeedrunTimer(true);
+    }, 3600);
+
+    // Sons du troll (échec)
+    playTungTung();
+    return; // skip le bloc commun en bas
   } else {
     // ── MODE NORMAL ──
     zone.innerHTML = `
@@ -961,6 +1172,7 @@ function renderSuccess(matchResults, prenom, nom) {
     `;
   }
 
+  stopSpeedrunTimer();
   playVictoire();
   launchConfetti();
   playTungTung();
@@ -1781,6 +1993,7 @@ const TERMINAL_MAIN = [
   { type: 'gitlogs' },
   { text: 'Loading HUN Search Engine...', status: '✔ READY', sc: 'term-ok' },
   null, // easter egg slot 2
+  { type: 'sponsors' },
   { text: 'Reading palmarès...' },
   { text: 'Searching candidate...' },
   { text: 'Analyzing TPTPTPTTPTPXYZATPA...', cls: 'term-warn' },
@@ -1890,6 +2103,28 @@ function showTerminalLoading() {
             }, 30);
           }
           setTimeout(nextFile, 100);
+        });
+      }
+
+      // ── Bloc sponsors ──
+      if (line.type === 'sponsors') {
+        const block = document.createElement('div');
+        block.className = 'term-sponsor-block';
+        block.innerHTML = `<div class="terminal-line term-warn">★ Cette recherche est sponsorisée par :</div>`;
+        body.appendChild(block);
+        moveCursor(body);
+        body.scrollTop = body.scrollHeight;
+        return new Promise(r => {
+          SPONSORS.forEach((s, i) => {
+            setTimeout(() => {
+              const row = document.createElement('div');
+              row.className = 'terminal-line term-sponsor-line';
+              row.textContent = '  ' + s;
+              block.appendChild(row);
+              body.scrollTop = body.scrollHeight;
+              if (i === SPONSORS.length - 1) setTimeout(r, 300);
+            }, i * 350);
+          });
         });
       }
 
@@ -2040,6 +2275,9 @@ async function checkPalmares() {
     const pool        = filtered.length > 0 ? filtered : nameMatches;
     return { lines, pool };
   });
+
+  // Speedrun timer démarre dès qu'on lance la recherche
+  if (!speedrunMode) startSpeedrunTimer(false);
 
   // Terminal brainrot (ou résultat direct en speedrun)
   if (!speedrunMode) {
@@ -2211,6 +2449,7 @@ dropZone.addEventListener('drop', async e => {
 preloadSprites();
 preloadVictoire();
 preloadOsu();
+setPdfDate(PDF_URL);
 
 window.addEventListener('resize', () => {
   const canvas = document.getElementById('confetti-canvas');
