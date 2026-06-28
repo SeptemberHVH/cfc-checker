@@ -389,6 +389,11 @@ input:focus, textarea:focus {
 #section-auto { display: flex; flex-direction: column; gap: 8px; }
 #section-manual { display: flex; flex-direction: column; gap: 0; }
 
+/* Les sélecteurs ID ci-dessus battaient .section-hidden (spécificité) :
+   on remonte la spécificité pour que le masquage fonctionne réellement. */
+#section-auto.section-hidden,
+#section-manual.section-hidden { display: none; }
+
 /* ─── Loading animation ───────────────────────────────────── */
 
 .result-searching {
@@ -613,6 +618,23 @@ input:focus, textarea:focus {
   position: absolute; inset: 0;
   background: linear-gradient(135deg, rgba(255,255,255,.1) 0%, transparent 60%);
   pointer-events: none;
+}
+
+/* Balayage de lumière en idle — le bouton respire */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: btn-sweep 3.8s ease-in-out infinite;
+}
+
+@keyframes btn-sweep {
+  0%, 55%  { left: -60%; }
+  100%     { left: 160%; }
 }
 
 .btn-glow {
@@ -1207,66 +1229,176 @@ input.error, textarea.error {
 .osu-overlay.osu-show { opacity: 1; }
 .osu-overlay.osu-hide { opacity: 0; pointer-events: none; }
 
-.osu-container {
-  width: min(500px, 96vw);
-  background: #030309;
-  border: 1px solid rgba(168,85,247,.5);
-  border-radius: 14px;
-  padding: 24px;
-  box-shadow: 0 0 80px rgba(168,85,247,.2), inset 0 1px 0 rgba(168,85,247,.1);
-  animation: qcm-in .35s cubic-bezier(.22,1,.36,1) both;
+.osu-stage {
+  width: min(640px, 96vw);
+  background: linear-gradient(160deg, rgba(14,8,28,.96), rgba(6,4,16,.98));
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 0 100px rgba(255,102,170,.18), 0 30px 80px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: qcm-in .4s cubic-bezier(.22,1,.36,1) both;
 }
 
-.osu-header { text-align: center; margin-bottom: 18px; }
-.osu-title {
-  display: block;
-  font-family: var(--font-title);
-  font-size: 28px;
-  letter-spacing: 5px;
-  color: var(--violet-glow);
-  text-shadow: 0 0 20px rgba(168,85,247,.6);
+/* HUD haut — titre + accuracy */
+.osu-hud-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 10px;
 }
-.osu-sub {
+.osu-song { display: flex; flex-direction: column; gap: 2px; }
+.osu-song-title {
   font-family: var(--font-ui);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,.7);
+}
+.osu-diff {
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--text-muted);
+  color: #ff66aa;
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px rgba(255,102,170,.6);
+}
+.osu-acc {
+  font-family: var(--font-title);
+  font-size: 30px;
+  letter-spacing: 2px;
+  color: #ffd76a;
+  text-shadow: 0 0 20px rgba(255,215,106,.5);
+  line-height: 1;
 }
 
-.osu-field {
+/* Barre de vie osu */
+.osu-health {
+  height: 7px;
+  background: rgba(255,255,255,.07);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.osu-health-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff66aa, #ffb3d9);
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(255,102,170,.7);
+  animation: osu-health-pulse 1.6s ease-in-out infinite;
+}
+@keyframes osu-health-pulse {
+  0%,100% { filter: brightness(1); }
+  50%      { filter: brightness(1.35); }
+}
+
+/* Zone de jeu */
+.osu-playarea {
   position: relative;
-  height: 200px;
-  background: rgba(5,5,12,.8);
-  border: 1px solid #0f0f20;
-  border-radius: 10px;
+  height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: none;
+}
+.osu-playarea * { cursor: none; }
+.osu-field {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,102,170,.06), transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(168,85,247,.06), transparent 60%),
+    rgba(5,4,12,.85);
+  border: 1px solid rgba(255,102,170,.18);
+  border-radius: 12px;
   overflow: hidden;
   transition: opacity .2s;
+}
+
+/* Curseur osu + traînée */
+.osu-cursor {
+  position: absolute; top: 0; left: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ff66aa 55%, rgba(255,102,170,0) 75%);
+  box-shadow: 0 0 18px rgba(255,102,170,.9);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 30;
+  will-change: transform;
+}
+.osu-trail {
+  position: absolute;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,180,220,.8), rgba(255,102,170,0) 70%);
+  pointer-events: none;
+  z-index: 29;
+  animation: osu-trail-fade .36s ease-out forwards;
+}
+@keyframes osu-trail-fade {
+  from { opacity: .8; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(.3); }
+}
+
+/* Combo */
+.osu-combo {
+  position: absolute; left: 12px; bottom: 8px;
+  font-family: var(--font-title);
+  font-size: 38px;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255,102,170,.7), 0 2px 4px rgba(0,0,0,.6);
+  pointer-events: none;
+  z-index: 25;
+}
+.osu-combo b { font-size: 44px; color: #ff66aa; }
+.osu-combo-pop { animation: osu-combo-pop .25s cubic-bezier(.175,.885,.32,1.4); }
+@keyframes osu-combo-pop {
+  0%   { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* Jugements 300 / PERFECT */
+.osu-judge-layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+.osu-judge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-title);
+  font-size: 30px;
+  letter-spacing: 2px;
+  animation: osu-judge-anim .7s ease-out forwards;
+}
+.osu-judge-300     { color: #5ad7ff; text-shadow: 0 0 18px rgba(90,215,255,.9); }
+.osu-judge-perfect { color: #ffd76a; font-size: 24px; text-shadow: 0 0 18px rgba(255,215,106,.9); }
+@keyframes osu-judge-anim {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+  30%  { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -110%) scale(.9); }
 }
 
 /* Circles */
 .osu-circle {
   position: absolute;
-  width: 64px; height: 64px;
+  width: 70px; height: 70px;
   transform: translate(-50%, -50%) scale(0);
   cursor: pointer;
   user-select: none;
+  z-index: 10;
   transition: transform .18s cubic-bezier(.175,.885,.32,1.275);
 }
 .osu-circle-in { transform: translate(-50%, -50%) scale(1); }
-.osu-circle.osu-hit { transform: translate(-50%, -50%) scale(1.6) !important; opacity: 0; transition: transform .3s ease, opacity .3s ease; }
+.osu-circle.osu-hit { transform: translate(-50%, -50%) scale(1.7) !important; opacity: 0; transition: transform .35s ease, opacity .35s ease; }
 
 .osu-num {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  width: 64px; height: 64px;
+  width: 70px; height: 70px;
   border-radius: 50%;
-  background: rgba(124,58,237,.25);
-  border: 2px solid var(--violet-glow);
+  background: radial-gradient(circle at 35% 30%, rgba(255,140,200,.5), rgba(168,85,247,.3) 70%);
+  border: 3px solid #ff66aa;
   color: #fff;
   font-family: var(--font-title);
-  font-size: 22px;
+  font-size: 26px;
   letter-spacing: 0;
-  box-shadow: 0 0 20px rgba(168,85,247,.5), inset 0 0 14px rgba(168,85,247,.15);
+  box-shadow: 0 0 26px rgba(255,102,170,.6), inset 0 0 16px rgba(255,255,255,.15);
   z-index: 1;
 }
 
@@ -1274,21 +1406,36 @@ input.error, textarea.error {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 2px solid rgba(168,85,247,.7);
-  animation: osu-approach 1.2s linear forwards;
+  border: 3px solid rgba(255,102,170,.85);
+  box-shadow: 0 0 14px rgba(255,102,170,.4);
+  animation: osu-approach 1.1s linear forwards;
 }
 
 @keyframes osu-approach {
-  from { transform: scale(1.8); opacity: .5; }
+  from { transform: scale(2); opacity: .3; }
   to   { transform: scale(1.05); opacity: 1; }
+}
+
+/* Burst au clic */
+.osu-burst {
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--green-glow);
+  opacity: 0;
+  pointer-events: none;
+}
+.osu-circle.osu-hit .osu-burst { animation: osu-burst-anim .4s ease-out forwards; }
+@keyframes osu-burst-anim {
+  from { opacity: .9; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(2.4); }
 }
 
 /* Explosion verte au clic */
 .osu-circle.osu-hit .osu-num {
-  background: rgba(34,197,94,.35);
+  background: radial-gradient(circle at 35% 30%, rgba(120,255,170,.6), rgba(34,197,94,.35) 70%);
   border-color: var(--green-glow);
-  box-shadow: 0 0 40px rgba(34,197,94,.8), inset 0 0 20px rgba(34,197,94,.3);
-  color: var(--green-glow);
+  box-shadow: 0 0 44px rgba(34,197,94,.9), inset 0 0 22px rgba(34,197,94,.3);
+  color: #fff;
 }
 
 /* Slider */
@@ -2245,35 +2392,56 @@ input.error, textarea.error {
 
 .troll-reveal {
   text-align: center;
-  padding: 48px 32px;
+  padding: 36px 24px;
   animation: result-in .3s cubic-bezier(.22,1,.36,1);
-}
-
-.troll-emoji {
-  font-size: 80px;
-  animation: troll-bounce .4s ease-in-out infinite alternate;
-}
-
-@keyframes troll-bounce {
-  from { transform: scale(1) rotate(-5deg); }
-  to   { transform: scale(1.15) rotate(5deg); }
 }
 
 .troll-text {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 56px;
-  letter-spacing: 6px;
+  font-size: clamp(56px, 13vw, 92px);
+  letter-spacing: 8px;
   color: #22c55e;
-  text-shadow: 0 0 40px rgba(34,197,94,.8);
-  margin: 12px 0 6px;
+  text-shadow: 0 0 40px rgba(34,197,94,.9), 0 0 80px rgba(34,197,94,.4);
+  margin: 0 0 22px;
+  animation: troll-text-pop .45s cubic-bezier(.175,.885,.32,1.5) both, troll-text-wob 2s ease-in-out .45s infinite;
 }
 
-.troll-sub {
-  font-family: 'Space Mono', monospace;
-  font-size: 18px;
-  color: rgba(255,255,255,.4);
-  letter-spacing: 4px;
-  animation: blink-dot .6s step-end infinite;
+@keyframes troll-text-pop {
+  from { transform: scale(0) rotate(-8deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);  opacity: 1; }
+}
+
+@keyframes troll-text-wob {
+  0%,100% { transform: rotate(-2deg) scale(1); }
+  50%      { transform: rotate(2deg) scale(1.04); }
+}
+
+.troll-gif-wrap {
+  display: inline-block;
+  position: relative;
+  border-radius: 18px;
+  padding: 6px;
+  background: linear-gradient(135deg, #22c55e, #a855f7, #f59e0b);
+  background-size: 200% 200%;
+  animation: troll-border-flow 3s linear infinite, troll-gif-in .5s .1s cubic-bezier(.175,.885,.32,1.275) both;
+  box-shadow: 0 0 60px rgba(34,197,94,.5), 0 20px 60px rgba(0,0,0,.6);
+}
+
+@keyframes troll-border-flow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes troll-gif-in {
+  from { transform: scale(.6) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);     opacity: 1; }
+}
+
+.troll-gif {
+  display: block;
+  width: min(340px, 78vw);
+  height: auto;
+  border-radius: 13px;
 }
 
 /* ─── Speedrun timer ──────────────────────────────────────── */
