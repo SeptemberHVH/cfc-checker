@@ -1132,7 +1132,7 @@ function renderSuccess(matchResults, prenom, nom) {
       let _gl = 0;
       const glitchIv = setInterval(() => {
         const el = document.getElementById('troll-fail');
-        if (!el || ++_gl > 4) { clearInterval(glitchIv); return; }
+        if (!el || ++_gl > 7) { clearInterval(glitchIv); return; }
         el.classList.remove('troll-glitch'); void el.offsetWidth; el.classList.add('troll-glitch');
       }, 620);
     }, 2600);
@@ -1150,7 +1150,7 @@ function renderSuccess(matchResults, prenom, nom) {
       `;
       playSixSeven();
       zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 5200);
+    }, 7200);
 
     setTimeout(() => {
       // Phase 3 — vrai résultat + WAIT WAIT WAIT AAAAH (remplace la victoire)
@@ -1182,15 +1182,15 @@ function renderSuccess(matchResults, prenom, nom) {
         </div>
       `;
       triggerGoldFlash();
-      // "WAIT WAIT WAIT ... AAAAH" pile quand le résultat apparaît (on coupe après ~3.4s)
-      playStory('wait', 0.95, false, 3400);
+      // "WAIT WAIT WAIT ... AAAAH" pile quand le résultat apparaît (on laisse le cri sortir)
+      playStory('wait', 0.95, false, 6000);
       launchConfetti();
       zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       setTimeout(showAchievement, 600);
       setTimeout(showAlainRewards, 1800);
       setTimeout(showTwitchChat, 1200);
       startSpeedrunTimer(true);
-    }, 7800);
+    }, 9800);
 
     return; // skip le bloc commun en bas
   } else {
@@ -2791,6 +2791,10 @@ function initBrainrotMax() {
   _brBuildMarquee();
   _brBuildSoundboard();
   _brBuildFloaters();
+  initAuraCounter();
+  initNameEggs();
+  initKonami();
+  initIdleReaction();
 
   // Curseur traînée (throttle)
   let _lastTrail = 0;
@@ -2802,10 +2806,11 @@ function initBrainrotMax() {
     _brSpawnTrail(e.clientX, e.clientY);
   }, { passive: true });
 
-  // Clic = explosion d'emojis (+ boom sur les boutons)
+  // Clic = explosion d'emojis (+ boom sur les boutons) + aura
   document.addEventListener('click', e => {
-    if (_brOverlayOpen()) return;
     if (e.target.closest('#br-soundboard')) return;
+    addAura(1 + ((Math.random() * 8) | 0));
+    if (_brOverlayOpen()) return;
     _brBurst(e.clientX, e.clientY);
     const onBtn = e.target.closest('button, .mode-btn, .btn-primary, .btn-pdf-auto');
     if (onBtn && Math.random() < 0.5) playBrainrot('vineboom', 0.45);
@@ -2823,6 +2828,164 @@ function initBrainrotMax() {
     playBrainrot('vineboom', 0.7);
     brainrotShake();
   });
+}
+
+// ════════════════════════════════════════════════════════════
+//   SURPRISES CACHÉES
+// ════════════════════════════════════════════════════════════
+
+// ── 1) Compteur d'AURA (monte à chaque clic, paliers à débloquer) ──
+let _aura = 0;
+function initAuraCounter() {
+  if (document.getElementById('aura-counter')) return;
+  const el = document.createElement('div');
+  el.id = 'aura-counter';
+  el.innerHTML = '✨ AURA <b id="aura-val">0</b>';
+  document.body.appendChild(el);
+}
+function addAura(n) {
+  const before = _aura;
+  _aura += n;
+  const v = document.getElementById('aura-val');
+  const box = document.getElementById('aura-counter');
+  if (v) v.textContent = _aura.toLocaleString('fr-CH');
+  if (box) { box.classList.remove('aura-pop'); void box.offsetWidth; box.classList.add('aura-pop'); }
+  [100, 500, 1000, 5000, 10000].forEach(m => {
+    if (before < m && _aura >= m) _auraMilestone(m);
+  });
+}
+function _auraMilestone(m) {
+  const labels = { 100: 'SIGMA GRINDSET 🗿', 500: 'AURA FARMING 🔥', 1000: 'CERTIFIED GOAT 🐐', 5000: 'GIGACHAD ULTIME 💪', 10000: 'AURA INFINIE ♾️' };
+  const p = document.createElement('div');
+  p.className = 'aura-milestone';
+  p.innerHTML = `<div class="am-x">+${m.toLocaleString('fr-CH')} AURA</div><div class="am-l">${labels[m] || 'AURA'}</div>`;
+  document.body.appendChild(p);
+  playBrainrot('rizz', 0.75);
+  setTimeout(() => p.remove(), 1700);
+}
+
+// ── 2) Easter eggs dans les champs Prénom / Nom ──
+function initNameEggs() {
+  const EGGS = [
+    { match: 'wesley',  sound: 'bruh',      msg: '❌ WESLEY DÉTECTÉ — ACCÈS REFUSÉ', bad: true },
+    { match: 'hun',     sound: 'tungsahur', msg: '🥁 HUN — LE GOAT 🐐' },
+    { match: 'skibidi', sound: 'vineboom',  msg: '🚽 SKIBIDI TOILET 🚽' },
+    { match: 'tung',    sound: 'tungsahur', msg: '🥁 TUNG TUNG TUNG SAHUR' },
+    { match: 'rizz',    sound: 'rizz',      msg: '🗿 W RIZZ DÉTECTÉ' },
+    { match: 'ohio',    sound: 'vineboom',  msg: '💀 ONLY IN OHIO 💀' },
+    { match: 'alain',   sound: 'tungsahur', msg: '👑 LE BOSS FINAL EN PERSONNE 👑' },
+  ];
+  let last = '';
+  function check() {
+    const p = document.getElementById('input-prenom');
+    const n = document.getElementById('input-nom');
+    if (!p || !n) return;
+    const combined = normalize(p.value) + ' ' + normalize(n.value);
+    for (const egg of EGGS) {
+      if (combined.includes(egg.match)) {
+        if (last !== egg.match) { last = egg.match; _fireNameEgg(egg); }
+        return;
+      }
+    }
+    last = '';
+  }
+  ['input-prenom', 'input-nom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', check);
+  });
+}
+function _fireNameEgg(egg) {
+  playBrainrot(egg.sound, 0.85, true);
+  addAura(67);
+  const t = document.createElement('div');
+  t.className = 'name-egg' + (egg.bad ? ' name-egg-bad' : '');
+  t.textContent = egg.msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1900);
+  if (egg.bad) {
+    ['input-prenom', 'input-nom'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('egg-shake'); setTimeout(() => el.classList.remove('egg-shake'), 500); }
+    });
+  }
+}
+
+// ── 3) Konami code → HUN MODE ──
+function initKonami() {
+  const seq = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
+  let idx = 0;
+  document.addEventListener('keydown', e => {
+    if (_brOverlayOpen()) return;
+    const k = (e.key || '').toLowerCase();
+    if (k === seq[idx]) {
+      idx++;
+      if (idx === seq.length) { idx = 0; triggerHunMode(); }
+    } else {
+      idx = (k === seq[0]) ? 1 : 0;
+    }
+  });
+}
+function triggerHunMode() {
+  if (document.getElementById('hun-mode-banner')) return;
+  document.body.classList.add('hun-mode-rainbow');
+  playBrainrot('vineboom', 0.7);
+  setTimeout(() => playBrainrot('tungsahur', 0.85, true), 180);
+
+  const banner = document.createElement('div');
+  banner.id = 'hun-mode-banner';
+  banner.textContent = '🥁 HUN MODE ACTIVÉ 🥁';
+  document.body.appendChild(banner);
+  addAura(1000);
+
+  const imgs = ['./HUN.png', './TUNG.png', './67.gif'];
+  const emos = ['🥁','🐊','💀','🗿','💯','👹','🤑','⚡'];
+  let count = 0;
+  const rainIv = setInterval(() => {
+    if (count++ > 70) { clearInterval(rainIv); return; }
+    const useImg = Math.random() < 0.4;
+    const el = document.createElement(useImg ? 'img' : 'div');
+    if (useImg) { el.src = imgs[(Math.random() * imgs.length) | 0]; el.className = 'hun-rain hun-rain-img'; }
+    else { el.className = 'hun-rain hun-rain-emoji'; el.textContent = emos[(Math.random() * emos.length) | 0]; }
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.setProperty('--dur', (2.4 + Math.random() * 2.2) + 's');
+    el.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5200);
+  }, 80);
+
+  setTimeout(() => {
+    document.body.classList.remove('hun-mode-rainbow');
+    banner.classList.add('out');
+    setTimeout(() => banner.remove(), 600);
+  }, 6000);
+}
+
+// ── 4) Réaction d'inactivité ──
+let _idleTimer = null;
+const IDLE_LINES = [
+  'T\'es encore là ? 🥁', 'Wesley c\'est toi ? 👀', 'Allez, tape un nom 🐊',
+  'MAMA GUAVO t\'attend 💀', 'Skibidi ? 🚽', 'AFK détecté 📈', 'Toujours là le sigma ? 🗿'
+];
+function initIdleReaction() {
+  ['pointermove', 'keydown', 'click', 'scroll'].forEach(ev =>
+    document.addEventListener(ev, _resetIdle, { passive: true }));
+  _resetIdle();
+}
+function _resetIdle() {
+  clearTimeout(_idleTimer);
+  _idleTimer = setTimeout(_showIdle, 25000);
+}
+function _showIdle() {
+  if (_brOverlayOpen() || document.hidden) { _resetIdle(); return; }
+  if (document.getElementById('idle-pop')) return;
+  const pop = document.createElement('div');
+  pop.id = 'idle-pop';
+  pop.innerHTML = `<img src="./HUN.png" alt="" /><div class="idle-bubble">${IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0]}</div>`;
+  document.body.appendChild(pop);
+  playBrainrot('vineboom', 0.4);
+  requestAnimationFrame(() => requestAnimationFrame(() => pop.classList.add('show')));
+  setTimeout(() => { pop.classList.remove('show'); setTimeout(() => pop.remove(), 500); }, 5000);
+  _resetIdle();
 }
 
 if (document.readyState === 'loading') {
