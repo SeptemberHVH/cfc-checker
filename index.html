@@ -4,13 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CFC Pro Max Checker 2026 🏆</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=10" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
+  <!-- ═══ ÉCRAN DE VERROUILLAGE (gate) ═══ -->
+  <div id="gate-screen" style="position:fixed;inset:0;z-index:999999;background:#06040f;display:flex;align-items:center;justify-content:center;">
+    <div class="gate-stars" aria-hidden="true"></div>
+    <div class="gate-box">
+      <div class="gate-lock" id="gate-lock">🔒</div>
+      <h1 class="gate-title">ACCÈS VERROUILLÉ</h1>
+      <p class="gate-sub">Ce contenu est scellé.<br/>Il se déverrouillera <strong>le moment venu</strong>…</p>
+
+      <div class="gate-field">
+        <input type="password" id="gate-pass" placeholder="Mot de passe" autocomplete="off" />
+        <button id="gate-pass-btn" type="button">Déverrouiller</button>
+      </div>
+
+      <div class="gate-or"><span>ou</span></div>
+
+      <button id="gate-check-btn" type="button">🔍 CHECK PDF TO UNLOCK</button>
+
+      <div class="gate-status" id="gate-status"></div>
+    </div>
+  </div>
 
   <!-- Matrix rain + confettis + particules -->
   <canvas id="matrix-canvas"></canvas>
@@ -28,6 +49,7 @@
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
   </div>
 
   <main class="container">
@@ -98,6 +120,7 @@
           <span id="fetch-pdf-label">Récupérer le PDF automatiquement</span>
         </button>
         <div class="pdf-status" id="pdf-status"></div>
+        <div class="pdf-date" id="pdf-date"></div>
       </div>
 
       <!-- Section MANUEL -->
@@ -173,6 +196,6 @@
   <!-- Gold flash overlay -->
   <div id="gold-overlay"></div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=10"></script>
 </body>
 </html>
