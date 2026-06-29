@@ -7,8 +7,10 @@ CFC Pro Max Checker 2026 — Scraper automatique
 
 import os
 import re
+import json
 import shutil
 import smtplib
+import datetime
 import subprocess
 import urllib.request
 import unicodedata
@@ -24,7 +26,8 @@ PRENOM = "Alain"
 NOM    = "Addor"
 
 PAGE_URL = "https://www.citedesmetiers.ch/palmares2026/"
-PDF_OUT  = "palmares.pdf"   # fichier sauvegardé dans le repo
+PDF_OUT  = "palmares.pdf"          # fichier sauvegardé dans le repo
+INFO_OUT = "palmares-info.json"    # date + statut lus par le site (gate)
 
 # ── Normalisation ─────────────────────────────────────────────
 def normalize(text):
@@ -52,26 +55,43 @@ def download_pdf(url):
     print(f"PDF téléchargé : {len(data)//1024} Ko")
     return data
 
-# ── Sauvegarder le PDF dans le repo ──────────────────────────
-def save_and_commit_pdf(data):
+# ── Extraire la date depuis le nom du PDF ─────────────────────
+def extract_date(pdf_url):
+    m = re.search(r"(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})", pdf_url)
+    if m:
+        return f"{m.group(3)}.{m.group(2)}.{m.group(1)} à {m.group(4)}h{m.group(5)}"
+    return "date inconnue"
+
+# ── Sauvegarder PDF + infos dans le repo ─────────────────────
+def save_and_commit(data, pdf_url, found):
     with open(PDF_OUT, "wb") as f:
         f.write(data)
     print(f"PDF sauvegardé : {PDF_OUT}")
 
+    info = {
+        "url":        pdf_url,
+        "date":       extract_date(pdf_url),
+        "found":      bool(found),
+        "checked_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    with open(INFO_OUT, "w", encoding="utf-8") as f:
+        json.dump(info, f, ensure_ascii=False, indent=2)
+    print(f"Infos sauvegardées : {info}")
+
     # Config git pour le commit automatique
     subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
     subprocess.run(["git", "config", "user.name",  "CFC Checker Bot"],    check=True)
-    subprocess.run(["git", "add", PDF_OUT],                                check=True)
+    subprocess.run(["git", "add", PDF_OUT, INFO_OUT],                      check=True)
 
     # Vérifie s'il y a des changements à committer
     result = subprocess.run(["git", "diff", "--staged", "--quiet"])
     if result.returncode == 0:
-        print("PDF inchangé depuis le dernier run — pas de commit.")
+        print("Aucun changement depuis le dernier run — pas de commit.")
         return False
     else:
-        subprocess.run(["git", "commit", "-m", "chore: mise à jour palmares.pdf"], check=True)
+        subprocess.run(["git", "commit", "-m", "chore: mise à jour palmares.pdf + infos"], check=True)
         subprocess.run(["git", "push"], check=True)
-        print("PDF commité et pushé dans le repo.")
+        print("Fichiers commités et pushés dans le repo.")
         return True
 
 # ── Extraire le texte du PDF ──────────────────────────────────
@@ -130,12 +150,12 @@ def main():
     pdf_url   = find_pdf_url()
     pdf_bytes = download_pdf(pdf_url)
 
-    # Sauvegarde dans le repo pour que le site puisse le charger
-    save_and_commit_pdf(pdf_bytes)
-
     # Cherche le nom
     text    = extract_text(pdf_bytes)
     matches = search_name(text, PRENOM, NOM)
+
+    # Sauvegarde PDF + infos (date, found) dans le repo pour le site/gate
+    save_and_commit(pdf_bytes, pdf_url, bool(matches))
 
     if matches:
         print(f"TROUVÉ ! {len(matches)} ligne(s) :")
