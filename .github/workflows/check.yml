@@ -2,7 +2,7 @@ name: CFC Pro Max Checker 2026
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
