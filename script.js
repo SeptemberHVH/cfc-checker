@@ -1096,6 +1096,7 @@ function renderSuccess(matchResults, prenom, nom) {
 
   // La musique speedrun s'arrête dès que le résultat commence
   stopStory();
+  hideSpeedrunnerGif();
 
   const displayName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
 
@@ -1121,25 +1122,23 @@ function renderSuccess(matchResults, prenom, nom) {
     `;
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    // Son : NOOO LA POLIZIA pendant le faux échec
-    playStory('polizia', 0.85);
+    // Son : NOOO LA POLIZIA pendant tout le faux échec (jusqu'au 67)
+    playStory('polizia', 0.9);
 
     setTimeout(() => {
-      // Phase 1 — le "bug" : glitch + WAIT WAIT WAIT (coupe la polizia)
+      // Phase 1 — le "bug" : glitch visuel (la polizia continue de jouer)
       const failEl = document.getElementById('troll-fail');
       if (failEl) failEl.classList.add('troll-glitch');
-      // on relance le glitch tant que le son joue
       let _gl = 0;
       const glitchIv = setInterval(() => {
         const el = document.getElementById('troll-fail');
         if (!el || ++_gl > 4) { clearInterval(glitchIv); return; }
         el.classList.remove('troll-glitch'); void el.offsetWidth; el.classList.add('troll-glitch');
       }, 620);
-      playStory('wait', 0.9);
-    }, 2200);
+    }, 2600);
 
     setTimeout(() => {
-      // Phase 2 — ON RIGOLE + gif 67 + son (coupe le WAIT)
+      // Phase 2 — ON RIGOLE + gif 67 + son (coupe la polizia)
       stopStory();
       zone.innerHTML = `
         <div class="troll-reveal" id="troll-reveal">
@@ -1151,10 +1150,10 @@ function renderSuccess(matchResults, prenom, nom) {
       `;
       playSixSeven();
       zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 5000);
+    }, 5200);
 
     setTimeout(() => {
-      // Phase 3 — vrai résultat
+      // Phase 3 — vrai résultat + WAIT WAIT WAIT AAAAH (remplace la victoire)
       stopStory();
       stopSixSeven();
       zone.innerHTML = `
@@ -1183,15 +1182,15 @@ function renderSuccess(matchResults, prenom, nom) {
         </div>
       `;
       triggerGoldFlash();
-      playVictoire();
+      // "WAIT WAIT WAIT ... AAAAH" pile quand le résultat apparaît (on coupe après ~3.4s)
+      playStory('wait', 0.95, false, 3400);
       launchConfetti();
-      playTungTung();
       zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       setTimeout(showAchievement, 600);
       setTimeout(showAlainRewards, 1800);
       setTimeout(showTwitchChat, 1200);
       startSpeedrunTimer(true);
-    }, 7600);
+    }, 7800);
 
     return; // skip le bloc commun en bas
   } else {
@@ -1213,7 +1212,6 @@ function renderSuccess(matchResults, prenom, nom) {
   }
 
   stopSpeedrunTimer();
-  playVictoire();
   launchConfetti();
   playTungTung();
   zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1221,6 +1219,7 @@ function renderSuccess(matchResults, prenom, nom) {
 
 function renderFail(prenom, nom) {
   stopStory();
+  hideSpeedrunnerGif();
   stopSpeedrunTimer();
   const zone = document.getElementById('result-zone');
   const displayName = [prenom, nom].filter(Boolean).join(' ') || '(nom non saisi)';
@@ -1624,8 +1623,15 @@ function showOsuResults(onContinue) {
       </div>
 
       <div class="osr-rank-block">
-        <div class="osr-rank" id="osr-rank">${rank}</div>
+        <div class="osr-rank-ring">
+          <div class="osr-rank" id="osr-rank">${rank}</div>
+        </div>
+        <div class="osr-pp">727<span>pp</span></div>
         <div class="osr-rank-label">RANKING</div>
+        <div class="osr-gif-wrap">
+          <img class="osr-gif" src="./goodjob.gif" alt="" aria-hidden="true" />
+          <div class="osr-gif-cap">DU BIST GUT GENUG 💪</div>
+        </div>
       </div>
 
       <div class="osr-perf">
@@ -1659,27 +1665,11 @@ function showOsuResults(onContinue) {
     if (f >= totalFrames) clearInterval(iv);
   }, 18);
 
-  // Play a lil beep on appear
-  if (soundEnabled) {
-    try {
-      const ctx = getAudioCtx();
-      ctx.resume().then(() => {
-        [523, 659, 784, 1046].forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const g   = ctx.createGain();
-          osc.connect(g); g.connect(ctx.destination);
-          osc.type = 'sine'; osc.frequency.value = freq;
-          const t = ctx.currentTime + i * 0.09;
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(0.14, t + .05);
-          g.gain.exponentialRampToValueAtTime(0.001, t + .5);
-          osc.start(t); osc.stop(t + .55);
-        });
-      });
-    } catch(e) {}
-  }
+  // Voix : DU BIST GUT GENUGGGG quand l'écran de stats apparaît
+  playStory('dubist', 0.95);
 
   overlay.querySelector('#osr-continue-btn').addEventListener('click', () => {
+    stopStory();
     overlay.classList.add('osr-out');
     setTimeout(() => { overlay.remove(); onContinue(); }, 500);
   });
@@ -2392,6 +2382,7 @@ async function checkPalmares() {
   if (!speedrunMode) {
     startSpeedrunTimer(false);
     playStory('speedrun', 0.5, true);
+    showSpeedrunnerGif();
   }
 
   // Terminal brainrot (ou résultat direct en speedrun)
@@ -2481,6 +2472,7 @@ function resetForm() {
   stopSixSeven();
   stopOsuMusic();
   stopSpeedrunTimer();
+  hideSpeedrunnerGif();
   document.getElementById('input-prenom').value = '';
   document.getElementById('input-nom').value = '';
   document.getElementById('input-profession').value = '';
@@ -2592,13 +2584,14 @@ const BRAINROT_SOUNDS = {
   speedrun:  './speedrun.mp3',
   polizia:   './polizia.mp3',
   wait:      './wait.mp3',
+  dubist:    './dubist.mp3',
 };
 const _brBuffers = {};
 let _brSoloSource = null;
 
 // ── Canal "story" : un seul son narratif à la fois (le nouveau coupe l'ancien) ──
 let _storySource = null;
-function playStory(name, vol, loop) {
+function playStory(name, vol, loop, autoStopMs) {
   if (!_brBuffers[name]) return;
   stopStory();
   if (!soundEnabled) return;
@@ -2615,6 +2608,9 @@ function playStory(name, vol, loop) {
       src.start(0);
       _storySource = src;
       src.onended = () => { if (_storySource === src) _storySource = null; };
+      if (autoStopMs) setTimeout(() => {
+        if (_storySource === src) { try { src.stop(); } catch(e) {} _storySource = null; }
+      }, autoStopMs);
     });
   } catch(e) {}
 }
@@ -2623,6 +2619,22 @@ function stopStory() {
     try { _storySource.stop(); } catch(e) {}
     _storySource = null;
   }
+}
+
+// ── Gif speedrunner (pendant la musique Dream) ──
+function showSpeedrunnerGif() {
+  if (document.getElementById('speedrunner-gif')) return;
+  const img = document.createElement('img');
+  img.id = 'speedrunner-gif';
+  img.src = './speedrunner.gif';
+  img.alt = '';
+  img.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(img);
+  requestAnimationFrame(() => requestAnimationFrame(() => img.classList.add('show')));
+}
+function hideSpeedrunnerGif() {
+  const img = document.getElementById('speedrunner-gif');
+  if (img) { img.classList.remove('show'); setTimeout(() => img.remove(), 400); }
 }
 
 async function preloadBrainrotSounds() {
