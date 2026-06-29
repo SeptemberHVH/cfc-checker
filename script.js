@@ -5,9 +5,11 @@
 
 // ─── Boot BIOS screen ────────────────────────────────────────
 
-(function initBios() {
+function runBiosBoot() {
   const screen  = document.getElementById('bios-screen');
   const content = document.getElementById('bios-content');
+  if (!screen || !content || screen.dataset.booted) return;
+  screen.dataset.booted = '1';
 
   const lines = [
     { text: '' },
@@ -53,7 +55,7 @@
   }
 
   nextLine();
-})();
+}
 
 // ─── Particules ambiantes ─────────────────────────────────────
 
@@ -495,6 +497,136 @@ function drawSpriteOnCanvas(ctx, url, xPx, yPx, heightPx) {
   });
 }
 
+// ─── Helpers dessin du certificat ────────────────────────────
+function _certStar(c, cx, cy, spikes, outer, inner) {
+  let rot = -Math.PI / 2; const step = Math.PI / spikes;
+  c.beginPath(); c.moveTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
+  for (let i = 0; i < spikes; i++) {
+    rot += step; c.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner);
+    rot += step; c.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
+  }
+  c.closePath(); c.fill();
+}
+
+function _certGuilloche(c, cx, cy) {
+  // motif spirographe faible (anti-contrefaçon façon billet de banque)
+  c.save();
+  c.globalAlpha = 0.5;
+  c.strokeStyle = 'rgba(168,85,247,.10)';
+  c.lineWidth = 1;
+  for (let k = 0; k < 60; k++) {
+    const a = (k / 60) * Math.PI * 2;
+    c.beginPath();
+    for (let t = 0; t <= Math.PI * 2; t += 0.08) {
+      const R = 230 + 60 * Math.cos(5 * t + a);
+      const x = cx + R * Math.cos(t + a);
+      const y = cy + R * Math.sin(t + a);
+      t === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+    }
+    c.stroke();
+  }
+  c.restore();
+}
+
+function _certCornerOrn(c, x, y, dx, dy) {
+  c.strokeStyle = '#fbbf24'; c.lineCap = 'round';
+  c.lineWidth = 5;
+  c.beginPath();
+  c.moveTo(x + dx * 110, y); c.lineTo(x + dx * 28, y);
+  c.quadraticCurveTo(x, y, x, y + dy * 28); c.lineTo(x, y + dy * 110);
+  c.stroke();
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(x + dx * 70, y + dy * 30); c.lineTo(x + dx * 30, y + dy * 30);
+  c.lineTo(x + dx * 30, y + dy * 70);
+  c.stroke();
+  c.fillStyle = '#f59e0b';
+  c.save(); c.translate(x + dx * 46, y + dy * 46); c.rotate(Math.PI / 4); c.fillRect(-8, -8, 16, 16); c.restore();
+}
+
+function _certEmblem(c, cx, cy, r) {
+  c.save();
+  c.shadowColor = '#f59e0b'; c.shadowBlur = 34;
+  const g = c.createRadialGradient(cx, cy - r * .3, 10, cx, cy, r);
+  g.addColorStop(0, '#2a1a4a'); g.addColorStop(1, '#0d0820');
+  c.fillStyle = g;
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  c.shadowBlur = 0;
+  // rayons
+  c.strokeStyle = 'rgba(245,158,11,.25)'; c.lineWidth = 2;
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    c.beginPath(); c.moveTo(cx + Math.cos(a) * (r - 30), cy + Math.sin(a) * (r - 30));
+    c.lineTo(cx + Math.cos(a) * (r - 6), cy + Math.sin(a) * (r - 6)); c.stroke();
+  }
+  c.strokeStyle = '#fbbf24'; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+  c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, r - 14, 0, Math.PI * 2); c.stroke();
+  // étoile
+  c.fillStyle = '#f59e0b';
+  _certStar(c, cx, cy - r * .12, 5, r * .52, r * .22);
+  c.fillStyle = '#fff'; c.font = 'bold 40px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('HUN', cx, cy + r * .52);
+  c.restore();
+}
+
+function _certSeal(c, cx, cy, r) {
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(-Math.PI / 13);
+  c.globalAlpha = 0.92;
+  c.strokeStyle = '#e0245e'; c.fillStyle = '#e0245e';
+  c.lineWidth = 9; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.stroke();
+  c.lineWidth = 3; c.beginPath(); c.arc(0, 0, r - 22, 0, Math.PI * 2); c.stroke();
+  c.beginPath(); c.arc(0, 0, r - 150, 0, Math.PI * 2); c.stroke();
+  // texte circulaire
+  c.font = 'bold 33px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const txt = '★ HUN EDITION ★ CFC PRO MAX ★ TUNG TUNG SAHUR ★ ';
+  const N = txt.length;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+    c.save(); c.rotate(a); c.translate(0, -(r - 48)); c.fillText(txt[i], 0, 0); c.restore();
+  }
+  c.font = 'bold 96px Impact, sans-serif'; c.fillText('VALIDÉ', 0, -8);
+  c.font = 'bold 32px Impact, sans-serif'; c.fillText('★ RC2 · 2026 ★', 0, 64);
+  c.restore();
+}
+
+function _certQR(c, x, y, size) {
+  const n = 25, cs = size / n;
+  c.fillStyle = '#fff'; c.fillRect(x - 10, y - 10, size + 20, size + 20);
+  c.fillStyle = '#0a0a12';
+  let seed = 6767;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed >> 16) & 1; };
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (rnd()) c.fillRect(x + i * cs, y + j * cs, cs, cs);
+  const finder = (fx, fy) => {
+    c.fillStyle = '#fff'; c.fillRect(x + fx * cs - cs, y + fy * cs - cs, 9 * cs, 9 * cs);
+    c.fillStyle = '#0a0a12'; c.fillRect(x + fx * cs, y + fy * cs, 7 * cs, 7 * cs);
+    c.fillStyle = '#fff'; c.fillRect(x + (fx + 1) * cs, y + (fy + 1) * cs, 5 * cs, 5 * cs);
+    c.fillStyle = '#0a0a12'; c.fillRect(x + (fx + 2) * cs, y + (fy + 2) * cs, 3 * cs, 3 * cs);
+  };
+  finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
+}
+
+function _certSignature(c, x, y) {
+  c.strokeStyle = '#e2e8f0'; c.lineWidth = 4; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.beginPath();
+  c.moveTo(x, y);
+  c.bezierCurveTo(x + 45, y - 60, x + 80, y + 45, x + 130, y - 12);
+  c.bezierCurveTo(x + 175, y - 60, x + 175, y + 55, x + 235, y - 6);
+  c.bezierCurveTo(x + 270, y - 35, x + 300, y + 25, x + 360, y - 18);
+  c.stroke();
+  c.lineWidth = 2;
+  c.beginPath(); c.moveTo(x + 70, y + 18); c.bezierCurveTo(x + 200, y + 30, x + 280, y + 6, x + 350, y + 16); c.stroke();
+}
+
+function _certBadge(c, x, y, w, h, label, color) {
+  c.fillStyle = color.replace('1)', '.16)');
+  roundRect(c, x, y, w, h, 14); c.fill();
+  c.strokeStyle = color; c.lineWidth = 2; roundRect(c, x, y, w, h, 14); c.stroke();
+  c.fillStyle = color; c.font = 'bold 30px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(label, x + w / 2, y + h / 2 + 1);
+}
+
 async function downloadCertificate(prenom, nom, profession) {
   const btn = document.getElementById('btn-certif');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Génération…'; }
@@ -504,104 +636,143 @@ async function downloadCertificate(prenom, nom, profession) {
 
     const { jsPDF } = window.jspdf;
 
-    // ── Canvas A4 paysage ~150dpi (1754×1240) ──
-    // Les sprites sont dessinés sur le canvas (data: URLs ne taintent pas)
-    const W = 1754, H = 1240;
+    // ── Canvas A4 paysage haute résolution (2480×1754 ≈ 210dpi) ──
+    const W = 2480, H = 1754;
     const cv = document.createElement('canvas');
-    cv.width  = W;
-    cv.height = H;
+    cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
 
     const fullName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
     const profText = (profession || 'EMPLOYÉ·E DE COMMERCE CFC').toUpperCase();
     const dateStr  = new Date().toLocaleDateString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric' });
 
-    // ── Fond dégradé ──
+    // ── Fond ──
     const bg = c.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, '#08080e'); bg.addColorStop(.5, '#0d0820'); bg.addColorStop(1, '#060e08');
-    c.fillStyle = bg;
-    c.fillRect(0, 0, W, H);
+    bg.addColorStop(0, '#0a0712'); bg.addColorStop(.5, '#0f0a24'); bg.addColorStop(1, '#07100a');
+    c.fillStyle = bg; c.fillRect(0, 0, W, H);
 
-    // ── Grille déco ──
-    c.strokeStyle = 'rgba(124,58,237,0.06)'; c.lineWidth = 1;
-    for (let x = 0; x < W; x += 50) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
-    for (let y = 0; y < H; y += 50) { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
+    // ── Grille fine ──
+    c.strokeStyle = 'rgba(124,58,237,0.05)'; c.lineWidth = 1;
+    for (let x = 0; x < W; x += 46) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
+    for (let y = 0; y < H; y += 46) { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
 
-    // ── Bordures dorées ──
-    c.strokeStyle = '#f59e0b'; c.lineWidth = 8;  c.strokeRect(24, 24, W-48, H-48);
-    c.strokeStyle = '#fbbf24'; c.lineWidth = 2;  c.strokeRect(40, 40, W-80, H-80);
+    // ── Guilloché + watermark ──
+    _certGuilloche(c, W/2, H/2 + 40);
+    c.save(); c.translate(W/2, H/2 + 110); c.rotate(-Math.PI/11);
+    c.font = 'bold 150px Impact, sans-serif'; c.fillStyle = 'rgba(245,158,11,0.045)'; c.textAlign = 'center';
+    c.fillText('MAMA GUAVO APPROVED', 0, 0); c.restore();
 
-    // ── Barre top violette ──
-    const topGrad = c.createLinearGradient(0,0,W,0);
-    topGrad.addColorStop(0,'#5b21b6'); topGrad.addColorStop(.5,'#a855f7'); topGrad.addColorStop(1,'#5b21b6');
-    c.fillStyle = topGrad; c.fillRect(40, 40, W-80, 100);
-    c.fillStyle = '#fff'; c.font = 'bold 38px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
-    c.fillText('CITE DES METIERS  --  PALMARES CFC 2026  --  SUISSE', W/2, 108);
+    // ── Cadre doré + ornements ──
+    const frameGrad = c.createLinearGradient(0,0,W,H);
+    frameGrad.addColorStop(0,'#92400e'); frameGrad.addColorStop(.5,'#fbbf24'); frameGrad.addColorStop(1,'#92400e');
+    c.strokeStyle = frameGrad; c.lineWidth = 14; c.strokeRect(30, 30, W-60, H-60);
+    c.strokeStyle = 'rgba(245,158,11,.5)'; c.lineWidth = 2; c.strokeRect(56, 56, W-112, H-112);
+    _certCornerOrn(c, 56, 56, 1, 1);
+    _certCornerOrn(c, W-56, 56, -1, 1);
+    _certCornerOrn(c, 56, H-56, 1, -1);
+    _certCornerOrn(c, W-56, H-56, -1, -1);
 
-    // ── ATTESTATION OFFICIELLE ──
-    c.fillStyle = '#f59e0b'; c.font = 'bold 88px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
-    c.shadowColor = '#f59e0b'; c.shadowBlur = 28;
-    c.fillText('ATTESTATION OFFICIELLE', W/2, 260);
+    // ── Ruban haut ──
+    const ribbon = c.createLinearGradient(0,0,W,0);
+    ribbon.addColorStop(0,'#4c1d95'); ribbon.addColorStop(.5,'#a855f7'); ribbon.addColorStop(1,'#4c1d95');
+    c.fillStyle = ribbon; c.fillRect(56, 56, W-112, 86);
+    c.fillStyle = '#fff'; c.font = 'bold 38px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('★  CITÉ DES MÉTIERS  ·  RÉPUBLIQUE POPULAIRE DU HUN  ·  SUISSE 2026  ★', W/2, 100);
+    c.textBaseline = 'alphabetic';
+
+    // ── Emblème ──
+    _certEmblem(c, W/2, 268, 84);
+
+    // ── Titre ──
+    c.fillStyle = '#fbbf24'; c.font = 'bold 112px Impact, sans-serif'; c.textAlign = 'center';
+    c.shadowColor = '#f59e0b'; c.shadowBlur = 30;
+    c.fillText('ATTESTATION OFFICIELLE', W/2, 472);
+    c.shadowBlur = 0;
+    c.fillStyle = 'rgba(255,255,255,.65)'; c.font = '34px Georgia, serif';
+    c.fillText('Certificat de validation — CFC PRO MAX · RC2 · HUN EDITION', W/2, 524);
+
+    // ── Séparateur ──
+    const sep = c.createLinearGradient(200,0,W-200,0);
+    sep.addColorStop(0,'transparent'); sep.addColorStop(.15,'#f59e0b'); sep.addColorStop(.5,'#fbbf24'); sep.addColorStop(.85,'#f59e0b'); sep.addColorStop(1,'transparent');
+    c.strokeStyle = sep; c.lineWidth = 3; c.beginPath(); c.moveTo(200,562); c.lineTo(W-200,562); c.stroke();
+
+    // ── Mention ──
+    c.fillStyle = 'rgba(255,255,255,.7)'; c.font = 'italic 42px Georgia, serif'; c.textAlign = 'center';
+    c.fillText('Décerné solennellement à', W/2, 644);
+
+    // ── Nom (auto-fit) ──
+    let nameFont = 130;
+    c.font = 'bold ' + nameFont + 'px Impact, sans-serif';
+    while (c.measureText(fullName).width > W - 580 && nameFont > 58) { nameFont -= 4; c.font = 'bold ' + nameFont + 'px Impact, sans-serif'; }
+    c.fillStyle = '#ffffff';
+    c.shadowColor = 'rgba(34,197,94,.55)'; c.shadowBlur = 40;
+    c.fillText(fullName, W/2, 776);
     c.shadowBlur = 0;
 
-    // ── Trait séparateur ──
-    const sep = c.createLinearGradient(120,0,W-120,0);
-    sep.addColorStop(0,'transparent'); sep.addColorStop(.15,'#f59e0b'); sep.addColorStop(.85,'#f59e0b'); sep.addColorStop(1,'transparent');
-    c.strokeStyle = sep; c.lineWidth = 3;
-    c.beginPath(); c.moveTo(120,290); c.lineTo(W-120,290); c.stroke();
+    // ── Profession (auto-fit) ──
+    let profFont = 54;
+    c.font = 'bold ' + profFont + 'px Impact, sans-serif';
+    while (c.measureText(profText).width > W - 700 && profFont > 30) { profFont -= 2; c.font = 'bold ' + profFont + 'px Impact, sans-serif'; }
+    c.fillStyle = '#4ade80';
+    c.fillText(profText, W/2, 846);
 
-    // ── Nom ──
-    c.fillStyle = '#ffffff'; c.font = 'bold 106px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
-    c.shadowColor = 'rgba(34,197,94,.5)'; c.shadowBlur = 36;
-    c.fillText(fullName, W/2, 420);
+    c.fillStyle = 'rgba(255,255,255,.6)'; c.font = 'italic 33px Georgia, serif';
+    c.fillText('pour avoir validé l\'épreuve d\'interface OSU avec la mention TUNG TUNG SAHUR', W/2, 908);
+
+    // ── Bloc note finale ──
+    const gbW = 760, gbX = W/2 - gbW/2, gbY = 956;
+    c.fillStyle = 'rgba(34,197,94,.10)'; roundRect(c, gbX, gbY, gbW, 150, 20); c.fill();
+    c.strokeStyle = 'rgba(34,197,94,.5)'; c.lineWidth = 2; roundRect(c, gbX, gbY, gbW, 150, 20); c.stroke();
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = 'rgba(255,255,255,.6)'; c.font = 'bold 26px Impact, sans-serif';
+    c.fillText('NOTE FINALE', W/2, gbY + 36);
+    c.fillStyle = '#4ade80'; c.font = 'bold 62px Impact, sans-serif';
+    c.shadowColor = '#22c55e'; c.shadowBlur = 18; c.fillText('6.0 / 6.0', W/2, gbY + 84); c.shadowBlur = 0;
+    c.fillStyle = '#fbbf24'; c.font = '38px Georgia, serif';
+    c.fillText('★ ★ ★ ★ ★', W/2, gbY + 126);
+    c.textBaseline = 'alphabetic';
+
+    // ── Badges stats ──
+    const bw = 390, bgap = 26, totalBW = bw*3 + bgap*2, bx0 = W/2 - totalBW/2, by = 1146;
+    _certBadge(c, bx0,             by, bw, 64, '✨ AURA  +9 999',          'rgba(168,85,247,1)');
+    _certBadge(c, bx0+bw+bgap,     by, bw, 64, '🗿 RIZZ  MAXIMUM',          'rgba(6,182,212,1)');
+    _certBadge(c, bx0+(bw+bgap)*2, by, bw, 64, '💯 SOCIAL CREDIT  999 999', 'rgba(245,158,11,1)');
+
+    // ── Ligne brainrot ──
+    c.fillStyle = '#22c55e'; c.font = 'bold 64px Impact, sans-serif'; c.textAlign = 'center';
+    c.shadowColor = '#22c55e'; c.shadowBlur = 22;
+    c.fillText('TPTTPPTPTPTPTPXXXZA', W/2, 1300);
     c.shadowBlur = 0;
 
-    // ── Profession ──
-    c.fillStyle = '#22c55e'; c.font = 'bold 50px Impact, Arial Black, sans-serif';
-    c.fillText(profText, W/2, 500);
+    // ── Sceau VALIDÉ (tamponné à droite) ──
+    _certSeal(c, 2070, 1000, 205);
 
-    // ── Badge RC2 ──
-    c.fillStyle = 'rgba(124,58,237,.22)';
-    roundRect(c, W/2-330, 528, 660, 72, 16); c.fill();
-    c.strokeStyle = '#a855f7'; c.lineWidth = 2;
-    roundRect(c, W/2-330, 528, 660, 72, 16); c.stroke();
-    c.fillStyle = '#a855f7'; c.font = 'bold 36px Impact, Arial Black, sans-serif';
-    c.fillText('CFC PRO MAX  -  RC2  -  HUN EDITION', W/2, 576);
+    // ── Séparateur bas ──
+    c.strokeStyle = sep; c.lineWidth = 2; c.beginPath(); c.moveTo(200, 1392); c.lineTo(W-200, 1392); c.stroke();
 
-    // ── TPTTPPTPTPTPTPXXXZA — centre du certificat ──
-    c.fillStyle = '#22c55e'; c.font = 'bold 74px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
-    c.shadowColor = '#22c55e'; c.shadowBlur = 24;
-    c.fillText('TPTTPPTPTPTPTPXXXZA', W/2, 690);
-    c.shadowBlur = 0;
+    // ── Signature ──
+    _certSignature(c, 210, 1500);
+    c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(190, 1540); c.lineTo(700, 1540); c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.8)'; c.font = 'bold 32px Georgia, serif'; c.textAlign = 'left';
+    c.fillText('Tung Tung Tung Sahur', 190, 1588);
+    c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '25px Georgia, serif';
+    c.fillText('Directeur Général du HUN', 190, 1624);
 
-    // ── Watermark MAMA GUAVO ──
-    c.save(); c.translate(W/2, H/2 + 100); c.rotate(-Math.PI/10);
-    c.font = 'bold 128px Impact, Arial Black, sans-serif';
-    c.fillStyle = 'rgba(245,158,11,0.05)'; c.textAlign = 'center';
-    c.fillText('MAMA GUAVO APPROVED', 0, 0);
-    c.restore();
-
-    // ── Trait bas ──
-    c.strokeStyle = sep; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(120, H-170); c.lineTo(W-120, H-170); c.stroke();
-
-    // ── Textes bas ──
+    // ── ID + date (sous le séparateur) ──
     c.fillStyle = '#64748b'; c.font = '26px Courier New, monospace'; c.textAlign = 'left';
-    c.fillText('Emis le ' + dateStr, 120, H-130);
-    c.fillText('citedesmetiers.ch/palmares2026', 120, H-90);
-    c.fillStyle = '#f59e0b'; c.font = 'bold 28px Impact, Arial Black, sans-serif'; c.textAlign = 'center';
-    c.fillText('TUNG TUNG AH MAMA GUAVO', W/2, H-112);
-    c.fillStyle = '#3a3a5a'; c.font = '22px Courier New, monospace';
-    c.fillText('Document non officiel -- usage interne HUN Edition uniquement', W/2, H-70);
+    c.fillText('Émis le ' + dateStr + '   ·   ID: HUN-67-2026-RC2', 190, 1448);
+    c.fillStyle = '#3a3a5a';
+    c.fillText('citedesmetiers.ch/palmares2026  ·  Document non officiel — HUN Edition', 190, 1684);
 
-    // ── Étoiles coins ──
-    c.fillStyle = '#f59e0b'; c.font = '34px serif'; c.textAlign = 'center';
-    [[80,80],[W-80,80],[80,H-80],[W-80,H-80]].forEach(([x,y]) => c.fillText('*', x, y+12));
+    // ── Faux QR + label ──
+    _certQR(c, W-380, 1424, 220);
+    c.fillStyle = 'rgba(255,255,255,.5)'; c.font = '22px Courier New, monospace'; c.textAlign = 'center';
+    c.fillText('SCAN = +9999 AURA', W-270, 1690);
 
-    // ── Sprites dessinés sur le canvas — même domaine = pas de canvas taint ──
-    const PX_PER_MM = W / 297;
-    await drawSpriteOnCanvas(c, 'HUN.png',  Math.round(238 * PX_PER_MM), Math.round(148 * PX_PER_MM), Math.round(55 * PX_PER_MM));
-    await drawSpriteOnCanvas(c, 'TUNG.png', Math.round(5   * PX_PER_MM), Math.round(155 * PX_PER_MM), Math.round(45 * PX_PER_MM));
+    // ── Sprites (data: URLs = pas de canvas taint) ──
+    await drawSpriteOnCanvas(c, 'TUNG.png', 112, 612, 168);
+    await drawSpriteOnCanvas(c, 'HUN.png',  W-300, 600, 178);
 
     // ── Export canvas complet → jsPDF ──
     const fullData = cv.toDataURL('image/jpeg', 0.95);
@@ -2988,8 +3159,199 @@ function _showIdle() {
   _resetIdle();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initBrainrotMax);
-} else {
+// ════════════════════════════════════════════════════════════
+//   GATE — écran de verrouillage (mot de passe OU Alain trouvé)
+// ════════════════════════════════════════════════════════════
+
+const GATE_PASSWORD = 'JEMAMAGUAVEENBALLE';
+let _siteRevealed = false;
+
+// Révèle le vrai site (BIOS + brainrot) — une seule fois
+function revealSite() {
+  if (_siteRevealed) return;
+  _siteRevealed = true;
+  runBiosBoot();
   initBrainrotMax();
+}
+
+function unlockSite(viaPassword) {
+  try { localStorage.setItem('hun-unlocked', 'true'); } catch (e) {}
+  const gate = document.getElementById('gate-screen');
+  if (gate) {
+    const lock = document.getElementById('gate-lock');
+    if (lock) lock.textContent = '🔓';
+    gate.classList.add('gate-unlocking');
+    setTimeout(() => { gate.classList.add('gate-gone'); }, viaPassword ? 350 : 1100);
+    setTimeout(() => { gate.remove(); }, (viaPassword ? 350 : 1100) + 700);
+  }
+  // petit délai pour laisser l'anim, puis on révèle
+  setTimeout(revealSite, viaPassword ? 250 : 900);
+}
+
+function _gateStatus(html, cls) {
+  const el = document.getElementById('gate-status');
+  if (!el) return;
+  el.innerHTML = html;
+  el.className = 'gate-status show' + (cls ? ' ' + cls : '');
+}
+
+// fetch avec timeout (évite tout blocage sur un proxy lent)
+function _fetchTimeout(url, ms, opts) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  return fetch(url, Object.assign({ signal: ctl.signal }, opts || {}))
+    .finally(() => clearTimeout(t));
+}
+
+// Récupère le PDF le plus récent (repo en priorité, proxies en secours) — timeouts
+async function _gateFetchPdf() {
+  const sources = [
+    PDF_LOCAL,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(PDF_URL)}`,
+    `https://corsproxy.io/?${encodeURIComponent(PDF_URL)}`,
+  ];
+  for (const url of sources) {
+    try {
+      const res = await _fetchTimeout(url, 8000, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const buffer = await res.arrayBuffer();
+      const m = new Uint8Array(buffer.slice(0, 4));
+      if (!(m[0] === 0x25 && m[1] === 0x50 && m[2] === 0x44 && m[3] === 0x46)) continue;
+      return { buffer, url };
+    } catch (e) { /* source suivante */ }
+  }
+  return null;
+}
+
+// Vérification TEMPS RÉEL : scrape la page officielle en direct (via proxy),
+// trouve le PDF le plus récent, le télécharge et cherche Alain. Renvoie {date, found} ou null.
+const PALMARES_PAGE = 'https://www.citedesmetiers.ch/palmares2026/';
+async function _gateLiveCheck() {
+  const proxy = u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`;
+  // 1) Récupère la page et liste les PDF
+  let html;
+  try {
+    const r = await _fetchTimeout(proxy(PALMARES_PAGE), 7000, { cache: 'no-store' });
+    if (!r.ok) return null;
+    html = await r.text();
+  } catch (e) { return null; }
+
+  const urls = html.match(/https?:\/\/[^"'>\s]+\.pdf/gi);
+  if (!urls || !urls.length) return null;
+
+  // 2) Choisit le plus récent (date dans le nom de fichier)
+  const key = u => { const m = u.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})/); return m ? m.slice(1).join('') : '0'; };
+  urls.sort((a, b) => key(b).localeCompare(key(a)));
+  const latest = urls[0];
+  const date = extractPdfDate(latest);
+
+  // 3) Télécharge ce PDF et cherche Alain
+  try {
+    const r = await _fetchTimeout(proxy(latest), 10000, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const buffer = await r.arrayBuffer();
+    const m = new Uint8Array(buffer.slice(0, 4));
+    if (!(m[0] === 0x25 && m[1] === 0x50 && m[2] === 0x44 && m[3] === 0x46)) return null;
+    const text  = await extractTextFromPdfBuffer(buffer);
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    return { date, found: lines.some(l => lineMatchesName(l, 'Alain', 'Addor')) };
+  } catch (e) { return null; }
+}
+
+async function gateCheckPdf() {
+  const btn = document.getElementById('gate-check-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Vérification du palmarès…'; }
+  _gateStatus('🔍 Lecture des dernières données…', 'loading');
+
+  let date = null, found = null;
+
+  // 1) Données du bot (instantané, rafraîchi ~15 min) — déverrouille direct si déjà trouvé
+  try {
+    const r = await _fetchTimeout('./palmares-info.json?t=' + Date.now(), 6000, { cache: 'no-store' });
+    if (r.ok) { const j = await r.json(); date = j.date || null; if (typeof j.found === 'boolean') found = j.found; }
+  } catch (e) {}
+
+  // 2) Tant qu'Alain n'est pas (encore) trouvé : vérification EN DIRECT de la page officielle
+  if (found !== true) {
+    _gateStatus('🔍 Lecture en direct du palmarès officiel…', 'loading');
+    const live = await _gateLiveCheck();
+    if (live) { if (live.date) date = live.date; found = live.found; }
+  }
+
+  // 3) Dernier recours : PDF du repo si rien d'autre n'a répondu
+  if (found === null) {
+    try {
+      const pdf = await _gateFetchPdf();
+      if (pdf) {
+        if (!date) date = extractPdfDate(pdf.url);
+        const text  = await extractTextFromPdfBuffer(pdf.buffer);
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        found = lines.some(l => lineMatchesName(l, 'Alain', 'Addor'));
+      }
+    } catch (e) {}
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🔍 CHECK PDF TO UNLOCK'; }
+
+  if (found === null) {
+    _gateStatus('⚠️ Impossible de vérifier le palmarès pour le moment.<br>Réessaie dans un moment.', 'err');
+    return;
+  }
+
+  if (!date) date = extractPdfDate(PDF_URL) || 'date inconnue';
+
+  if (found) {
+    _gateStatus(
+      `📅 Dernier PDF : <b>${date}</b><br><span class="gate-found">✅ ALAIN ADDOR FOUND — UNLOCKING WEBSITE…</span>`,
+      'ok'
+    );
+    setTimeout(() => unlockSite(false), 1400);
+  } else {
+    _gateStatus(
+      `📅 Dernier PDF : <b>${date}</b><br><span class="gate-notfound">❌ Alain Addor not found — website stays locked 🔒</span>`,
+      'err'
+    );
+  }
+}
+
+function initGate() {
+  const gate = document.getElementById('gate-screen');
+
+  // Déjà déverrouillé → on saute le gate
+  let unlocked = false;
+  try { unlocked = localStorage.getItem('hun-unlocked') === 'true'; } catch (e) {}
+  if (unlocked || !gate) {
+    if (gate) gate.remove();
+    revealSite();
+    return;
+  }
+
+  // Mot de passe
+  const pass = document.getElementById('gate-pass');
+  const passBtn = document.getElementById('gate-pass-btn');
+  function tryPass() {
+    const v = (pass.value || '').toUpperCase().replace(/\s/g, '');
+    if (v === GATE_PASSWORD) {
+      _gateStatus('🔓 Mot de passe correct — accès autorisé.', 'ok');
+      unlockSite(true);
+    } else {
+      _gateStatus('❌ Mot de passe incorrect.', 'err');
+      pass.value = '';
+      gate.querySelector('.gate-box').classList.remove('gate-shake');
+      void gate.offsetWidth;
+      gate.querySelector('.gate-box').classList.add('gate-shake');
+    }
+  }
+  if (passBtn) passBtn.addEventListener('click', tryPass);
+  if (pass) pass.addEventListener('keydown', e => { if (e.key === 'Enter') tryPass(); });
+
+  // Check PDF
+  const checkBtn = document.getElementById('gate-check-btn');
+  if (checkBtn) checkBtn.addEventListener('click', gateCheckPdf);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGate);
+} else {
+  initGate();
 }
