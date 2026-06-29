@@ -2911,3 +2911,167 @@ body.br-shake { animation: br-shake-anim .5s ease; }
 @media (max-width: 560px) {
   #speedrunner-gif { width: 120px; right: 10px; bottom: 40px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   SURPRISES CACHÉES
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 1) Compteur AURA ── */
+#aura-counter {
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 1000;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #ffd1ec;
+  background: rgba(14,8,28,.82);
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 999px;
+  padding: 6px 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 20px rgba(255,102,170,.25);
+  text-shadow: 0 0 8px rgba(255,102,170,.5);
+}
+#aura-counter b { color: #ff66aa; font-size: 16px; margin-left: 4px; }
+.aura-pop { animation: aura-pop-anim .25s cubic-bezier(.175,.885,.32,1.5); }
+@keyframes aura-pop-anim { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+.aura-milestone {
+  position: fixed;
+  top: 54px; left: 14px;
+  z-index: 1001;
+  text-align: left;
+  pointer-events: none;
+  animation: aura-ms-anim 1.7s cubic-bezier(.22,1,.36,1) forwards;
+}
+.am-x {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px; letter-spacing: 2px;
+  color: #ff66aa; text-shadow: 0 0 18px rgba(255,102,170,.8);
+  line-height: 1;
+}
+.am-l {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 3px;
+  color: #ffd76a; text-shadow: 0 0 12px rgba(255,215,106,.6);
+}
+@keyframes aura-ms-anim {
+  0%   { opacity: 0; transform: translateX(-20px) scale(.7); }
+  15%  { opacity: 1; transform: translateX(0) scale(1.1); }
+  75%  { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(0) scale(1) translateY(-16px); }
+}
+
+/* ── 2) Easter eggs noms ── */
+.name-egg {
+  position: fixed;
+  top: 22%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1300;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 6vw, 46px);
+  letter-spacing: 3px;
+  color: #4ade80;
+  text-shadow: 0 0 24px rgba(34,197,94,.8), 0 2px 6px rgba(0,0,0,.6);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: name-egg-anim 1.9s cubic-bezier(.22,1,.36,1) forwards;
+}
+.name-egg-bad { color: #ef4444; text-shadow: 0 0 24px rgba(239,68,68,.8), 0 2px 6px rgba(0,0,0,.6); }
+@keyframes name-egg-anim {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4) rotate(-6deg); }
+  18%  { opacity: 1; transform: translate(-50%,-50%) scale(1.15) rotate(2deg); }
+  78%  { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(1.05) translateY(-26px); }
+}
+@keyframes egg-shake-anim {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+}
+.egg-shake { animation: egg-shake-anim .5s ease; border-color: var(--red) !important; }
+
+/* ── 3) HUN MODE (konami) ── */
+#hun-mode-banner {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9500;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 11vw, 110px);
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 0 30px #ff66aa, 0 0 60px #a855f7, 4px 4px 0 #06b6d4;
+  pointer-events: none;
+  text-align: center;
+  animation: hun-banner-in .5s cubic-bezier(.175,.885,.32,1.5) both, hun-banner-pulse 1s .5s ease-in-out infinite;
+}
+#hun-mode-banner.out { animation: hun-banner-out .6s ease forwards; }
+@keyframes hun-banner-in { from { opacity: 0; transform: translate(-50%,-50%) scale(.3) rotate(-10deg); } to { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0); } }
+@keyframes hun-banner-pulse { 0%,100% { transform: translate(-50%,-50%) scale(1) rotate(-2deg); } 50% { transform: translate(-50%,-50%) scale(1.08) rotate(2deg); } }
+@keyframes hun-banner-out { to { opacity: 0; transform: translate(-50%,-50%) scale(1.4); } }
+
+.hun-rain {
+  position: fixed;
+  top: -80px;
+  z-index: 9400;
+  pointer-events: none;
+  animation: hun-rain-fall var(--dur, 3s) linear forwards;
+  will-change: transform;
+}
+.hun-rain-img { width: 64px; filter: drop-shadow(0 0 12px rgba(255,102,170,.6)); }
+.hun-rain-emoji { font-size: 44px; }
+@keyframes hun-rain-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(112vh) rotate(var(--rot, 360deg)); opacity: .9; }
+}
+
+body.hun-mode-rainbow { animation: hun-rainbow 1.2s linear infinite; }
+@keyframes hun-rainbow {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* ── 4) Réaction d'inactivité ── */
+#idle-pop {
+  position: fixed;
+  left: -260px; bottom: 110px;
+  z-index: 1040;
+  display: flex; align-items: center; gap: 10px;
+  transition: left .5s cubic-bezier(.22,1,.36,1);
+}
+#idle-pop.show { left: 16px; }
+#idle-pop img {
+  width: 64px;
+  filter: drop-shadow(0 0 14px rgba(245,158,11,.6));
+  animation: idle-bob 1s ease-in-out infinite;
+}
+@keyframes idle-bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+.idle-bubble {
+  position: relative;
+  background: rgba(14,8,28,.95);
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+.idle-bubble::before {
+  content: '';
+  position: absolute; left: -7px; top: 50%;
+  transform: translateY(-50%);
+  border: 7px solid transparent;
+  border-right-color: rgba(255,102,170,.4);
+}
+
+@media (max-width: 560px) {
+  #aura-counter { font-size: 11px; padding: 5px 12px; }
+  #idle-pop img { width: 48px; }
+}
