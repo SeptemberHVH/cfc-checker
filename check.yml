@@ -2,7 +2,8 @@ name: CFC Pro Max Checker 2026
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    # Toutes les ~15 min (GitHub peut retarder un peu sous charge)
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 # Droit d'écriture pour committer palmares.pdf dans le repo
