@@ -643,7 +643,14 @@ async function downloadCertificate(prenom, nom, profession) {
     const c = cv.getContext('2d');
 
     const fullName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
-    const profText = (profession || 'EMPLOYÉ·E DE COMMERCE CFC').toUpperCase();
+    // Nettoie la profession : l'extraction du tableau PDF attrape parfois des cellules
+    // voisines (autres noms collés). Si ça ressemble à du charabia → profession par défaut.
+    const _cleanProf = p => {
+      const s = (p || '').trim();
+      if (!s || s.length > 42 || s.includes(',') || s.includes(' - ') || /\d/.test(s)) return 'Employé·e de commerce CFC';
+      return s;
+    };
+    const profText = _cleanProf(profession).toUpperCase();
     const dateStr  = new Date().toLocaleDateString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric' });
 
     // ── Fond ──
@@ -3257,10 +3264,24 @@ function _showIdle() {
 const GATE_PASSWORD = 'JEMAMAGUAVEENBALLE';
 let _siteRevealed = false;
 
+// Splash "ANASTASIAAAAAAA" au tout début (pour la vanne)
+function showAnastasiaSplash() {
+  const s = document.createElement('div');
+  s.id = 'anastasia-splash';
+  s.innerHTML = '<div class="anastasia-text">ANASTASIAAAAAAA</div>';
+  document.body.appendChild(s);
+  try { if (typeof playBrainrot === 'function') playBrainrot('vineboom', 0.6); } catch (e) {}
+  const _show = () => s.classList.add('show');
+  requestAnimationFrame(() => requestAnimationFrame(_show));
+  setTimeout(_show, 60); // fallback si rAF throttlé
+  setTimeout(() => { s.classList.add('out'); setTimeout(() => s.remove(), 600); }, 1700);
+}
+
 // Révèle le vrai site (BIOS + brainrot) — une seule fois
 function revealSite() {
   if (_siteRevealed) return;
   _siteRevealed = true;
+  showAnastasiaSplash();
   runBiosBoot();
   initBrainrotMax();
 }
