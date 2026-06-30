@@ -3252,3 +3252,108 @@ body.hun-mode-rainbow { animation: hun-rainbow 1.2s linear infinite; }
   .gate-field { flex-direction: column; }
   #gate-pass-btn { padding: 12px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   SPONSOR KONVINK + pluie de jetons
+   ════════════════════════════════════════════════════════════ */
+
+#konvink-overlay {
+  position: fixed; inset: 0; z-index: 1400;
+  background: rgba(4,3,12,.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; transform: scale(.96);
+  transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1);
+}
+#konvink-overlay.show { opacity: 1; transform: scale(1); }
+#konvink-overlay.konvink-hide { opacity: 0; transform: scale(1.04); transition: opacity .5s ease, transform .5s ease; }
+
+.konvink-box {
+  width: min(440px, 94vw);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px 32px 28px;
+  text-align: center;
+  box-shadow: 0 0 70px rgba(236,0,140,.25), 0 30px 80px rgba(0,0,0,.7);
+  animation: konvink-in .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes konvink-in { from { transform: translateY(20px) scale(.95); } to { transform: none; } }
+.konvink-box.kv-shake { animation: konvink-shake .45s ease; }
+@keyframes konvink-shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-10px) rotate(-1deg); }
+  40% { transform: translateX(10px) rotate(1deg); }
+  60% { transform: translateX(-7px); } 80% { transform: translateX(7px); }
+}
+
+.konvink-spon {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+.konvink-logo { max-width: 230px; width: 70%; height: auto; margin: 0 auto 18px; display: block; }
+.konvink-logo-fallback {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 40px; letter-spacing: 2px; color: #4a5568; line-height: 1;
+  margin: 4px auto 18px;
+}
+.konvink-logo-fallback span { display: block; font-family: Georgia, serif; font-weight: 400; font-size: 16px; font-style: italic; color: #64748b; margin-top: 4px; letter-spacing: 0; }
+
+.konvink-ask {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: #334155;
+  margin-bottom: 16px;
+}
+.konvink-ask b { color: #ec008c; }
+
+.konvink-stars { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.kv-star {
+  font-size: 46px; line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: transform .12s, color .15s;
+  user-select: none;
+}
+.kv-star:hover { transform: scale(1.18); }
+.kv-star.on { color: #fbbf24; text-shadow: 0 0 14px rgba(251,191,36,.6); }
+.kv-star.kv-error { color: #ef4444 !important; text-shadow: 0 0 14px rgba(239,68,68,.6); animation: kv-star-err .3s ease; }
+@keyframes kv-star-err { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px) scale(1.2); } }
+.kv-star.kv-gold { color: #f59e0b; text-shadow: 0 0 20px rgba(245,158,11,.9); animation: kv-star-pop .4s cubic-bezier(.175,.885,.32,1.4); }
+@keyframes kv-star-pop { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+.konvink-msg {
+  min-height: 44px;
+  margin-top: 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 700;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .25s, transform .25s;
+}
+.konvink-msg.show { opacity: 1; transform: none; }
+.konvink-msg.err { color: #dc2626; }
+.konvink-msg.ok  { color: #16a34a; }
+.kv-sub { display: block; font-size: 13px; font-weight: 600; opacity: .8; margin-top: 3px; }
+
+/* Pluie de jetons */
+.casino-coin {
+  position: fixed;
+  top: -60px;
+  z-index: 9450;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(245,158,11,.5));
+  animation: casino-fall var(--dur, 2.4s) linear forwards;
+  will-change: transform;
+}
+@keyframes casino-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: .95; }
+}
+
+@media (max-width: 420px) {
+  .kv-star { font-size: 38px; }
+  .konvink-logo { width: 80%; }
+}
