@@ -1,3469 +1,3396 @@
 /* ============================================================
-   CFC PRO MAX CHECKER 2026 — Script principal v3
-   Matrix rain + Web Audio drums + holographic card + glitch
+   CFC PRO MAX CHECKER 2026 — Styles v3
+   Aesthetic : cyberpunk brainrot — Matrix / néon / holographique
    ============================================================ */
 
-// ─── Boot BIOS screen ────────────────────────────────────────
-
-function runBiosBoot() {
-  const screen  = document.getElementById('bios-screen');
-  const content = document.getElementById('bios-content');
-  if (!screen || !content || screen.dataset.booted) return;
-  screen.dataset.booted = '1';
-
-  const lines = [
-    { text: '' },
-    { text: '>>> EN TRAIN DE BYPASS LE FIREWALL PRO MAX <<<', cls: 'bios-wait' },
-    { text: '' },
-    { text: 'CFC BIOS v2.0 — HUN EDITION', cls: 'bios-head' },
-    { text: '' },
-    { text: '> Checking brainrot...  ', end: { text: 'OK',      cls: 'bios-ok'   } },
-    { text: '> HUN.................  ', end: { text: 'OK',      cls: 'bios-ok'   } },
-    { text: '> TUNG................  ', end: { text: 'OK',      cls: 'bios-ok'   } },
-    { text: '> WESLEY..............  ', end: { text: 'FAILED',  cls: 'bios-fail' } },
-    { text: '> ALAIN...............  ', end: { text: 'WAITING', cls: 'bios-wait' } },
-    { text: '' },
-    { text: '> Loading CFC Engine...  ', end: { text: 'OK', cls: 'bios-ok' } },
-    { text: '' },
-    { text: 'READY.', cls: 'bios-ready' },
-  ];
-
-  let idx = 0;
-
-  function nextLine() {
-    if (idx >= lines.length) {
-      setTimeout(() => {
-        screen.classList.add('fade-out');
-        setTimeout(() => screen.classList.add('gone'), 850);
-      }, 350);
-      return;
-    }
-    const l   = lines[idx++];
-    const div = document.createElement('div');
-    if (l.cls) div.className = l.cls;
-    if (l.end) {
-      div.textContent = l.text;
-      const span = document.createElement('span');
-      span.className   = l.end.cls;
-      span.textContent = l.end.text;
-      div.appendChild(span);
-    } else {
-      div.textContent = l.text || ' ';
-    }
-    content.appendChild(div);
-    setTimeout(nextLine, l.text ? 170 : 55);
-  }
-
-  nextLine();
-}
-
-// ─── Particules ambiantes ─────────────────────────────────────
-
-(function initParticles() {
-  const canvas = document.getElementById('particles-canvas');
-  const ctx    = canvas.getContext('2d');
-
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  const particles = Array.from({ length: 38 }, () => ({
-    x:  Math.random() * window.innerWidth,
-    y:  Math.random() * window.innerHeight,
-    r:  .4 + Math.random() * 1.6,
-    dx: (Math.random() - .5) * .25,
-    dy: -.08 - Math.random() * .22,
-    a:  .08 + Math.random() * .35,
-    v:  Math.random() > .5 ? 'rgba(168,85,247,' : 'rgba(34,197,94,',
-  }));
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const p of particles) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.v + p.a + ')';
-      ctx.fill();
-      p.x += p.dx;
-      p.y += p.dy;
-      if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
-      if (p.x < -4) p.x = canvas.width + 4;
-      if (p.x > canvas.width + 4) p.x = -4;
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-// ─── Matrix Rain ─────────────────────────────────────────────
-
-(function initMatrix() {
-  const canvas = document.getElementById('matrix-canvas');
-  const ctx    = canvas.getContext('2d');
-  const CHARS  = 'アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%';
-  let cols, drops;
-
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    cols  = Math.floor(canvas.width / 18);
-    drops = Array(cols).fill(1);
-  }
-
-  function draw() {
-    ctx.fillStyle = 'rgba(5,5,8,.06)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '14px monospace';
-    for (let i = 0; i < drops.length; i++) {
-      const char = CHARS[Math.floor(Math.random() * CHARS.length)];
-      // Couleur alternée violet / vert
-      ctx.fillStyle = i % 3 === 0 ? '#a855f7' : '#22c55e';
-      ctx.fillText(char, i * 18, drops[i] * 18);
-      if (drops[i] * 18 > canvas.height && Math.random() > .975) drops[i] = 0;
-      drops[i]++;
-    }
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-  setInterval(draw, 50);
-})();
-
-// ─── Holographic card shine ───────────────────────────────────
-
-(function initCardShine() {
-  const card  = document.getElementById('form-card');
-  const shine = card?.querySelector('.card-shine');
-  if (!card || !shine) return;
-  card.addEventListener('mousemove', e => {
-    const r  = card.getBoundingClientRect();
-    const mx = ((e.clientX - r.left) / r.width  * 100).toFixed(1) + '%';
-    const my = ((e.clientY - r.top)  / r.height * 100).toFixed(1) + '%';
-    shine.style.setProperty('--mx', mx);
-    shine.style.setProperty('--my', my);
-  });
-})();
-
-// ─── Web Audio — sons de tambour brainrot ────────────────────
-
-let audioCtx = null;
-
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-
-function playDrum(type = 'kick', delay = 0) {
-  try {
-    const ctx  = getAudioCtx();
-    const time = ctx.currentTime + delay;
-
-    if (type === 'kick') {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(150, time);
-      osc.frequency.exponentialRampToValueAtTime(0.01, time + .5);
-      gain.gain.setValueAtTime(.8, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + .5);
-      osc.start(time); osc.stop(time + .5);
-
-    } else if (type === 'snare') {
-      const bufSize = ctx.sampleRate * .15;
-      const buf  = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-      const src  = ctx.createBufferSource();
-      const gain = ctx.createGain();
-      const filt = ctx.createBiquadFilter();
-      filt.type = 'highpass'; filt.frequency.value = 1500;
-      src.buffer = buf;
-      src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
-      gain.gain.setValueAtTime(.4, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + .15);
-      src.start(time); src.stop(time + .15);
-
-    } else if (type === 'hihat') {
-      const bufSize = ctx.sampleRate * .05;
-      const buf  = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-      const src  = ctx.createBufferSource();
-      const gain = ctx.createGain();
-      const filt = ctx.createBiquadFilter();
-      filt.type = 'highpass'; filt.frequency.value = 8000;
-      src.buffer = buf;
-      src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
-      gain.gain.setValueAtTime(.2, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + .05);
-      src.start(time); src.stop(time + .05);
-    }
-  } catch(_) {}
-}
-
-function playTungTung() {
-  // Tung Tung Tung Sahur pattern 🥁
-  const pattern = [
-    ['kick',  0],
-    ['hihat', .1],
-    ['snare', .2],
-    ['hihat', .3],
-    ['kick',  .4],
-    ['kick',  .5],
-    ['hihat', .6],
-    ['snare', .7],
-    ['hihat', .8],
-    ['kick',  .9],
-    ['snare', 1.0],
-    ['hihat', 1.1],
-  ];
-  pattern.forEach(([type, delay]) => playDrum(type, delay));
-}
-
-// ─── Config PDF ──────────────────────────────────────────────
-
-// PDF local commité par GitHub Actions — même domaine = zéro CORS
-const PDF_LOCAL = 'palmares.pdf';
-// URL officielle en fallback
-const PDF_URL = 'https://www.citedesmetiers.ch/app/uploads/2026/06/Palmares_2026-06-22_15h37.pdf';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// ─── Données d'exemple (structure réelle d'un palmarès CFC) ──
-
-const EXEMPLE_PALMARES = `Palmarès CFC 2026 — Cité des Métiers — Données d'exemple
-
-Employé de commerce CFC
-Addor Alain 5.8
-Amstad Estelle 5.6
-Fontaine Marie 5.4
-Rochat Pierre-Antoine 5.5
-
-Informaticien CFC
-Bernasconi Thomas 5.9
-Dupont Jean-Luc 5.7
-Müller Kevin 5.6
-
-Électricien CFC
-Moreau Luca 5.5
-Zimmermann Hugo 5.8
-
-Cuisinière / Cuisinier CFC
-Girard Sophie 5.7
-Favre Laura 5.6`;
-
-// ─── Mots-clés de sections métiers ───────────────────────────
-
-const SECTION_KEYWORDS = [
-  'CFC', 'AFP', 'employé', 'employee', 'gestionnaire', 'assistant', 'assistante',
-  'informaticien', 'mécanicien', 'électricien', 'cuisinier', 'cuisinière',
-  'coiffeur', 'coiffeuse', 'menuisier', 'horloger', 'constructeur', 'dessinateur',
-  'polymécanicien', 'pharmacien', 'logisticien', 'médiamaticien', 'technicien',
-  'opticien', 'agriculteur', 'installateur', 'sanitaire', 'chauffagiste',
-  'carrossier', 'ébéniste', 'fleuriste', 'boucher', 'boulanger', 'pâtissier',
-  'agent', 'maturité', 'diplôme', 'attestation', 'commerce', 'maçon', 'peintre',
-  'plâtrier', 'arboriculteur', 'automaticien', 'polysoins', 'aide-soignant',
-  'soins', 'fiduciaire', 'commerce de détail', 'détail'
-];
-
-// ─── Utilitaires ─────────────────────────────────────────────
-
-function normalize(str) {
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/** Détecte si une ligne ressemble à un titre de section métier. */
-function looksLikeSectionTitle(line) {
-  const n = normalize(line);
-  const hasKeyword = SECTION_KEYWORDS.some(k => n.includes(normalize(k)));
-  if (!hasKeyword) return false;
-  // Une ligne avec une note (5.8) n'est pas un titre de section
-  if (/\d[.,]\d/.test(line)) return false;
-  // Trop long = pas un titre
-  if (line.length > 90) return false;
-  return true;
-}
-
-/** Tente d'extraire la profession directement depuis une ligne. */
-function extractProfessionFromLine(line) {
-  // Format "— Profession CFC" ou "- Profession AFP"
-  const dashMatch = line.match(/[—\-–]\s*([^—\-–\d]{4,}(?:CFC|AFP|diplôme|maturité)[^—\-–\d]*)/i);
-  if (dashMatch) return dashMatch[1].trim();
-  // Format "Nom Prénom Profession CFC note"
-  const cfcMatch = line.match(/([\w\s''éèêëàâùûüôîïçœæ-]{4,}(?:CFC|AFP))/i);
-  if (cfcMatch) return cfcMatch[1].trim();
-  return null;
-}
-
-/**
- * Cherche la profession liée à une ligne de match.
- * 1. Cherche sur la même ligne
- * 2. Remonte les lignes pour trouver le dernier titre de section
- */
-function extractProfessionForMatch(lines, matchLine) {
-  // 1. Sur la même ligne
-  const inLine = extractProfessionFromLine(matchLine);
-  if (inLine) return inLine;
-
-  // 2. Remonte vers le dernier titre de section
-  const idx = lines.indexOf(matchLine);
-  for (let i = idx - 1; i >= 0; i--) {
-    if (looksLikeSectionTitle(lines[i])) {
-      return lines[i].trim();
-    }
-  }
-  return null;
-}
-
-// ─── Recherche de nom ─────────────────────────────────────────
-
-function lineMatchesName(line, prenom, nom) {
-  const n  = normalize(line);
-  const p  = normalize(prenom);
-  const nm = normalize(nom);
-  if (p && nm) return n.includes(p) && n.includes(nm);
-  if (p)  return n.includes(p);
-  if (nm) return n.includes(nm);
-  return false;
-}
-
-function lineMatchesProfession(line, profession) {
-  if (!profession) return true;
-  return normalize(line).includes(normalize(profession));
-}
-
-/** Retourne vrai uniquement si on cherche exactement Alain Addor. */
-function isAlainAddor(prenom, nom) {
-  return normalize(prenom) === 'alain' && normalize(nom) === 'addor';
-}
-
-// ─── Extraction PDF ───────────────────────────────────────────
-
-/**
- * Extrait le texte d'un PDF page par page.
- * Regroupe les items par ligne en utilisant leur coordonnée Y.
- * Tolérance de 4px pour gérer les légères variations de baseline.
- * Les items d'une même ligne sont triés par X (gauche → droite)
- * pour conserver l'ordre naturel des colonnes d'un tableau.
- */
-async function extractTextFromPdfBuffer(buffer) {
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-  const allLines = [];
-
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page    = await pdf.getPage(pageNum);
-    const content = await page.getTextContent();
-
-    // Groupe les items par ligne (Y arrondi à 4px près)
-    const rowMap = new Map();
-    for (const item of content.items) {
-      if (!item.str.trim()) continue;
-      const y = Math.round(item.transform[5] / 4) * 4;
-      if (!rowMap.has(y)) rowMap.set(y, []);
-      rowMap.get(y).push({ x: item.transform[4], str: item.str });
-    }
-
-    // Trie les lignes de haut en bas (Y décroissant en espace PDF)
-    const sortedYs = [...rowMap.keys()].sort((a, b) => b - a);
-
-    for (const y of sortedYs) {
-      const items = rowMap.get(y).sort((a, b) => a.x - b.x);
-      const lineText = items.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim();
-      if (lineText) allLines.push(lineText);
-    }
-  }
-
-  return allLines.join('\n');
-}
-
-// ─── PDF status helpers ───────────────────────────────────────
-
-function setPdfStatus(msg, type = '') {
-  const el = document.getElementById('pdf-status');
-  el.textContent = msg;
-  el.className = 'pdf-status' + (type ? ' ' + type : '');
-}
-
-function extractPdfDate(url) {
-  const m = url.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})/);
-  if (!m) return null;
-  return `${m[3]}.${m[2]}.${m[1]} à ${m[4]}h${m[5]}`;
-}
-
-function setPdfDate(url) {
-  const el = document.getElementById('pdf-date');
-  if (!el) return;
-  const date = extractPdfDate(url);
-  if (date) {
-    el.textContent = `📅 PDF trouvé — mis à jour le ${date}`;
-    el.className = 'pdf-date show';
-  }
-}
-
-function setPdfDropLoaded(filename) {
-  const zone = document.getElementById('pdf-drop-zone');
-  zone.classList.add('loaded');
-  document.getElementById('pdf-drop-inner').innerHTML = `
-    <span class="pdf-drop-icon">✅</span>
-    <span class="pdf-drop-text" style="color:var(--green)">${escapeHtml(filename)}</span>
-  `;
-}
-
-async function loadPdfBuffer(buffer, filename) {
-  setPdfStatus('Extraction du texte…', 'loading');
-  try {
-    const text = await extractTextFromPdfBuffer(buffer);
-    document.getElementById('textarea-palmares').value = text;
-    setPdfStatus(`✅ ${text.split('\n').length} lignes extraites depuis "${filename}"`, 'ok');
-    setPdfDropLoaded(filename);
-  } catch (e) {
-    setPdfStatus('❌ Erreur lors de la lecture du PDF : ' + e.message, 'err');
-  }
-}
-
-// ─── Fetch auto PDF ───────────────────────────────────────────
-
-async function fetchPdfAuto() {
-  const btn   = document.getElementById('btn-fetch-pdf');
-  const label = document.getElementById('fetch-pdf-label');
-  const icon  = document.getElementById('fetch-pdf-icon');
-
-  btn.disabled = true;
-  btn.classList.add('loading');
-  label.textContent = 'Récupération en cours…';
-  icon.textContent  = '⏳';
-  setPdfStatus('Connexion au serveur…', 'loading');
-
-  const sources = [
-    { url: PDF_LOCAL, label: '📂 Chargement depuis le repo…' },
-    { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(PDF_URL)}`, label: '🔄 Via proxy CORS…' },
-    { url: `https://corsproxy.io/?${encodeURIComponent(PDF_URL)}`, label: '🔄 Via proxy de secours…' },
-  ];
-
-  for (const src of sources) {
-    try {
-      setPdfStatus(src.label, 'loading');
-      const res = await fetch(src.url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buffer = await res.arrayBuffer();
-      const magic = new Uint8Array(buffer.slice(0, 4));
-      const isPdf = magic[0]===0x25 && magic[1]===0x50 && magic[2]===0x44 && magic[3]===0x46;
-      if (!isPdf) throw new Error('Pas un PDF');
-      btn.classList.remove('loading');
-      btn.classList.add('success');
-      label.textContent = 'PDF chargé !';
-      icon.textContent  = '✅';
-      setPdfDate(src.url.includes('palmares.pdf') ? PDF_URL : src.url);
-      await loadPdfBuffer(buffer, 'palmares.pdf');
-      return;
-    } catch (_) {
-      // essaie la source suivante
-    }
-  }
-
-  btn.disabled = false;
-  btn.classList.remove('loading');
-  label.textContent = 'Récupérer le PDF automatiquement';
-  icon.textContent  = '⚡';
-  setPdfStatus('❌ Impossible de charger le PDF — dépose-le manuellement ci-dessous.', 'err');
-}
-
-// ─── Génération attestation PDF ──────────────────────────────
-
-function drawSpriteOnCanvas(ctx, url, xPx, yPx, heightPx) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const ratio = img.naturalWidth / (img.naturalHeight || 1);
-      ctx.drawImage(img, xPx, yPx, heightPx * ratio, heightPx);
-      resolve();
-    };
-    img.onerror = () => {
-      console.error('Sprite non chargé:', url);
-      resolve();
-    };
-    img.src = url;
-  });
-}
-
-// ─── Helpers dessin du certificat ────────────────────────────
-function _certStar(c, cx, cy, spikes, outer, inner) {
-  let rot = -Math.PI / 2; const step = Math.PI / spikes;
-  c.beginPath(); c.moveTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
-  for (let i = 0; i < spikes; i++) {
-    rot += step; c.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner);
-    rot += step; c.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer);
-  }
-  c.closePath(); c.fill();
-}
-
-function _certGuilloche(c, cx, cy) {
-  // motif spirographe faible (anti-contrefaçon façon billet de banque)
-  c.save();
-  c.globalAlpha = 0.5;
-  c.strokeStyle = 'rgba(168,85,247,.10)';
-  c.lineWidth = 1;
-  for (let k = 0; k < 60; k++) {
-    const a = (k / 60) * Math.PI * 2;
-    c.beginPath();
-    for (let t = 0; t <= Math.PI * 2; t += 0.08) {
-      const R = 230 + 60 * Math.cos(5 * t + a);
-      const x = cx + R * Math.cos(t + a);
-      const y = cy + R * Math.sin(t + a);
-      t === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
-    }
-    c.stroke();
-  }
-  c.restore();
-}
-
-function _certCornerOrn(c, x, y, dx, dy) {
-  c.strokeStyle = '#fbbf24'; c.lineCap = 'round';
-  c.lineWidth = 5;
-  c.beginPath();
-  c.moveTo(x + dx * 110, y); c.lineTo(x + dx * 28, y);
-  c.quadraticCurveTo(x, y, x, y + dy * 28); c.lineTo(x, y + dy * 110);
-  c.stroke();
-  c.lineWidth = 2;
-  c.beginPath();
-  c.moveTo(x + dx * 70, y + dy * 30); c.lineTo(x + dx * 30, y + dy * 30);
-  c.lineTo(x + dx * 30, y + dy * 70);
-  c.stroke();
-  c.fillStyle = '#f59e0b';
-  c.save(); c.translate(x + dx * 46, y + dy * 46); c.rotate(Math.PI / 4); c.fillRect(-8, -8, 16, 16); c.restore();
-}
-
-function _certEmblem(c, cx, cy, r) {
-  c.save();
-  c.shadowColor = '#f59e0b'; c.shadowBlur = 34;
-  const g = c.createRadialGradient(cx, cy - r * .3, 10, cx, cy, r);
-  g.addColorStop(0, '#2a1a4a'); g.addColorStop(1, '#0d0820');
-  c.fillStyle = g;
-  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
-  c.shadowBlur = 0;
-  // rayons
-  c.strokeStyle = 'rgba(245,158,11,.25)'; c.lineWidth = 2;
-  for (let i = 0; i < 24; i++) {
-    const a = (i / 24) * Math.PI * 2;
-    c.beginPath(); c.moveTo(cx + Math.cos(a) * (r - 30), cy + Math.sin(a) * (r - 30));
-    c.lineTo(cx + Math.cos(a) * (r - 6), cy + Math.sin(a) * (r - 6)); c.stroke();
-  }
-  c.strokeStyle = '#fbbf24'; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
-  c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, r - 14, 0, Math.PI * 2); c.stroke();
-  // étoile
-  c.fillStyle = '#f59e0b';
-  _certStar(c, cx, cy - r * .12, 5, r * .52, r * .22);
-  c.fillStyle = '#fff'; c.font = 'bold 40px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText('HUN', cx, cy + r * .52);
-  c.restore();
-}
-
-function _certSeal(c, cx, cy, r) {
-  c.save();
-  c.translate(cx, cy);
-  c.rotate(-Math.PI / 13);
-  c.globalAlpha = 0.92;
-  c.strokeStyle = '#e0245e'; c.fillStyle = '#e0245e';
-  c.lineWidth = 9; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.stroke();
-  c.lineWidth = 3; c.beginPath(); c.arc(0, 0, r - 22, 0, Math.PI * 2); c.stroke();
-  c.beginPath(); c.arc(0, 0, r - 150, 0, Math.PI * 2); c.stroke();
-  // texte circulaire
-  c.font = 'bold 33px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  const txt = '★ HUN EDITION ★ CFC PRO MAX ★ TUNG TUNG SAHUR ★ ';
-  const N = txt.length;
-  for (let i = 0; i < N; i++) {
-    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
-    c.save(); c.rotate(a); c.translate(0, -(r - 48)); c.fillText(txt[i], 0, 0); c.restore();
-  }
-  c.font = 'bold 96px Impact, sans-serif'; c.fillText('VALIDÉ', 0, -8);
-  c.font = 'bold 32px Impact, sans-serif'; c.fillText('★ RC2 · 2026 ★', 0, 64);
-  c.restore();
-}
-
-function _certQR(c, x, y, size) {
-  const n = 25, cs = size / n;
-  c.fillStyle = '#fff'; c.fillRect(x - 10, y - 10, size + 20, size + 20);
-  c.fillStyle = '#0a0a12';
-  let seed = 6767;
-  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed >> 16) & 1; };
-  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (rnd()) c.fillRect(x + i * cs, y + j * cs, cs, cs);
-  const finder = (fx, fy) => {
-    c.fillStyle = '#fff'; c.fillRect(x + fx * cs - cs, y + fy * cs - cs, 9 * cs, 9 * cs);
-    c.fillStyle = '#0a0a12'; c.fillRect(x + fx * cs, y + fy * cs, 7 * cs, 7 * cs);
-    c.fillStyle = '#fff'; c.fillRect(x + (fx + 1) * cs, y + (fy + 1) * cs, 5 * cs, 5 * cs);
-    c.fillStyle = '#0a0a12'; c.fillRect(x + (fx + 2) * cs, y + (fy + 2) * cs, 3 * cs, 3 * cs);
-  };
-  finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
-}
-
-function _certSignature(c, x, y) {
-  c.strokeStyle = '#e2e8f0'; c.lineWidth = 4; c.lineCap = 'round'; c.lineJoin = 'round';
-  c.beginPath();
-  c.moveTo(x, y);
-  c.bezierCurveTo(x + 45, y - 60, x + 80, y + 45, x + 130, y - 12);
-  c.bezierCurveTo(x + 175, y - 60, x + 175, y + 55, x + 235, y - 6);
-  c.bezierCurveTo(x + 270, y - 35, x + 300, y + 25, x + 360, y - 18);
-  c.stroke();
-  c.lineWidth = 2;
-  c.beginPath(); c.moveTo(x + 70, y + 18); c.bezierCurveTo(x + 200, y + 30, x + 280, y + 6, x + 350, y + 16); c.stroke();
-}
-
-function _certBadge(c, x, y, w, h, label, color) {
-  c.fillStyle = color.replace('1)', '.16)');
-  roundRect(c, x, y, w, h, 14); c.fill();
-  c.strokeStyle = color; c.lineWidth = 2; roundRect(c, x, y, w, h, 14); c.stroke();
-  c.fillStyle = color; c.font = 'bold 30px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText(label, x + w / 2, y + h / 2 + 1);
-}
-
-async function downloadCertificate(prenom, nom, profession) {
-  const btn = document.getElementById('btn-certif');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Génération…'; }
-
-  try {
-    if (!window.jspdf) throw new Error('jsPDF non chargé — vérifie ta connexion internet.');
-
-    const { jsPDF } = window.jspdf;
-
-    // ── Canvas A4 paysage haute résolution (2480×1754 ≈ 210dpi) ──
-    const W = 2480, H = 1754;
-    const cv = document.createElement('canvas');
-    cv.width = W; cv.height = H;
-    const c = cv.getContext('2d');
-
-    const fullName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
-    // Nettoie la profession : l'extraction du tableau PDF attrape parfois des cellules
-    // voisines (autres noms collés). Si ça ressemble à du charabia → profession par défaut.
-    const _cleanProf = p => {
-      const s = (p || '').trim();
-      if (!s || s.length > 42 || s.includes(',') || s.includes(' - ') || /\d/.test(s)) return 'Employé·e de commerce CFC';
-      return s;
-    };
-    const profText = _cleanProf(profession).toUpperCase();
-    const dateStr  = new Date().toLocaleDateString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric' });
-
-    // ── Fond ──
-    const bg = c.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, '#0a0712'); bg.addColorStop(.5, '#0f0a24'); bg.addColorStop(1, '#07100a');
-    c.fillStyle = bg; c.fillRect(0, 0, W, H);
-
-    // ── Grille fine ──
-    c.strokeStyle = 'rgba(124,58,237,0.05)'; c.lineWidth = 1;
-    for (let x = 0; x < W; x += 46) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
-    for (let y = 0; y < H; y += 46) { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
-
-    // ── Guilloché + watermark ──
-    _certGuilloche(c, W/2, H/2 + 40);
-    c.save(); c.translate(W/2, H/2 + 110); c.rotate(-Math.PI/11);
-    c.font = 'bold 150px Impact, sans-serif'; c.fillStyle = 'rgba(245,158,11,0.045)'; c.textAlign = 'center';
-    c.fillText('MAMA GUAVO APPROVED', 0, 0); c.restore();
-
-    // ── Cadre doré + ornements ──
-    const frameGrad = c.createLinearGradient(0,0,W,H);
-    frameGrad.addColorStop(0,'#92400e'); frameGrad.addColorStop(.5,'#fbbf24'); frameGrad.addColorStop(1,'#92400e');
-    c.strokeStyle = frameGrad; c.lineWidth = 14; c.strokeRect(30, 30, W-60, H-60);
-    c.strokeStyle = 'rgba(245,158,11,.5)'; c.lineWidth = 2; c.strokeRect(56, 56, W-112, H-112);
-    _certCornerOrn(c, 56, 56, 1, 1);
-    _certCornerOrn(c, W-56, 56, -1, 1);
-    _certCornerOrn(c, 56, H-56, 1, -1);
-    _certCornerOrn(c, W-56, H-56, -1, -1);
-
-    // ── Ruban haut ──
-    const ribbon = c.createLinearGradient(0,0,W,0);
-    ribbon.addColorStop(0,'#4c1d95'); ribbon.addColorStop(.5,'#a855f7'); ribbon.addColorStop(1,'#4c1d95');
-    c.fillStyle = ribbon; c.fillRect(56, 56, W-112, 86);
-    c.fillStyle = '#fff'; c.font = 'bold 38px Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText('★  CITÉ DES MÉTIERS  ·  RÉPUBLIQUE POPULAIRE DU HUN  ·  SUISSE 2026  ★', W/2, 100);
-    c.textBaseline = 'alphabetic';
-
-    // ── Emblème ──
-    _certEmblem(c, W/2, 268, 84);
-
-    // ── Titre ──
-    c.fillStyle = '#fbbf24'; c.font = 'bold 112px Impact, sans-serif'; c.textAlign = 'center';
-    c.shadowColor = '#f59e0b'; c.shadowBlur = 30;
-    c.fillText('ATTESTATION OFFICIELLE', W/2, 472);
-    c.shadowBlur = 0;
-    c.fillStyle = 'rgba(255,255,255,.65)'; c.font = '34px Georgia, serif';
-    c.fillText('Certificat de validation — CFC PRO MAX · RC2 · HUN EDITION', W/2, 524);
-
-    // ── Séparateur ──
-    const sep = c.createLinearGradient(200,0,W-200,0);
-    sep.addColorStop(0,'transparent'); sep.addColorStop(.15,'#f59e0b'); sep.addColorStop(.5,'#fbbf24'); sep.addColorStop(.85,'#f59e0b'); sep.addColorStop(1,'transparent');
-    c.strokeStyle = sep; c.lineWidth = 3; c.beginPath(); c.moveTo(200,562); c.lineTo(W-200,562); c.stroke();
-
-    // ── Mention ──
-    c.fillStyle = 'rgba(255,255,255,.7)'; c.font = 'italic 42px Georgia, serif'; c.textAlign = 'center';
-    c.fillText('Décerné solennellement à', W/2, 644);
-
-    // ── Nom (auto-fit) ──
-    let nameFont = 130;
-    c.font = 'bold ' + nameFont + 'px Impact, sans-serif';
-    while (c.measureText(fullName).width > W - 580 && nameFont > 58) { nameFont -= 4; c.font = 'bold ' + nameFont + 'px Impact, sans-serif'; }
-    c.fillStyle = '#ffffff';
-    c.shadowColor = 'rgba(34,197,94,.55)'; c.shadowBlur = 40;
-    c.fillText(fullName, W/2, 776);
-    c.shadowBlur = 0;
-
-    // ── Profession (auto-fit) ──
-    let profFont = 54;
-    c.font = 'bold ' + profFont + 'px Impact, sans-serif';
-    while (c.measureText(profText).width > W - 700 && profFont > 30) { profFont -= 2; c.font = 'bold ' + profFont + 'px Impact, sans-serif'; }
-    c.fillStyle = '#4ade80';
-    c.fillText(profText, W/2, 846);
-
-    c.fillStyle = 'rgba(255,255,255,.6)'; c.font = 'italic 33px Georgia, serif';
-    c.fillText('pour avoir validé l\'épreuve d\'interface OSU avec la mention TUNG TUNG SAHUR', W/2, 908);
-
-    // ── Bloc note finale ──
-    const gbW = 760, gbX = W/2 - gbW/2, gbY = 956;
-    c.fillStyle = 'rgba(34,197,94,.10)'; roundRect(c, gbX, gbY, gbW, 150, 20); c.fill();
-    c.strokeStyle = 'rgba(34,197,94,.5)'; c.lineWidth = 2; roundRect(c, gbX, gbY, gbW, 150, 20); c.stroke();
-    c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillStyle = 'rgba(255,255,255,.6)'; c.font = 'bold 26px Impact, sans-serif';
-    c.fillText('NOTE FINALE', W/2, gbY + 36);
-    c.fillStyle = '#4ade80'; c.font = 'bold 62px Impact, sans-serif';
-    c.shadowColor = '#22c55e'; c.shadowBlur = 18; c.fillText('6.0 / 6.0', W/2, gbY + 84); c.shadowBlur = 0;
-    c.fillStyle = '#fbbf24'; c.font = '38px Georgia, serif';
-    c.fillText('★ ★ ★ ★ ★', W/2, gbY + 126);
-    c.textBaseline = 'alphabetic';
-
-    // ── Badges stats ──
-    const bw = 390, bgap = 26, totalBW = bw*3 + bgap*2, bx0 = W/2 - totalBW/2, by = 1146;
-    _certBadge(c, bx0,             by, bw, 64, '✨ AURA  +9 999',          'rgba(168,85,247,1)');
-    _certBadge(c, bx0+bw+bgap,     by, bw, 64, '🗿 RIZZ  MAXIMUM',          'rgba(6,182,212,1)');
-    _certBadge(c, bx0+(bw+bgap)*2, by, bw, 64, '💯 SOCIAL CREDIT  999 999', 'rgba(245,158,11,1)');
-
-    // ── Ligne brainrot ──
-    c.fillStyle = '#22c55e'; c.font = 'bold 64px Impact, sans-serif'; c.textAlign = 'center';
-    c.shadowColor = '#22c55e'; c.shadowBlur = 22;
-    c.fillText('TPTTPPTPTPTPTPXXXZA', W/2, 1300);
-    c.shadowBlur = 0;
-
-    // ── Sceau VALIDÉ (tamponné à droite) ──
-    _certSeal(c, 2070, 1000, 205);
-
-    // ── Séparateur bas ──
-    c.strokeStyle = sep; c.lineWidth = 2; c.beginPath(); c.moveTo(200, 1392); c.lineTo(W-200, 1392); c.stroke();
-
-    // ── Signature ──
-    _certSignature(c, 210, 1500);
-    c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(190, 1540); c.lineTo(700, 1540); c.stroke();
-    c.fillStyle = 'rgba(255,255,255,.8)'; c.font = 'bold 32px Georgia, serif'; c.textAlign = 'left';
-    c.fillText('Tung Tung Tung Sahur', 190, 1588);
-    c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '25px Georgia, serif';
-    c.fillText('Directeur Général du HUN', 190, 1624);
-
-    // ── ID + date (sous le séparateur) ──
-    c.fillStyle = '#64748b'; c.font = '26px Courier New, monospace'; c.textAlign = 'left';
-    c.fillText('Émis le ' + dateStr + '   ·   ID: HUN-67-2026-RC2', 190, 1448);
-    c.fillStyle = '#3a3a5a';
-    c.fillText('citedesmetiers.ch/palmares2026  ·  Document non officiel — HUN Edition', 190, 1684);
-
-    // ── Faux QR + label ──
-    _certQR(c, W-380, 1424, 220);
-    c.fillStyle = 'rgba(255,255,255,.5)'; c.font = '22px Courier New, monospace'; c.textAlign = 'center';
-    c.fillText('SCAN = +9999 AURA', W-270, 1690);
-
-    // ── Sprites (data: URLs = pas de canvas taint) ──
-    await drawSpriteOnCanvas(c, 'TUNG.png', 112, 612, 168);
-    await drawSpriteOnCanvas(c, 'HUN.png',  W-300, 600, 178);
-
-    // ── Export canvas complet → jsPDF ──
-    const fullData = cv.toDataURL('image/jpeg', 0.95);
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    doc.addImage(fullData, 'JPEG', 0, 0, 297, 210);
-
-    const filename = `Attestation_CFC_${[prenom,nom].filter(Boolean).join('_') || 'HUN'}_2026_RC2.pdf`;
-    doc.save(filename);
-
-  } catch(err) {
-    alert('Erreur génération PDF : ' + err.message);
-    console.error(err);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '📜 Télécharger l\'attestation PDF'; }
-  }
-}
-
-function preloadSprites() {}
-
-// Utilitaire : rectangle arrondi pour canvas
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-// ─── Son victoire ─────────────────────────────────────────────
-
-let soundEnabled    = localStorage.getItem('hun-sound') !== 'false';
-let _victoireBuffer = null;
-let _victoireSource = null;
-
-function _updateSoundBtn() {
-  const btn = document.getElementById('btn-sound');
-  if (!btn) return;
-  btn.textContent = soundEnabled ? '🔊 SON' : '🔇 SON';
-  btn.classList.toggle('muted', !soundEnabled);
-}
-
-// Précharge le mp3 via Web Audio API (pas de restriction autoplay)
-async function preloadVictoire() {
-  try {
-    const res = await fetch('./victoire.mp3');
-    const buf = await res.arrayBuffer();
-    _victoireBuffer = await getAudioCtx().decodeAudioData(buf);
-  } catch(e) {}
-}
-
-let _osuBuffer = null;
-let _osuSource = null;
-
-async function preloadOsu() {
-  try {
-    const res = await fetch('./OSU.mp3');
-    const buf = await res.arrayBuffer();
-    _osuBuffer = await getAudioCtx().decodeAudioData(buf);
-  } catch(e) {}
-}
-
-function playOsuMusic() {
-  if (!soundEnabled || !_osuBuffer) return;
-  stopOsuMusic();
-  try {
-    const ctx  = getAudioCtx();
-    ctx.resume().then(() => {
-      const gain = ctx.createGain();
-      gain.gain.value = 0.6;
-      gain.connect(ctx.destination);
-      _osuSource = ctx.createBufferSource();
-      _osuSource.buffer = _osuBuffer;
-      _osuSource.connect(gain);
-      _osuSource.start(0);
-      _osuSource.onended = () => { _osuSource = null; };
-    });
-  } catch(e) {}
-}
-
-function stopOsuMusic() {
-  if (_osuSource) {
-    try { _osuSource.stop(); } catch(e) {}
-    _osuSource = null;
-  }
-}
-
-let _sixSevenBuffer = null;
-let _sixSevenSource = null;
-
-async function preloadSixSeven() {
-  try {
-    const res = await fetch('./67.mp3');
-    const buf = await res.arrayBuffer();
-    _sixSevenBuffer = await getAudioCtx().decodeAudioData(buf);
-  } catch(e) {}
-}
-
-function playSixSeven() {
-  if (!soundEnabled || !_sixSevenBuffer) return;
-  stopSixSeven();
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const gain = ctx.createGain();
-      gain.gain.value = 0.85;
-      gain.connect(ctx.destination);
-      _sixSevenSource = ctx.createBufferSource();
-      _sixSevenSource.buffer = _sixSevenBuffer;
-      _sixSevenSource.connect(gain);
-      _sixSevenSource.start(0);
-      _sixSevenSource.onended = () => { _sixSevenSource = null; };
-    });
-  } catch(e) {}
-}
-
-function stopSixSeven() {
-  if (_sixSevenSource) {
-    try { _sixSevenSource.stop(); } catch(e) {}
-    _sixSevenSource = null;
-  }
-}
-
-function _playLogoSound() {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      // Accord montant doux — impression d'apparition
-      [440, 554, 659, 880].forEach((freq, i) => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        const t = ctx.currentTime + i * 0.07;
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.12, t + .06);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + .5);
-        osc.start(t); osc.stop(t + .55);
-      });
-    });
-  } catch(e) {}
-}
-
-function stopVictoire() {
-  if (_victoireSource) {
-    try { _victoireSource.stop(); } catch(e) {}
-    _victoireSource = null;
-  }
-}
-
-function playVictoire() {
-  if (!soundEnabled || !_victoireBuffer) return;
-  stopVictoire();
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const gain = ctx.createGain();
-      gain.gain.value = 0.7;
-      gain.connect(ctx.destination);
-      _victoireSource = ctx.createBufferSource();
-      _victoireSource.buffer = _victoireBuffer;
-      _victoireSource.connect(gain);
-      _victoireSource.start(0);
-      _victoireSource.onended = () => { _victoireSource = null; };
-    });
-  } catch(e) {}
-}
-
-function toggleSound() {
-  soundEnabled = !soundEnabled;
-  localStorage.setItem('hun-sound', soundEnabled ? 'true' : 'false');
-  _updateSoundBtn();
-  if (!soundEnabled) {
-    stopVictoire();
-    stopSixSeven();
-    stopOsuMusic();
-    if (typeof stopStory === 'function') stopStory();
-  }
-}
-
-// ─── Achievement Steam toast ──────────────────────────────────
-
-function showAchievement() {
-  const toast = document.getElementById('achievement-toast');
-  toast.innerHTML = `
-    <div class="achievement-inner">
-      <div class="achievement-icon">🏆</div>
-      <div class="achievement-text">
-        <span class="achievement-label">Achievement Unlocked</span>
-        <span class="achievement-title">CFC PRO MAX</span>
-        <span class="achievement-sub">HUN Edition — Alain validé 🥁</span>
-      </div>
-    </div>
-  `;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 5000);
-}
-
-// ─── Alain Addor — Rewards sequence ──────────────────────────
-
-function _playRewardBeep(freq = 880, dur = 0.18) {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const t = ctx.currentTime;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t); osc.stop(t + dur + 0.05);
-    });
-  } catch(e) {}
-}
-
-function showAlainRewards() {
-  const items = [
-    { label: '+1 000',      sub: 'SOCIAL CREDIT',   color: '#a855f7', glow: 'rgba(168,85,247,.7)',  freq: 660  },
-    { label: '+250',        sub: 'HUN POINTS',       color: '#f59e0b', glow: 'rgba(245,158,11,.7)',  freq: 770  },
-    { label: '+999',        sub: 'INTERFACE XP',     color: '#22c55e', glow: 'rgba(34,197,94,.7)',   freq: 880  },
-    { label: '+1',          sub: 'CFC PRO MAX',      color: '#06b6d4', glow: 'rgba(6,182,212,.7)',   freq: 1046 },
-  ];
-
-  // Container for floating reward chips
-  const wrap = document.createElement('div');
-  wrap.id = 'alain-rewards-wrap';
-  document.body.appendChild(wrap);
-
-  let delay = 0;
-  items.forEach((item, i) => {
-    setTimeout(() => {
-      const chip = document.createElement('div');
-      chip.className = 'alain-reward-chip';
-      chip.style.setProperty('--rc', item.color);
-      chip.style.setProperty('--rg', item.glow);
-      chip.style.top = `${22 + i * 13}%`;
-      chip.innerHTML = `<span class="arc-num">${item.label}</span><span class="arc-sub">${item.sub}</span>`;
-      wrap.appendChild(chip);
-      requestAnimationFrame(() => requestAnimationFrame(() => chip.classList.add('arc-in')));
-      _playRewardBeep(item.freq, 0.22);
-      setTimeout(() => chip.classList.add('arc-out'), 1400);
-      setTimeout(() => chip.remove(), 1900);
-    }, delay);
-    delay += 620;
-  });
-
-  // Big reward card after all chips
-  setTimeout(() => {
-    _playRewardBeep(1318, 0.6);
-    setTimeout(() => _playRewardBeep(1568, 0.5), 120);
-    setTimeout(() => _playRewardBeep(2093, 0.8), 260);
-
-    const card = document.createElement('div');
-    card.id = 'alain-reward-card';
-    card.innerHTML = `
-      <div class="arc-card-inner">
-        <div class="arc-card-line">══════════════════════════</div>
-        <div class="arc-card-trophy">🏆</div>
-        <div class="arc-card-label">REWARD UNLOCKED</div>
-        <div class="arc-card-title">SOCIAL CREDIT</div>
-        <div class="arc-card-value">+999 999 999</div>
-        <div class="arc-card-edition">HUN EDITION</div>
-        <div class="arc-card-line">══════════════════════════</div>
-      </div>
-    `;
-    document.body.appendChild(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('arc-card-in')));
-    setTimeout(() => {
-      card.classList.add('arc-card-out');
-      setTimeout(() => card.remove(), 700);
-    }, 2600);
-
-    setTimeout(() => wrap.remove(), 3400);
-  }, delay + 200);
-}
-
-// ─── Gold flash ───────────────────────────────────────────────
-
-function triggerGoldFlash() {
-  const el = document.getElementById('gold-overlay');
-  el.classList.remove('flash');
-  el.offsetHeight;
-  el.classList.add('flash');
-}
-
-// ─── Confettis ────────────────────────────────────────────────
-
-function launchConfetti() {
-  const canvas = document.getElementById('confetti-canvas');
-  const ctx    = canvas.getContext('2d');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const colors = ['#7c3aed','#a855f7','#22c55e','#4ade80','#f59e0b','#fbbf24','#fff'];
-  const particles = Array.from({ length: 180 }, () => ({
-    x: Math.random() * canvas.width,
-    y: -10 - Math.random() * 300,
-    r: 4 + Math.random() * 7,
-    d: 1.5 + Math.random() * 3,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    tiltAngle: 0,
-    tiltSpeed: 0.08 + Math.random() * 0.05,
-  }));
-
-  let frame = 0;
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const p of particles) {
-      p.tiltAngle += p.tiltSpeed;
-      p.y += p.d;
-      p.x += Math.sin(frame * 0.01 + p.tiltAngle) * 1.2;
-      const tilt = Math.sin(p.tiltAngle) * 12;
-      ctx.beginPath();
-      ctx.lineWidth   = p.r;
-      ctx.strokeStyle = p.color;
-      ctx.moveTo(p.x + tilt + p.r / 3, p.y);
-      ctx.lineTo(p.x + tilt, p.y + tilt + p.r / 5);
-      ctx.stroke();
-    }
-    frame++;
-    if (frame < 240) requestAnimationFrame(draw);
-    else ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-  draw();
-}
-
-// ─── Speedrun timer ──────────────────────────────────────────
-
-let _srStart = null;
-let _srInterval = null;
-
-function startSpeedrunTimer(isPB) {
-  // Cleanup any existing
-  stopSpeedrunTimer();
-  let el = document.getElementById('speedrun-timer');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'speedrun-timer';
-    document.body.appendChild(el);
-  }
-  _srStart = Date.now();
-  function fmt(ms) {
-    const s = Math.floor(ms / 1000);
-    const cs = Math.floor((ms % 1000) / 10);
-    return `${String(s).padStart(2,'0')}:${String(cs).padStart(2,'0')}`;
-  }
-  el.innerHTML = `<div class="sr-label">⏱ WORLD RECORD</div><div class="sr-time" id="sr-time">00:00</div>`;
-  el.classList.add('sr-show');
-  _srInterval = setInterval(() => {
-    const t = document.getElementById('sr-time');
-    if (t) t.textContent = fmt(Date.now() - _srStart);
-  }, 10);
-
-  if (isPB) {
-    setTimeout(() => {
-      clearInterval(_srInterval);
-      const elapsed = Date.now() - _srStart;
-      el.innerHTML = `
-        <div class="sr-label sr-pb">🏁 NEW PB</div>
-        <div class="sr-time sr-final">${fmt(elapsed)}</div>
-        <div class="sr-cry">😭 GG WP</div>
-      `;
-    }, 3800);
-    setTimeout(() => { el.classList.remove('sr-show'); setTimeout(() => el.remove(), 500); }, 9000);
-  }
-}
-
-function stopSpeedrunTimer() {
-  clearInterval(_srInterval);
-  const el = document.getElementById('speedrun-timer');
-  if (el) el.remove();
-}
-
-// ─── Twitch chat ──────────────────────────────────────────────
-
-const TWITCH_MSGS = [
-  { user: 'HUN123',       color: '#a855f7', msg: 'INCROYABLE !!!!' },
-  { user: 'MamaGuavo',    color: '#22c55e', msg: 'JE LE SAVAIS' },
-  { user: 'WesleyGaming', color: '#ef4444', msg: 'c moi ?' },
-  { user: 'TungFan',      color: '#f59e0b', msg: 'TUNG TUNG SAHUR 🥁' },
-  { user: 'HUN123',       color: '#a855f7', msg: 'ALAIN ADDOR MVP' },
-  { user: 'Interface99',  color: '#06b6d4', msg: 'interface validée gg' },
-  { user: 'BrainrotMax',  color: '#e91e8c', msg: 'PPP PPP' },
-  { user: 'MamaGuavo',    color: '#22c55e', msg: 'EZ CLAP' },
-  { user: 'WesleyGaming', color: '#ef4444', msg: 'nooooon' },
-  { user: 'TungFan',      color: '#f59e0b', msg: '🥁🥁🥁🥁🥁' },
-  { user: 'CFCViewer',    color: '#a855f7', msg: 'il est fort ce mec' },
-  { user: 'Interface99',  color: '#06b6d4', msg: 'LECTEUR DE PDF CERTIFIÉ' },
-];
-
-function showTwitchChat() {
-  if (document.getElementById('twitch-chat')) return;
-  const chat = document.createElement('div');
-  chat.id = 'twitch-chat';
-  chat.innerHTML = `
-    <div class="tc-header">
-      <span class="tc-dot"></span> LIVE CHAT
-      <span class="tc-viewers">👁 1 337 viewers</span>
-    </div>
-    <div class="tc-body" id="tc-body"></div>
-  `;
-  document.body.appendChild(chat);
-  requestAnimationFrame(() => requestAnimationFrame(() => chat.classList.add('tc-show')));
-
-  let i = 0;
-  function nextMsg() {
-    if (!document.getElementById('twitch-chat')) return;
-    const body = document.getElementById('tc-body');
-    if (!body) return;
-    const m = TWITCH_MSGS[i % TWITCH_MSGS.length];
-    const row = document.createElement('div');
-    row.className = 'tc-msg';
-    row.innerHTML = `<span class="tc-user" style="color:${m.color}">${m.user}</span><span class="tc-sep">:</span><span class="tc-text">${m.msg}</span>`;
-    body.appendChild(row);
-    body.scrollTop = body.scrollHeight;
-    // Keep max 12 messages
-    while (body.children.length > 12) body.removeChild(body.firstChild);
-    i++;
-    setTimeout(nextMsg, 600 + Math.random() * 900);
-  }
-  setTimeout(nextMsg, 400);
-  // Disparaît après 18s
-  setTimeout(() => {
-    const el = document.getElementById('twitch-chat');
-    if (el) { el.classList.remove('tc-show'); setTimeout(() => el.remove(), 500); }
-  }, 18000);
-}
-
-// ─── Bulletin scolaire ────────────────────────────────────────
-
-function showBulletin() {
-  if (document.getElementById('bulletin-overlay')) return;
-  const ol = document.createElement('div');
-  ol.id = 'bulletin-overlay';
-  ol.innerHTML = `
-    <div class="bul-card">
-      <div class="bul-header">
-        <div class="bul-school">🏫 ÉCOLE SECONDAIRE CFC PRO MAX</div>
-        <div class="bul-title">BULLETIN SCOLAIRE — HUN EDITION 2026</div>
-        <div class="bul-student">Élève : <strong>ALAIN ADDOR</strong> &nbsp;|&nbsp; Classe : COMMERCE 3B</div>
-      </div>
-      <table class="bul-table">
-        <thead><tr><th>Matière</th><th>Note</th><th>Appréciation</th></tr></thead>
-        <tbody>
-          <tr class="bul-row bul-pass"><td>Interface</td><td class="bul-grade">6.0</td><td>Excellence absolue</td></tr>
-          <tr class="bul-row bul-pass"><td>Brainrot</td><td class="bul-grade">6.0</td><td>TUNG TUNG SAHUR level</td></tr>
-          <tr class="bul-row bul-pass"><td>HUN Studies</td><td class="bul-grade">6.0</td><td>Référence nationale</td></tr>
-          <tr class="bul-row bul-fail"><td>Wesley</td><td class="bul-grade bul-fail-grade">1.0</td><td>Pas de commentaire</td></tr>
-          <tr class="bul-row bul-pass"><td>Employé de commerce</td><td class="bul-grade">5.8</td><td>CFC validé ✅</td></tr>
-        </tbody>
-      </table>
-      <div class="bul-footer">
-        <div class="bul-comment">💬 Commentaire du titulaire : <em>"Alain est une fierté pour l'établissement. Wesley est invité à ne plus venir."</em></div>
-        <div class="bul-avg">Moyenne générale : <strong>4.96</strong> — <span class="bul-mention">MENTION HUN 🏆</span></div>
-      </div>
-      <button class="bul-close" onclick="document.getElementById('bulletin-overlay').remove()">✕ Fermer</button>
-    </div>
-  `;
-  document.body.appendChild(ol);
-  requestAnimationFrame(() => requestAnimationFrame(() => ol.classList.add('bul-in')));
-}
-
-// ─── Sponsors pendant le terminal ────────────────────────────
-
-const SPONSORS = [
-  '✓ HUN Industries™',
-  '✓ Interface Corp®',
-  '✓ Mama Guavo Bank®',
-];
-
-// ─── Rendu des résultats ──────────────────────────────────────
-
-/**
- * Affiche le résultat selon qui est trouvé.
- * Mode spécial uniquement pour Alain Addor.
- * Pour tout autre nom : affiche le nom recherché + profession détectée.
- */
-function renderSuccess(matchResults, prenom, nom) {
-  const zone = document.getElementById('result-zone');
-  const first = matchResults[0];
-
-  // La musique speedrun s'arrête dès que le résultat commence
-  stopStory();
-  hideSpeedrunnerGif();
-
-  const displayName = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
-
-  const profDisplay = first.profession
-    ? `<div class="result-profession">🎓 ${escapeHtml(first.profession)}</div>`
-    : `<div class="result-profession muted">CFC / profession : non déterminé(e)</div>`;
-
-  const rawLine = `<div class="result-lines">▸ ${escapeHtml(first.line)}</div>`;
-
-  if (isAlainAddor(prenom, nom)) {
-    // ── TROLL : faux échec pendant 1.8s puis glitch ──
-    zone.innerHTML = `
-      <div class="result-fail" id="troll-fail">
-        <div class="result-sprites" style="justify-content:center;margin-bottom:12px">
-          <img src="TUNG.png" class="result-sprite-tung" style="opacity:.5;filter:grayscale(.6)" alt="" />
-        </div>
-        <div class="result-title">❌ Aucun résultat</div>
-        <div class="result-msg">
-          <strong>ALAIN ADDOR</strong> n'apparaît pas dans le texte chargé.<br><br>
-          Le palmarès est peut-être incomplet ou le nom est orthographié différemment.
-        </div>
-      </div>
-    `;
-    zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    // Son : NOOO LA POLIZIA pendant tout le faux échec (jusqu'au 67)
-    playStory('polizia', 0.9);
-
-    setTimeout(() => {
-      // Phase 1 — le "bug" : glitch visuel (la polizia continue de jouer)
-      const failEl = document.getElementById('troll-fail');
-      if (failEl) failEl.classList.add('troll-glitch');
-      let _gl = 0;
-      const glitchIv = setInterval(() => {
-        const el = document.getElementById('troll-fail');
-        if (!el || ++_gl > 7) { clearInterval(glitchIv); return; }
-        el.classList.remove('troll-glitch'); void el.offsetWidth; el.classList.add('troll-glitch');
-      }, 620);
-    }, 2600);
-
-    setTimeout(() => {
-      // Phase 2 — ON RIGOLE + gif 67 + son (coupe la polizia)
-      stopStory();
-      zone.innerHTML = `
-        <div class="troll-reveal" id="troll-reveal">
-          <div class="troll-text">ON RIGOLE</div>
-          <div class="troll-gif-wrap">
-            <img src="./67.gif" class="troll-gif" alt="67" />
-          </div>
-        </div>
-      `;
-      playSixSeven();
-      zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 7200);
-
-    setTimeout(() => {
-      // Phase 3 — vrai résultat + WAIT WAIT WAIT AAAAH (remplace la victoire)
-      stopStory();
-      stopSixSeven();
-      zone.innerHTML = `
-        <div class="result-success" id="alain-result">
-          <div class="stamp-valid">VALIDÉ<br>HUN EDITION</div>
-          <div class="brainrot-banner">🥁🥁🥁</div>
-          <div class="result-sprites">
-            <img src="TUNG.png" class="result-sprite-tung" alt="Tung Tung" />
-            <img src="HUN.png"  class="result-sprite-hun"  alt="HUN" />
-          </div>
-          <div class="result-title">✅ ALAIN ADDOR VALIDÉ</div>
-          <div class="result-subtitle">CFC EMPLOYÉ DE COMMERCE PRO MAX<br>HUN EDITION 🇨🇭</div>
-          <div class="result-badge">🥁 Tung Tung AH MAMA GUAVO Approved 🥁</div>
-          <div class="result-badge result-badge-2">🐊 Tralalero Tralala 🐊</div>
-          <div class="result-bonjour">👋 Bonjour Alain — BONEKA AMBALABU !!!</div>
-          ${profDisplay}
-          ${rawLine}
-          <button class="btn-certif" id="btn-certif" type="button"
-            onclick="downloadCertificate('${escapeHtml(prenom)}','${escapeHtml(nom)}','${escapeHtml(first.profession||'Employé de commerce CFC')}')">
-            📜 Télécharger l'attestation PDF
-          </button>
-          <button class="btn-certif" id="btn-bulletin" type="button" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border-color:#3b82f6;margin-top:8px"
-            onclick="showBulletin()">
-            📋 Voir le bulletin scolaire
-          </button>
-        </div>
-      `;
-      triggerGoldFlash();
-      // "WAIT WAIT WAIT ... AAAAH" pile quand le résultat apparaît (on laisse le cri sortir)
-      playStory('wait', 0.95, false, 6000);
-      launchConfetti();
-      zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      setTimeout(showAchievement, 600);
-      setTimeout(showAlainRewards, 1800);
-      setTimeout(showTwitchChat, 1200);
-      startSpeedrunTimer(true);
-    }, 9800);
-
-    return; // skip le bloc commun en bas
-  } else {
-    // ── MODE NORMAL ──
-    zone.innerHTML = `
-      <div class="result-success result-success-normal">
-        <div class="result-sprites">
-          <img src="HUN.png" class="result-sprite-hun" alt="HUN" />
-        </div>
-        <div class="result-title">✅ ${escapeHtml(displayName)} VALIDÉ</div>
-        ${profDisplay}
-        ${rawLine}
-        <button class="btn-certif" id="btn-certif" type="button"
-          onclick="downloadCertificate('${escapeHtml(prenom)}','${escapeHtml(nom)}','${escapeHtml(first.profession||'')}')">
-          📜 Télécharger l'attestation PDF
-        </button>
-      </div>
-    `;
-  }
-
-  stopSpeedrunTimer();
-  launchConfetti();
-  playTungTung();
-  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function renderFail(prenom, nom) {
-  stopStory();
-  hideSpeedrunnerGif();
-  stopSpeedrunTimer();
-  const zone = document.getElementById('result-zone');
-  const displayName = [prenom, nom].filter(Boolean).join(' ') || '(nom non saisi)';
-  zone.innerHTML = `
-    <div class="result-fail">
-      <div class="result-sprites" style="justify-content:center;margin-bottom:12px">
-        <img src="TUNG.png" class="result-sprite-tung" style="opacity:.5;filter:grayscale(.6)" alt="" />
-      </div>
-      <div class="result-title">❌ Pas encore trouvé dans ce fichier</div>
-      <div class="result-msg">
-        <strong>${escapeHtml(displayName)}</strong> n'apparaît pas dans le texte chargé.<br><br>
-        Le palmarès est peut-être incomplet (pas encore toutes les professions)<br>
-        ou le nom est orthographié différemment dans le PDF.<br><br>
-        <strong>Essaie :</strong> charge le dernier PDF via le bouton ⚡,
-        ou vérifie sur
-        <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener" style="color:#7c3aed">le site officiel ↗</a>.
-      </div>
-    </div>
-  `;
-  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function renderMultiple(matchResults, prenom, nom) {
-  const zone = document.getElementById('result-zone');
-  const displayName = [prenom, nom].filter(Boolean).join(' ');
-  const items = matchResults.map(r => `
-    <li>
-      <span class="match-line">${escapeHtml(r.line)}</span>
-      <span class="match-prof">${r.profession ? '🎓 ' + escapeHtml(r.profession) : 'profession non déterminée'}</span>
-    </li>
-  `).join('');
-
-  zone.innerHTML = `
-    <div class="result-multi">
-      <div class="result-title">🔎 ${matchResults.length} résultats pour "${escapeHtml(displayName)}"</div>
-      <ul class="match-list">${items}</ul>
-    </div>
-  `;
-  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// ─── Speedrun mode ───────────────────────────────────────────
-
-let speedrunMode = false;
-
-function toggleSpeedrun() {
-  speedrunMode = !speedrunMode;
-  const btn = document.getElementById('btn-speedrun');
-  if (btn) {
-    btn.textContent  = speedrunMode ? '⚡ SPEEDRUN ON' : '⚡ SPEEDRUN';
-    btn.classList.toggle('active', speedrunMode);
-  }
-}
-
-// ─── Mode toggle ─────────────────────────────────────────────
-
-let currentMode = 'auto';
-
-function setMode(mode) {
-  currentMode = mode;
-  const sAuto   = document.getElementById('section-auto');
-  const sManual = document.getElementById('section-manual');
-  const bAuto   = document.getElementById('btn-mode-auto');
-  const bManual = document.getElementById('btn-mode-manual');
-
-  if (mode === 'auto') {
-    sAuto.style.display   = '';
-    sManual.classList.add('section-hidden');
-    bAuto.classList.add('mode-btn--active');
-    bManual.classList.remove('mode-btn--active');
-  } else {
-    sAuto.style.display   = 'none';
-    sManual.classList.remove('section-hidden');
-    bAuto.classList.remove('mode-btn--active');
-    bManual.classList.add('mode-btn--active');
-  }
-}
-
-document.getElementById('btn-mode-auto').addEventListener('click',   () => setMode('auto'));
-document.getElementById('btn-mode-manual').addEventListener('click', () => setMode('manual'));
-
-// ─── QCM avant la recherche ───────────────────────────────────
-
-function _playErrorBeep() {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + .28);
-      gain.gain.setValueAtTime(.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .3);
-      osc.start(); osc.stop(ctx.currentTime + .3);
-    });
-  } catch(e) {}
-}
-
-function _playClickBeep() {
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + .08);
-      gain.gain.setValueAtTime(.18, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .1);
-      osc.start(); osc.stop(ctx.currentTime + .1);
-    });
-  } catch(e) {}
-}
-
-function showQCM() {
-  return new Promise(resolve => {
-    const overlay = document.createElement('div');
-    overlay.className = 'qcm-overlay';
-    overlay.innerHTML = `
-      <div class="qcm-box">
-        <div class="qcm-sep">══════════════════════════════</div>
-        <div class="qcm-label">QUESTION OBLIGATOIRE</div>
-        <div class="qcm-question">Savez-vous gérer des interfaces ?</div>
-        <div class="qcm-sep">══════════════════════════════</div>
-        <div class="qcm-options" id="qcm-options" style="margin-top:20px">
-          <button class="qcm-btn" id="qcm-non">○ Non</button>
-          <button class="qcm-btn qcm-btn-oui" id="qcm-oui">○ Oui la putain de ta race</button>
-        </div>
-        <div class="qcm-result" id="qcm-result"></div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('qcm-show')));
-
-    // ── Bouton OUI — mauvaise réponse ──
-    let ouiLocked = false;
-    overlay.querySelector('#qcm-oui').addEventListener('click', function() {
-      if (ouiLocked) return;
-      _playErrorBeep();
-      this.classList.add('qcm-oui-shake');
-      const res = overlay.querySelector('#qcm-result');
-      res.innerHTML = `
-        <span class="term-err">❌ Réponse incorrecte.</span><br>
-        <span class="qcm-err-sub">Les vrais employés de commerce lisent les consignes.</span>
-      `;
-      res.classList.add('show');
-      setTimeout(() => {
-        this.classList.remove('qcm-oui-shake');
-        this.disabled = true;
-        ouiLocked = true;
-        this.classList.add('qcm-btn-dead');
-      }, 1000);
-    });
-
-    // ── Bouton NON — sponsor Konvink → roue → mini-jeu ──
-    overlay.querySelector('#qcm-non').addEventListener('click', () => {
-      overlay.classList.add('qcm-hide');
-      setTimeout(() => {
-        overlay.remove();
-        showKonvinkSponsor().then(() => showSpinWheel().then(() => showOsuGame().then(resolve)));
-      }, 300);
-    });
-  });
-}
-
-// ─── Pluie de jetons de casino ───────────────────────────────
-
-function castCasinoRain(duration) {
-  const coins = ['🪙', '💰', '🎰', '💵', '🪙', '🪙', '🤑'];
-  const end = Date.now() + (duration || 2500);
-  const iv = setInterval(() => {
-    if (Date.now() > end) { clearInterval(iv); return; }
-    for (let k = 0; k < 3; k++) {
-      const c = document.createElement('div');
-      c.className = 'casino-coin';
-      c.textContent = coins[(Math.random() * coins.length) | 0];
-      c.style.left = (Math.random() * 100) + 'vw';
-      c.style.setProperty('--dur', (1.8 + Math.random() * 1.6) + 's');
-      c.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
-      c.style.fontSize = (24 + Math.random() * 28) + 'px';
-      document.body.appendChild(c);
-      setTimeout(() => c.remove(), 3600);
-    }
-  }, 85);
-}
-
-// ─── Sponsor Konvink + notation 5 étoiles (qui bug sous 5) ────
-
-function showKonvinkSponsor() {
-  return new Promise(resolve => {
-    const overlay = document.createElement('div');
-    overlay.id = 'konvink-overlay';
-    overlay.innerHTML = `
-      <div class="konvink-box">
-        <div class="konvink-spon">Cette recherche est sponsorisée par</div>
-        <img src="./konvink.png" class="konvink-logo" alt="KONVINK" />
-        <div class="konvink-ask">Veuillez évaluer <b>KONVINK</b> pour continuer</div>
-        <div class="konvink-stars" id="konvink-stars">
-          ${[1,2,3,4,5].map(i => `<span class="kv-star" data-v="${i}">★</span>`).join('')}
-        </div>
-        <div class="konvink-msg" id="konvink-msg"></div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('show')));
-
-    // Fallback si l'image n'est pas (encore) présente
-    const logo = overlay.querySelector('.konvink-logo');
-    logo.addEventListener('error', () => {
-      logo.style.display = 'none';
-      const fb = document.createElement('div');
-      fb.className = 'konvink-logo-fallback';
-      fb.innerHTML = 'KONVINK<span>Wissen fürs Können.</span>';
-      logo.after(fb);
-    });
-
-    const box   = overlay.querySelector('.konvink-box');
-    const stars = Array.from(overlay.querySelectorAll('.kv-star'));
-    const msg   = overlay.querySelector('#konvink-msg');
-    let locked  = false;
-
-    const fill = n => stars.forEach((s, i) => s.classList.toggle('on', i < n));
-
-    stars.forEach(star => {
-      star.addEventListener('mouseenter', () => { if (!locked) fill(+star.dataset.v); });
-      star.addEventListener('click', () => {
-        if (locked) return;
-        const v = +star.dataset.v;
-        if (v < 5) {
-          // ── BUG : on refuse toute note < 5 ──
-          _playErrorBeep();
-          box.classList.remove('kv-shake'); void box.offsetWidth; box.classList.add('kv-shake');
-          stars.forEach(s => s.classList.add('kv-error'));
-          msg.innerHTML = '⚠️ ERREUR SYSTÈME — note invalide.<br><span class="kv-sub">Seul un avis ★★★★★ peut être enregistré.</span>';
-          msg.className = 'konvink-msg show err';
-          setTimeout(() => { stars.forEach(s => s.classList.remove('kv-error')); fill(0); }, 650);
-        } else {
-          // ── 5 étoiles → jackpot ──
-          locked = true;
-          fill(5);
-          stars.forEach(s => s.classList.add('kv-gold'));
-          msg.innerHTML = '✅ Merci pour votre avis 5 étoiles !<br><span class="kv-sub">🎰 JACKPOT KONVINK 🎰</span>';
-          msg.className = 'konvink-msg show ok';
-          castCasinoRain(2800);
-          [660, 880, 1046, 1318, 1568].forEach((f, i) => setTimeout(() => _playRewardBeep(f, 0.25), i * 110));
-          setTimeout(() => {
-            overlay.classList.add('konvink-hide');
-            setTimeout(() => { overlay.remove(); resolve(); }, 500);
-          }, 2500);
-        }
-      });
-    });
-    overlay.querySelector('#konvink-stars').addEventListener('mouseleave', () => { if (!locked) fill(0); });
-  });
-}
-
-// ─── Roue de la chance ───────────────────────────────────────
-
-function showSpinWheel() {
-  return new Promise(resolve => {
-    const SEGMENTS = [
-      { label: 'HUN',       color: '#a855f7', reward: '+35 HUN POINTS'      },
-      { label: 'TUNG',      color: '#f59e0b', reward: '+12 TUNG TOKENS'     },
-      { label: 'MAMA',      color: '#22c55e', reward: '+99 MAMA CREDITS'    },
-      { label: 'GUAVO',     color: '#06b6d4', reward: '+77 GUAVO XP'        },
-      { label: 'INTERFACE', color: '#e91e8c', reward: '+50 INTERFACE SKILLS' },
-      { label: 'WESLEY',    color: '#ef4444', reward: '-10 SOCIAL CREDIT'   },
-    ];
-    const N = SEGMENTS.length;
-    const WINNER_IDX = 0; // toujours HUN
-
-    const overlay = document.createElement('div');
-    overlay.id = 'spin-overlay';
-    overlay.innerHTML = `
-      <div class="spin-box">
-        <div class="spin-title">🎰 ROUE DE LA CHANCE</div>
-        <div class="spin-subtitle">Tente ta chance avant la game</div>
-        <div class="spin-arena">
-          <canvas id="spin-canvas" width="320" height="320"></canvas>
-          <div class="spin-needle"></div>
-        </div>
-        <div class="spin-result" id="spin-result"></div>
-        <button class="spin-btn" id="spin-btn">▶ TOURNER</button>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('spin-in')));
-
-    const canvas = overlay.querySelector('#spin-canvas');
-    const ctx    = canvas.getContext('2d');
-    const cx = 160, cy = 160, r = 148;
-    let currentAngle = 0;
-
-    function drawWheel(angle) {
-      ctx.clearRect(0, 0, 320, 320);
-      const slice = (Math.PI * 2) / N;
-      SEGMENTS.forEach((seg, i) => {
-        const start = angle + i * slice;
-        const end   = start + slice;
-        // Segment fill
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, start, end);
-        ctx.closePath();
-        ctx.fillStyle = seg.color;
-        ctx.globalAlpha = .85;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        // Border
-        ctx.strokeStyle = 'rgba(255,255,255,.18)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        // Label
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(start + slice / 2);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 15px Rajdhani, sans-serif';
-        ctx.shadowColor = 'rgba(0,0,0,.7)';
-        ctx.shadowBlur = 6;
-        ctx.fillText(seg.label, r - 12, 5);
-        ctx.restore();
-      });
-      // Center circle
-      ctx.beginPath();
-      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-      ctx.fillStyle = '#060412';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.3)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    drawWheel(0);
-
-    let spinning = false;
-    overlay.querySelector('#spin-btn').addEventListener('click', function() {
-      if (spinning) return;
-      spinning = true;
-      this.disabled = true;
-      this.textContent = '⏳ EN COURS...';
-
-      // Target angle: land needle (top = -π/2) on winner segment center
-      const slice = (Math.PI * 2) / N;
-      // Needle at top = angle offset -π/2
-      // Segment i center at: angle + i*slice + slice/2
-      // We want that = -π/2 (mod 2π)  → angle = -π/2 - (WINNER_IDX*slice + slice/2)
-      const extraSpins  = 6 * Math.PI * 2; // 6 full turns
-      const targetOffset = -Math.PI / 2 - (WINNER_IDX * slice + slice / 2);
-      const totalRotation = extraSpins + ((targetOffset - currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-
-      const duration = 4200;
-      const start    = performance.now();
-      const startAngle = currentAngle;
-
-      // Sound: quick ticks
-      let lastTick = -1;
-      function spinSound(progress) {
-        const tickInterval = Math.max(0.06, 0.35 * (1 - progress));
-        const ticks = Math.floor(progress * totalRotation / (Math.PI * 2 / N));
-        if (ticks !== lastTick) {
-          lastTick = ticks;
-          _playRewardBeep(440 + (ticks % 6) * 60, 0.04);
-        }
-      }
-
-      function animate(now) {
-        const elapsed = now - start;
-        const t = Math.min(1, elapsed / duration);
-        // ease out cubic
-        const ease = 1 - Math.pow(1 - t, 3);
-        currentAngle = startAngle + totalRotation * ease;
-        drawWheel(currentAngle);
-        spinSound(t);
-
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Show result
-          const res = overlay.querySelector('#spin-result');
-          const seg = SEGMENTS[WINNER_IDX];
-          res.innerHTML = `<span style="color:${seg.color};text-shadow:0 0 20px ${seg.color}">🎉 ${seg.reward}</span>`;
-          res.classList.add('spin-result-show');
-          _playRewardBeep(880, 0.3);
-          setTimeout(() => _playRewardBeep(1046, 0.3), 150);
-          setTimeout(() => _playRewardBeep(1318, 0.5), 320);
-
-          setTimeout(() => {
-            overlay.classList.add('spin-out');
-            setTimeout(() => { overlay.remove(); resolve(); }, 500);
-          }, 2200);
-        }
-      }
-      requestAnimationFrame(animate);
-    });
-  });
-}
-
-// ─── Mini-jeu OSU ────────────────────────────────────────────
-
-function showOsuGame() {
-  return new Promise(resolve => {
-    // ── Phase 1 : logo OSUHUN ──
-    const logoScreen = document.createElement('div');
-    logoScreen.className = 'osu-logo-screen';
-    document.body.appendChild(logoScreen);
-
-    const logoImg = new Image();
-    logoImg.className = 'osu-logo-img';
-    logoImg.alt = 'HUN';
-    logoScreen.appendChild(logoImg);
-
-    function _showLogo() {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        logoScreen.classList.add('osu-logo-in');
-        _playLogoSound();
-      }));
-      setTimeout(() => {
-        logoScreen.classList.add('osu-logo-out');
-        setTimeout(() => {
-          logoScreen.remove();
-          _startOsuGame(resolve);
-        }, 500);
-      }, 1800);
-    }
-
-    logoImg.onload  = _showLogo;
-    logoImg.onerror = _showLogo; // continue même si l'image échoue
-    logoImg.src = './OSUHUN.png';
-  });
-}
-
-function showOsuResults(onContinue) {
-  const overlay = document.createElement('div');
-  overlay.id = 'osu-results-overlay';
-
-  // Fake but satisfying stats
-  const score    = 36_267_960;
-  const count300 = 897;
-  const countKatu= 146;
-  const count100 = 0;
-  const countMeh = 0;
-  const count50  = 0;
-  const countMiss= 0;
-  const combo    = 1328;
-  const accuracy = '100,00%';
-  const rank     = 'S';
-
-  overlay.innerHTML = `
-    <div class="osr-inner">
-      <div class="osr-top">
-        <div class="osr-beatmap">HUN — Interface Validation [Insane]</div>
-        <div class="osr-meta">Played by HUN on 27.06.2026</div>
-      </div>
-
-      <div class="osr-score-block">
-        <div class="osr-score-label">Score</div>
-        <div class="osr-score-value" id="osr-score-val">0</div>
-      </div>
-
-      <div class="osr-stats-grid">
-        <div class="osr-stat">
-          <span class="osr-stat-key osr-300">300</span>
-          <span class="osr-stat-val" id="osr-v300">0x</span>
-          <span class="osr-stat-key osr-katu">激</span>
-          <span class="osr-stat-val" id="osr-vkatu">0x</span>
-        </div>
-        <div class="osr-stat">
-          <span class="osr-stat-key osr-100">100</span>
-          <span class="osr-stat-val">0x</span>
-          <span class="osr-stat-key osr-100">喝</span>
-          <span class="osr-stat-val">0x</span>
-        </div>
-        <div class="osr-stat">
-          <span class="osr-stat-key osr-50">50</span>
-          <span class="osr-stat-val">0x</span>
-          <span class="osr-stat-key osr-miss">✕</span>
-          <span class="osr-stat-val">0x</span>
-        </div>
-        <div class="osr-stat osr-stat--bottom">
-          <span class="osr-bottom-label">Combo</span>
-          <span class="osr-bottom-val">${combo}x</span>
-          <span class="osr-bottom-label">Accuracy</span>
-          <span class="osr-bottom-val osr-acc">${accuracy}</span>
-        </div>
-      </div>
-
-      <div class="osr-rank-block">
-        <div class="osr-rank-ring">
-          <div class="osr-rank" id="osr-rank">${rank}</div>
-        </div>
-        <div class="osr-pp">727<span>pp</span></div>
-        <div class="osr-rank-label">RANKING</div>
-        <div class="osr-gif-wrap">
-          <img class="osr-gif" src="./goodjob.gif" alt="" aria-hidden="true" />
-          <div class="osr-gif-cap">DU BIST GUT GENUG 💪</div>
-        </div>
-      </div>
-
-      <div class="osr-perf">
-        <div class="osr-perf-label">performance</div>
-        <div class="osr-perf-value">Perfect</div>
-      </div>
-
-      <button class="osr-continue-btn" id="osr-continue-btn">▶ Continuer</button>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('osr-in')));
-
-  // Animate score counter
-  const scoreEl = overlay.querySelector('#osr-score-val');
-  const v300El  = overlay.querySelector('#osr-v300');
-  const vkatuEl = overlay.querySelector('#osr-vkatu');
-  let scoreAnim = 0;
-  let frame300  = 0;
-  let frameKatu = 0;
-  const totalFrames = 80;
-  let f = 0;
-  const iv = setInterval(() => {
-    f++;
-    const t = Math.min(1, f / totalFrames);
-    const ease = 1 - Math.pow(1 - t, 3);
-    scoreEl.textContent  = Math.floor(ease * score).toLocaleString('fr-CH');
-    v300El.textContent   = Math.floor(ease * count300) + 'x';
-    vkatuEl.textContent  = Math.floor(ease * countKatu) + 'x';
-    if (f >= totalFrames) clearInterval(iv);
-  }, 18);
-
-  // Voix : DU BIST GUT GENUGGGG quand l'écran de stats apparaît
-  playStory('dubist', 0.95);
-
-  overlay.querySelector('#osr-continue-btn').addEventListener('click', () => {
-    stopStory();
-    overlay.classList.add('osr-out');
-    setTimeout(() => { overlay.remove(); onContinue(); }, 500);
-  });
-}
-
-function _runOsuSlider(fieldEl, config, onDone) {
-  fieldEl.innerHTML = '';
-  fieldEl.style.opacity = '1';
-
-  const W = fieldEl.clientWidth  || 560;
-  const H = fieldEl.clientHeight || 360;
-
-  const cvs = document.createElement('canvas');
-  cvs.width  = W; cvs.height = H;
-  cvs.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:none;touch-action:none';
-  // field est déjà position:absolute (ancêtre positionné) → ne pas écraser
-  fieldEl.appendChild(cvs);
-  const ctx = cvs.getContext('2d');
-
-  // Control points in pixels
-  const P = config.pts.map(p => ({ x: p.x * W, y: p.y * H }));
-
-  function qBez(t, a, b, c) {
-    const u = 1 - t;
-    return { x: u*u*a.x + 2*u*t*b.x + t*t*c.x, y: u*u*a.y + 2*u*t*b.y + t*t*c.y };
-  }
-
-  // Pre-compute path for drawing
-  const STEPS = 80;
-  const pathPts = Array.from({ length: STEPS + 1 }, (_, i) => qBez(i / STEPS, P[0], P[1], P[2]));
-
-  // Ball position: reverse means 0→1 then 1→0
-  function ballAt(t) {
-    if (!config.reverse) return qBez(t, P[0], P[1], P[2]);
-    const t2 = t <= .5 ? t * 2 : (1 - t) * 2;
-    return qBez(t2, P[0], P[1], P[2]);
-  }
-
-  const HEAD_R    = Math.min(W, H) * 0.072;
-  const TRACK_W   = HEAD_R * 1.45;
-  const BALL_R    = HEAD_R * 0.84;
-  const APPROACH  = 850;   // ms approach ring shrinks
-  const TRAVEL    = config.duration;
-
-  let phase       = 'approach';
-  let startTime   = performance.now();
-  let activeStart = 0;
-  let holding     = false;
-  let outOfRange  = false;
-  let cursor      = { x: -999, y: -999 };
-  let rafId;
-
-  // ── Draw functions ─────────────────────────────────────────
-
-  function drawBody() {
-    ctx.lineCap  = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(pathPts[0].x, pathPts[0].y);
-    for (let i = 1; i <= STEPS; i++) ctx.lineTo(pathPts[i].x, pathPts[i].y);
-    ctx.strokeStyle = 'rgba(255,255,255,.28)';
-    ctx.lineWidth   = TRACK_W + 8;
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,102,170,.45)';
-    ctx.lineWidth   = TRACK_W;
-    ctx.stroke();
-  }
-
-  function drawEndCircle() {
-    const ep = pathPts[STEPS];
-    ctx.beginPath();
-    ctx.arc(ep.x, ep.y, HEAD_R, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,.55)';
-    ctx.lineWidth   = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(ep.x, ep.y, HEAD_R - 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,102,170,.22)';
-    ctx.fill();
-    if (config.reverse) {
-      ctx.fillStyle  = 'rgba(255,255,255,.85)';
-      ctx.font       = `bold ${HEAD_R * .9}px Rajdhani,sans-serif`;
-      ctx.textAlign  = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('↺', ep.x, ep.y);
-    }
-  }
-
-  function drawTicks() {
-    const tickTs = config.reverse ? [.25, .5, .75] : [.33, .66];
-    tickTs.forEach(t => {
-      const p = qBez(t, P[0], P[1], P[2]);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, HEAD_R * .14, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,.75)';
-      ctx.fill();
-    });
-  }
-
-  function drawHead(approachProgress) {
-    const hp = pathPts[0];
-    // Head fill
-    ctx.beginPath();
-    ctx.arc(hp.x, hp.y, HEAD_R, 0, Math.PI * 2);
-    const pulse = 0.55 + 0.2 * Math.sin(performance.now() * 0.008);
-    ctx.fillStyle = `rgba(255,102,170,${pulse})`;
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth   = 3;
-    ctx.stroke();
-    // Number
-    ctx.fillStyle      = '#fff';
-    ctx.font           = `bold ${HEAD_R}px Bebas Neue,sans-serif`;
-    ctx.textAlign      = 'center';
-    ctx.textBaseline   = 'middle';
-    ctx.fillText(config.num, hp.x, hp.y);
-    // Approach ring (starts large, shrinks to head)
-    const ringR = HEAD_R + (1 - approachProgress) * HEAD_R * 2.8;
-    ctx.beginPath();
-    ctx.arc(hp.x, hp.y, ringR, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(255,102,170,${.9 - approachProgress * .3})`;
-    ctx.lineWidth   = 3;
-    ctx.stroke();
-  }
-
-  function drawBall(bp) {
-    const color = outOfRange ? '#ef4444' : '#fff';
-    const glow  = outOfRange ? 'rgba(239,68,68,' : 'rgba(255,102,170,';
-    // Outer glow
-    const grad = ctx.createRadialGradient(bp.x, bp.y, 0, bp.x, bp.y, BALL_R * 2);
-    grad.addColorStop(0,   glow + '.7)');
-    grad.addColorStop(.6,  glow + '.3)');
-    grad.addColorStop(1,   glow + '0)');
-    ctx.beginPath();
-    ctx.arc(bp.x, bp.y, BALL_R * 2, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    // Ball
-    ctx.beginPath();
-    ctx.arc(bp.x, bp.y, BALL_R, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.8)' : 'rgba(255,102,170,.9)';
-    ctx.lineWidth   = 3;
-    ctx.stroke();
-    // Follow ring on cursor
-    if (phase === 'active') {
-      ctx.beginPath();
-      ctx.arc(bp.x, bp.y, HEAD_R * 1.9, 0, Math.PI * 2);
-      ctx.strokeStyle = outOfRange ? 'rgba(239,68,68,.35)' : 'rgba(255,255,255,.18)';
-      ctx.lineWidth   = 2;
-      ctx.stroke();
-    }
-  }
-
-  // ── Main render loop ────────────────────────────────────────
-
-  function frame(now) {
-    ctx.clearRect(0, 0, W, H);
-    drawBody();
-    drawTicks();
-    drawEndCircle();
-
-    if (phase === 'approach') {
-      const prog = Math.min(1, (now - startTime) / APPROACH);
-      drawHead(prog);
-      rafId = requestAnimationFrame(frame);
-
-    } else if (phase === 'active') {
-      const t  = Math.min(1, (now - activeStart) / TRAVEL);
-      const bp = ballAt(t);
-
-      const dx = cursor.x - bp.x;
-      const dy = cursor.y - bp.y;
-      outOfRange = !holding || Math.sqrt(dx * dx + dy * dy) > HEAD_R * 2.5;
-
-      drawBall(bp);
-
-      if (t >= 1) {
-        phase = 'done';
-        _playClickBeep();
-        // Flash green
-        ctx.fillStyle = 'rgba(34,197,94,.18)';
-        ctx.fillRect(0, 0, W, H);
-        setTimeout(onDone, 320);
-      } else {
-        rafId = requestAnimationFrame(frame);
-      }
-    }
-  }
-
-  // ── Input ───────────────────────────────────────────────────
-
-  cvs.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    if (phase === 'active') { holding = true; cvs.setPointerCapture(e.pointerId); return; }
-    if (phase !== 'approach') return;
-    const rect = cvs.getBoundingClientRect();
-    const cx   = (e.clientX - rect.left) * (W / rect.width);
-    const cy   = (e.clientY - rect.top)  * (H / rect.height);
-    const dx   = cx - pathPts[0].x;
-    const dy   = cy - pathPts[0].y;
-    if (Math.sqrt(dx * dx + dy * dy) <= HEAD_R * 1.7) {
-      cancelAnimationFrame(rafId);
-      phase = 'active';
-      activeStart = performance.now();
-      holding = true;
-      cvs.setPointerCapture(e.pointerId);
-      _playClickBeep();
-      rafId = requestAnimationFrame(frame);
-    }
-  });
-
-  cvs.addEventListener('pointermove', e => {
-    const rect = cvs.getBoundingClientRect();
-    cursor.x   = (e.clientX - rect.left) * (W / rect.width);
-    cursor.y   = (e.clientY - rect.top)  * (H / rect.height);
-  });
-
-  cvs.addEventListener('pointerup',   () => { holding = false; });
-  cvs.addEventListener('pointercancel', () => { holding = false; });
-
-  cvs.addEventListener('touchmove', e => {
-    e.preventDefault();
-    const rect = cvs.getBoundingClientRect();
-    cursor.x = (e.touches[0].clientX - rect.left) * (W / rect.width);
-    cursor.y = (e.touches[0].clientY - rect.top)  * (H / rect.height);
-  }, { passive: false });
-
-  rafId = requestAnimationFrame(frame);
-}
-
-function _startOsuGame(resolve) {
-    const game = document.createElement('div');
-    game.className = 'osu-overlay';
-    game.innerHTML = `
-      <div class="osu-stage">
-        <div class="osu-hud-top">
-          <div class="osu-song">
-            <span class="osu-song-title">HUN — Interface Validation</span>
-            <span class="osu-diff">[INSANE ★ 6.7]</span>
-          </div>
-          <div class="osu-acc" id="osu-acc">100.00%</div>
-        </div>
-        <div class="osu-health"><div class="osu-health-fill" id="osu-health"></div></div>
-        <div class="osu-playarea" id="osu-playarea">
-          <div class="osu-field" id="osu-field"></div>
-          <div class="osu-judge-layer" id="osu-judge"></div>
-          <div class="osu-combo" id="osu-combo"><b id="osu-combo-n">0</b>x</div>
-          <div class="osu-cursor" id="osu-cursor"></div>
-        </div>
-        <div class="osu-finish" id="osu-finish" style="display:none">
-          <div class="osu-finish-bar-label">INTERFACE SKILLS</div>
-          <div class="osu-finish-track"><div class="osu-finish-fill" id="osu-finish-fill"></div></div>
-          <div class="osu-finish-pct" id="osu-finish-pct">0%</div>
-          <div class="osu-finish-done" id="osu-finish-done">✔ INTERFACE VALIDÉE — HUN APPROVED</div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(game);
-    requestAnimationFrame(() => requestAnimationFrame(() => game.classList.add('osu-show')));
-
-    playOsuMusic();
-
-    const field    = game.querySelector('#osu-field');
-    const playarea = game.querySelector('#osu-playarea');
-    const judgeL   = game.querySelector('#osu-judge');
-    const comboN   = game.querySelector('#osu-combo-n');
-    const comboEl  = game.querySelector('#osu-combo');
-    const cursorEl = game.querySelector('#osu-cursor');
-
-    // ── Combo & jugements ──
-    let combo = 0;
-    function bumpCombo() {
-      combo++;
-      comboN.textContent = combo;
-      comboEl.classList.remove('osu-combo-pop');
-      void comboEl.offsetWidth;
-      comboEl.classList.add('osu-combo-pop');
-    }
-    function addJudge(xPct, yPct, kind) {
-      const j = document.createElement('div');
-      j.className = 'osu-judge osu-judge-' + (kind || '300');
-      j.textContent = kind === 'perfect' ? 'PERFECT' : '300';
-      j.style.left = xPct + '%';
-      j.style.top  = yPct + '%';
-      judgeL.appendChild(j);
-      setTimeout(() => j.remove(), 700);
-    }
-
-    // ── Curseur + traînée (suit la souris sur toute la zone) ──
-    let lastTrail = 0;
-    function onMove(clientX, clientY) {
-      const r = playarea.getBoundingClientRect();
-      const x = clientX - r.left;
-      const y = clientY - r.top;
-      if (x < 0 || y < 0 || x > r.width || y > r.height) { cursorEl.style.opacity = '0'; return; }
-      cursorEl.style.opacity = '1';
-      cursorEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
-      const now = performance.now();
-      if (now - lastTrail > 16) {
-        lastTrail = now;
-        const dot = document.createElement('div');
-        dot.className = 'osu-trail';
-        dot.style.left = x + 'px';
-        dot.style.top  = y + 'px';
-        playarea.appendChild(dot);
-        setTimeout(() => dot.remove(), 360);
-      }
-    }
-    playarea.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
-    playarea.addEventListener('touchmove',  e => { if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-
-    const CIRCLES = [
-      { x: 24, y: 40 },
-      { x: 70, y: 26 },
-      { x: 46, y: 70 },
-      { x: 78, y: 64 },
-      { x: 30, y: 22 },
-    ];
-    let step = 0;
-
-    function spawnCircle(idx) {
-      if (idx >= CIRCLES.length) { showSlider(); return; }
-      const { x, y } = CIRCLES[idx];
-      const el = document.createElement('div');
-      el.className = 'osu-circle';
-      el.style.left = x + '%';
-      el.style.top  = y + '%';
-      el.innerHTML  = `<span class="osu-num">${idx + 1}</span><span class="osu-ring"></span><span class="osu-burst"></span>`;
-      field.appendChild(el);
-      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('osu-circle-in')));
-
-      function hit(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        el.removeEventListener('click', hit);
-        el.removeEventListener('touchstart', hit);
-        _playClickBeep();
-        el.classList.add('osu-hit');
-        bumpCombo();
-        addJudge(x, y, '300');
-        setTimeout(() => el.remove(), 400);
-        step++;
-        setTimeout(() => spawnCircle(step), 240);
-      }
-      el.addEventListener('click', hit);
-      el.addEventListener('touchstart', hit, { passive: false });
-    }
-
-    function showSlider() {
-      _runOsuSlider(field, {
-        pts: [{ x: .15, y: .55 }, { x: .5, y: .12 }, { x: .85, y: .55 }],
-        reverse: false, num: 6, duration: 1600
-      }, () => {
-        bumpCombo();
-        addJudge(85, 55, 'perfect');
-        setTimeout(() => {
-          _runOsuSlider(field, {
-            pts: [{ x: .82, y: .3 }, { x: .4, y: .8 }, { x: .18, y: .35 }],
-            reverse: true, num: 7, duration: 2000
-          }, () => {
-            bumpCombo();
-            addJudge(18, 35, 'perfect');
-            completeGame();
-          });
-        }, 320);
-      });
-    }
-
-    function completeGame() {
-      stopOsuMusic();
-      cursorEl.style.opacity = '0';
-      field.style.opacity = '0';
-      setTimeout(() => {
-        field.style.display = 'none';
-        comboEl.style.display = 'none';
-        const fin  = game.querySelector('#osu-finish');
-        const fill = game.querySelector('#osu-finish-fill');
-        const pct  = game.querySelector('#osu-finish-pct');
-        const done = game.querySelector('#osu-finish-done');
-        fin.style.display = 'block';
-        let v = 0;
-        const iv = setInterval(() => {
-          v = Math.min(100, v + 5);
-          fill.style.width = v + '%';
-          pct.textContent  = v + '%';
-          if (v >= 100) {
-            clearInterval(iv);
-            done.classList.add('osu-done-show');
-            setTimeout(() => {
-              game.classList.add('osu-hide');
-              setTimeout(() => {
-                game.remove();
-                showOsuResults(resolve);
-              }, 450);
-            }, 900);
-          }
-        }, 18);
-      }, 200);
-    }
-
-    setTimeout(() => spawnCircle(0), 400);
-}
-
-// ─── Terminal de chargement brainrot ─────────────────────────
-
-const TERMINAL_MAIN = [
-  { text: 'BYPASSING THE FIREWALL SA MERE...', cls: 'term-warn' },
-  { text: 'Initializing CFC Kernel...' },
-  { text: 'Checking GitHub Actions...', status: 'OK', sc: 'term-ok' },
-  { text: 'Checking PDF parser...', status: 'OK', sc: 'term-ok' },
-  { text: 'Checking HUN Engine...', status: 'OK', sc: 'term-ok' },
-  { text: 'Checking Tung Tung Sahur...', status: 'OK', sc: 'term-ok' },
-  null, // easter egg slot 1
-  { type: 'downloads' },
-  { text: 'Searching Wesley...', status: 'ERROR', sc: 'term-err' },
-  { text: 'Searching Wesley (2nd try)...', status: 'ERROR', sc: 'term-err' },
-  { text: 'Searching Wesley (3rd try)...', status: 'TOO RETARDED', sc: 'term-err' },
-  { text: 'Cancelling Wesley...' },
-  { type: 'gitlogs' },
-  { text: 'Loading HUN Search Engine...', status: '✔ READY', sc: 'term-ok' },
-  null, // easter egg slot 2
-  { type: 'sponsors' },
-  { text: 'Reading palmarès...' },
-  { text: 'Searching candidate...' },
-  { text: 'Analyzing TPTPTPTTPTPXYZATPA...', cls: 'term-warn' },
-  { text: 'MAMA GUAVO...', cls: 'term-warn' },
-];
-
-const TERMINAL_EGGS = [
-  { text: 'Consulting Alain...' },
-  { text: 'Pourquoi ?' },
-  { text: 'Please wait...' },
-  { text: 'Compiling HUN.dll...' },
-  { text: 'Removing Wesley...', status: 'DONE', sc: 'term-ok' },
-  { text: 'Brainrot level... ██████████ 100%', cls: 'term-warn' },
-  { text: 'Synchronizing MAMA GUAVO...' },
-  { text: 'Downloading CFC...' },
-  { text: 'Installing HUN Edition...' },
-  { text: 'Verifying Tung Tung...' },
-  { text: 'Generating diploma...' },
-  { text: 'Checking interface skills...' },
-  { text: 'Searching major de promo...' },
-];
-
-let _loadingInterval = null;
-let _progressInterval = null;
-let _fakeProgress = 0;
-let _termAbort = false;
-
-function showTerminalLoading() {
-  _termAbort = false;
-  const zone = document.getElementById('result-zone');
-  zone.innerHTML = `
-    <div class="terminal-container">
-      <div class="terminal-header">
-        <span class="term-dot term-dot-r"></span>
-        <span class="term-dot term-dot-y"></span>
-        <span class="term-dot term-dot-g"></span>
-        <span class="terminal-title-bar">CFC_KERNEL v2.0 — HUN EDITION</span>
-      </div>
-      <div class="terminal-body" id="terminal-body"><span class="term-cursor"></span></div>
-      <div class="terminal-footer">
-        <div class="fake-progress-track">
-          <div class="fake-progress-bar" id="fake-progress-bar" style="width:0%"></div>
-        </div>
-        <div class="fake-progress-pct" id="fake-progress-pct" style="margin-bottom:0">0%</div>
-      </div>
-      <div class="terminal-sprites">
-        <img src="TUNG.png" class="searching-sprite-tung" alt="" />
-        <img src="HUN.png"  class="searching-sprite-hun"  alt="" />
-      </div>
-    </div>
-  `;
-  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-  // Pick 2 random easter eggs
-  const eggs = [...TERMINAL_EGGS].sort(() => Math.random() - .5).slice(0, 2);
-  const sequence = TERMINAL_MAIN.map(l => l === null ? eggs.shift() : l).filter(Boolean);
-  const total = sequence.length;
-
-  return new Promise(resolve => {
-    let idx = 0;
-
-    function addLine(line) {
-      const body = document.getElementById('terminal-body');
-      if (!body) return Promise.resolve();
-      const cursor = body.querySelector('.term-cursor');
-      if (cursor) cursor.remove();
-
-      // ── Bloc téléchargements ──
-      if (line.type === 'downloads') {
-        const files = [
-          { name: 'interface.dll', ok: true  },
-          { name: 'hun.sys',       ok: true  },
-          { name: 'wesley.exe',    ok: false },
-          { name: 'brainrot.iso',  ok: true  },
-          { name: 'CFC.pdf',       ok: true  },
-        ];
-        const block = document.createElement('div');
-        block.className = 'term-dl-block';
-        block.innerHTML = `<div class="terminal-line term-warn">▶ Installing dependencies...</div>`;
-        body.appendChild(block);
-        moveCursor(body);
-        body.scrollTop = body.scrollHeight;
-        return new Promise(r => {
-          let i = 0;
-          function nextFile() {
-            if (i >= files.length) { setTimeout(r, 200); return; }
-            const f   = files[i++];
-            const row = document.createElement('div');
-            row.className = 'term-dl-row';
-            row.innerHTML = `<span class="term-dl-bar"><span class="term-dl-fill"></span></span><span class="term-dl-name">${f.name}</span><span class="term-dl-status"></span>`;
-            block.appendChild(row);
-            body.scrollTop = body.scrollHeight;
-            const fill   = row.querySelector('.term-dl-fill');
-            const status = row.querySelector('.term-dl-status');
-            let w = 0;
-            const iv = setInterval(() => {
-              w = Math.min(100, w + 8 + Math.random() * 12);
-              fill.style.width = w + '%';
-              if (w >= 100) {
-                clearInterval(iv);
-                fill.style.background = f.ok ? '#22c55e' : '#ef4444';
-                status.textContent = f.ok ? ' ✔' : ' ❌';
-                status.style.color = f.ok ? '#22c55e' : '#ef4444';
-                body.scrollTop = body.scrollHeight;
-                setTimeout(nextFile, 180);
-              }
-            }, 30);
-          }
-          setTimeout(nextFile, 100);
-        });
-      }
-
-      // ── Bloc sponsors ──
-      if (line.type === 'sponsors') {
-        const block = document.createElement('div');
-        block.className = 'term-sponsor-block';
-        block.innerHTML = `<div class="terminal-line term-warn">★ Cette recherche est sponsorisée par :</div>`;
-        body.appendChild(block);
-        moveCursor(body);
-        body.scrollTop = body.scrollHeight;
-        return new Promise(r => {
-          SPONSORS.forEach((s, i) => {
-            setTimeout(() => {
-              const row = document.createElement('div');
-              row.className = 'terminal-line term-sponsor-line';
-              row.textContent = '  ' + s;
-              block.appendChild(row);
-              body.scrollTop = body.scrollHeight;
-              if (i === SPONSORS.length - 1) setTimeout(r, 300);
-            }, i * 350);
-          });
-        });
-      }
-
-      // ── Bloc logs GitHub ──
-      if (line.type === 'gitlogs') {
-        const commits = [
-          { msg: 'Fix Wesley',    status: 'FAILED',  ok: false },
-          { msg: 'Remove Wesley', status: 'SUCCESS', ok: true  },
-          { msg: 'Add HUN',       status: 'SUCCESS', ok: true  },
-        ];
-        const block = document.createElement('div');
-        block.className = 'term-git-block';
-        block.innerHTML = `<div class="terminal-line term-warn">▶ Fetching GitHub Actions logs...</div>`;
-        body.appendChild(block);
-        moveCursor(body);
-        body.scrollTop = body.scrollHeight;
-        return new Promise(r => {
-          let i = 0;
-          function nextCommit() {
-            if (i >= commits.length) { setTimeout(r, 200); return; }
-            const c   = commits[i++];
-            const row = document.createElement('div');
-            row.className = 'term-git-row';
-            row.innerHTML = `
-              <span class="term-git-dot ${c.ok ? 'git-ok' : 'git-fail'}"></span>
-              <span class="term-git-label">Commit :</span>
-              <span class="term-git-msg">${c.msg}</span>
-              <span class="term-git-status ${c.ok ? 'git-ok' : 'git-fail'}">${c.status}</span>
-            `;
-            block.appendChild(row);
-            body.scrollTop = body.scrollHeight;
-            setTimeout(nextCommit, 420);
-          }
-          setTimeout(nextCommit, 120);
-        });
-      }
-
-      // ── Ligne texte normale ──
-      const el = document.createElement('div');
-      el.className = 'terminal-line' + (line.cls ? ' ' + line.cls : '');
-
-      if (line.status) {
-        el.textContent = line.text;
-        body.appendChild(el);
-        moveCursor(body);
-        body.scrollTop = body.scrollHeight;
-        return new Promise(r => setTimeout(() => {
-          const sp = document.createElement('span');
-          sp.className = line.sc || '';
-          sp.textContent = ' ' + line.status;
-          el.appendChild(sp);
-          moveCursor(body);
-          body.scrollTop = body.scrollHeight;
-          r();
-        }, 180 + Math.random() * 120));
-      } else {
-        el.textContent = line.text;
-        body.appendChild(el);
-        moveCursor(body);
-        body.scrollTop = body.scrollHeight;
-        return Promise.resolve();
-      }
-    }
-
-    function moveCursor(body) {
-      const c = document.createElement('span');
-      c.className = 'term-cursor';
-      body.appendChild(c);
-    }
-
-    async function nextLine() {
-      if (_termAbort || idx >= sequence.length) { resolve(); return; }
-      const line = sequence[idx++];
-      await addLine(line);
-      // Update progress
-      _fakeProgress = Math.round((idx / total) * 90);
-      const bar = document.getElementById('fake-progress-bar');
-      const pct = document.getElementById('fake-progress-pct');
-      if (bar) bar.style.width = _fakeProgress + '%';
-      if (pct) pct.textContent = _fakeProgress + '%';
-      setTimeout(nextLine, 160 + Math.random() * 140);
-    }
-
-    nextLine();
-  });
-}
-
-function finishTerminal() {
-  const body = document.getElementById('terminal-body');
-  const bar  = document.getElementById('fake-progress-bar');
-  const pct  = document.getElementById('fake-progress-pct');
-  if (body) {
-    const cursor = body.querySelector('.term-cursor');
-    if (cursor) cursor.remove();
-    const done = document.createElement('div');
-    done.className = 'terminal-line term-ok';
-    done.textContent = '✔ SEARCH COMPLETE — LOADING RESULT...';
-    body.appendChild(done);
-    body.scrollTop = body.scrollHeight;
-  }
-  if (bar) bar.style.width = '100%';
-  if (pct) pct.textContent = '100%';
-}
-
-// Legacy stubs (resetForm uses clearInterval on these)
-function showSearchingAnimation() {}
-function finishLoadingAnimation(cb) { cb(); }
-
-// ─── Logique principale ───────────────────────────────────────
-
-async function checkPalmares() {
-  stopVictoire();
-  stopSixSeven();
-  stopStory();
-  const prenom     = document.getElementById('input-prenom').value.trim();
-  const nom        = document.getElementById('input-nom').value.trim();
-  const profession = document.getElementById('input-profession').value.trim();
-  const texte      = document.getElementById('textarea-palmares').value.trim();
-
-  // Validation
-  let hasError = false;
-  ['input-prenom','input-nom'].forEach(id => document.getElementById(id).classList.remove('error'));
-  document.getElementById('textarea-palmares').classList.remove('error');
-
-  if (!prenom && !nom) {
-    document.getElementById('input-prenom').classList.add('error');
-    document.getElementById('input-nom').classList.add('error');
-    hasError = true;
-  }
-  if (!texte) {
-    if (currentMode === 'auto') {
-      setPdfStatus('⚡ Clique d\'abord sur "Récupérer le PDF automatiquement" !', 'err');
-    } else {
-      document.getElementById('textarea-palmares').classList.add('error');
-    }
-    hasError = true;
-  }
-  if (hasError) return;
-
-  // QCM
-  if (!speedrunMode) {
-    await showQCM();
-  }
-
-  // Lancer la recherche en parallèle (instantané, juste du string matching)
-  const searchPromise = Promise.resolve().then(() => {
-    const lines       = texte.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const nameMatches = lines.filter(l => lineMatchesName(l, prenom, nom));
-    const filtered    = profession ? nameMatches.filter(l => lineMatchesProfession(l, profession)) : nameMatches;
-    const pool        = filtered.length > 0 ? filtered : nameMatches;
-    return { lines, pool };
-  });
-
-  // Speedrun timer démarre dès qu'on lance la recherche + musique speedrun Dream (en boucle)
-  if (!speedrunMode) {
-    startSpeedrunTimer(false);
-    playStory('speedrun', 0.5, true);
-    showSpeedrunnerGif();
-  }
-
-  // Terminal brainrot (ou résultat direct en speedrun)
-  if (!speedrunMode) {
-    await showTerminalLoading();
-    finishTerminal();
-    await new Promise(r => setTimeout(r, 420));
-  }
-
-  const { lines, pool } = await searchPromise;
-
-  if (pool.length === 0) {
-    renderFail(prenom, nom);
-    updateDebugPanel(lines, [], prenom, nom);
-    return;
-  }
-
-  const matchResults = pool.map(line => ({
-    line,
-    profession: extractProfessionForMatch(lines, line),
-  }));
-
-  if (matchResults.length === 1) {
-    renderSuccess(matchResults, prenom, nom);
-  } else {
-    renderMultiple(matchResults, prenom, nom);
-  }
-  updateDebugPanel(lines, pool, prenom, nom);
-}
-
-// ─── Panel Debug ──────────────────────────────────────────────
-
-function updateDebugPanel(allLines, matchLines, prenom, nom) {
-  const panel = document.getElementById('debug-panel');
-  if (!panel || panel.classList.contains('hidden')) return;
-
-  const matchSet = new Set(matchLines);
-  const ctx = 4; // lignes de contexte autour du match
-
-  let html = `<div class="debug-title">🔬 Debug — ${allLines.length} lignes extraites</div>`;
-
-  if (matchLines.length === 0) {
-    // Cherche quand même les lignes les plus proches (contient au moins prénom ou nom)
-    const near = allLines.filter(l =>
-      normalize(l).includes(normalize(prenom || '')) ||
-      normalize(l).includes(normalize(nom || ''))
-    ).slice(0, 10);
-    html += `<div class="debug-none">Aucun match exact — lignes contenant un des termes :</div>`;
-    html += near.map(l => `<div class="debug-line">${escapeHtml(l)}</div>`).join('') || '<div class="debug-none">Aucune ligne proche trouvée.</div>';
-  } else {
-    for (const ml of matchLines) {
-      const idx = allLines.indexOf(ml);
-      const start = Math.max(0, idx - ctx);
-      const end   = Math.min(allLines.length - 1, idx + ctx);
-      html += `<div class="debug-sep">— Contexte autour de la ligne ${idx + 1} —</div>`;
-      for (let i = start; i <= end; i++) {
-        const cls = i === idx ? 'debug-line debug-match' : 'debug-line';
-        html += `<div class="${cls}"><span class="debug-lnum">${i + 1}</span>${escapeHtml(allLines[i])}</div>`;
-      }
-    }
-  }
-
-  panel.innerHTML = html;
-}
-
-function toggleDebug() {
-  const panel  = document.getElementById('debug-panel');
-  const btn    = document.getElementById('btn-debug');
-  const hidden = panel.classList.toggle('hidden');
-  btn.textContent = hidden ? '🔬 Afficher les lignes extraites' : '🔬 Masquer le debug';
-  if (!hidden) {
-    const texte = document.getElementById('textarea-palmares').value.trim();
-    const lines = texte.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const prenom = document.getElementById('input-prenom').value.trim();
-    const nom    = document.getElementById('input-nom').value.trim();
-    updateDebugPanel(lines, [], prenom, nom);
-  }
-}
-
-// ─── Reset ────────────────────────────────────────────────────
-
-function resetForm() {
-  clearInterval(_loadingInterval);
-  clearInterval(_progressInterval);
-  stopStory();
-  stopVictoire();
-  stopSixSeven();
-  stopOsuMusic();
-  stopSpeedrunTimer();
-  hideSpeedrunnerGif();
-  document.getElementById('input-prenom').value = '';
-  document.getElementById('input-nom').value = '';
-  document.getElementById('input-profession').value = '';
-  document.getElementById('textarea-palmares').value = '';
-  document.getElementById('result-zone').innerHTML = '';
-  document.getElementById('debug-panel').classList.add('hidden');
-  document.getElementById('btn-debug').textContent = '🔬 Afficher les lignes extraites';
-  setPdfStatus('');
-
-  const zone = document.getElementById('pdf-drop-zone');
-  if (zone) {
-    zone.classList.remove('loaded');
-    document.getElementById('pdf-drop-inner').innerHTML = `
-      <span class="pdf-drop-icon">📂</span>
-      <span class="pdf-drop-text">Glisse le PDF ici ou <u>clique pour choisir</u></span>
-      <span class="pdf-drop-hint">
-        Télécharge depuis
-        <a href="https://www.citedesmetiers.ch/palmares2026/" target="_blank" rel="noopener">citedesmetiers.ch ↗</a>
-        puis dépose-le ici
-      </span>
-    `;
-  }
-  const btn = document.getElementById('btn-fetch-pdf');
-  btn.disabled = false;
-  btn.classList.remove('loading', 'success');
-  document.getElementById('fetch-pdf-label').textContent = 'Récupérer le PDF automatiquement';
-  document.getElementById('fetch-pdf-icon').textContent  = '⚡';
-
-  ['input-prenom','input-nom','textarea-palmares'].forEach(id =>
-    document.getElementById(id).classList.remove('error')
+:root {
+  --bg:          #060412;
+  --bg-card:     rgba(255,255,255,.04);
+  --border:      rgba(255,255,255,.09);
+  --violet:      #7c3aed;
+  --violet-glow: #a855f7;
+  --pink:        #e91e8c;
+  --pink-glow:   #f472b6;
+  --green:       #22c55e;
+  --green-glow:  #4ade80;
+  --gold:        #f59e0b;
+  --gold-glow:   #fbbf24;
+  --red:         #ef4444;
+  --cyan:        #06b6d4;
+  --text:        #f1f5f9;
+  --text-muted:  #94a3b8;
+  --font-title:  'Bebas Neue', sans-serif;
+  --font-body:   'Space Mono', monospace;
+  --font-ui:     'Rajdhani', sans-serif;
+  --radius:      16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  background-image:
+    linear-gradient(rgba(168,85,247,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,85,247,.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ─── Canvases ────────────────────────────────────────────── */
+
+#matrix-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+  opacity: .18;
+}
+
+#confetti-canvas {
+  position: fixed; inset: 0; z-index: 999;
+  pointer-events: none;
+  width: 100%; height: 100%;
+}
+
+/* ─── Scanlines ───────────────────────────────────────────── */
+
+.scanlines {
+  position: fixed; inset: 0; z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.08) 2px,
+    rgba(0,0,0,.08) 4px
   );
-  setMode('auto');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ─── Événements ───────────────────────────────────────────────
+/* ─── Orbes ───────────────────────────────────────────────── */
 
-document.getElementById('btn-check').addEventListener('click', checkPalmares);
-document.getElementById('btn-reset').addEventListener('click', resetForm);
-document.getElementById('btn-fetch-pdf').addEventListener('click', fetchPdfAuto);
-document.getElementById('btn-debug').addEventListener('click', toggleDebug);
-document.getElementById('btn-speedrun').addEventListener('click', toggleSpeedrun);
-document.getElementById('btn-sound').addEventListener('click', toggleSound);
-_updateSoundBtn();
+.bg-orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 
-document.getElementById('btn-load-example').addEventListener('click', () => {
-  document.getElementById('textarea-palmares').value = EXEMPLE_PALMARES;
-  document.getElementById('textarea-palmares').classList.remove('error');
-});
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: .25;
+  animation: drift 14s ease-in-out infinite alternate;
+}
+.orb-1 { width: 600px; height: 600px; background: var(--violet); top: -200px; left: -150px; animation-duration: 16s; }
+.orb-2 { width: 400px; height: 400px; background: var(--green);  bottom: -180px; right: -100px; animation-duration: 11s; animation-delay: -5s; }
+.orb-3 { width: 350px; height: 350px; background: var(--gold);   top: 35%; left: 55%; animation-duration: 19s; animation-delay: -9s; }
+.orb-4 { width: 500px; height: 500px; background: var(--pink);   top: 20%; right: -180px; animation-duration: 22s; animation-delay: -3s; opacity: .18; }
 
-['input-prenom','input-nom','input-profession'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') checkPalmares();
-  });
-});
+@keyframes drift {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(40px,-50px) scale(1.1); }
+}
 
-// ─── Drag & drop PDF ─────────────────────────────────────────
+/* ─── Layout ──────────────────────────────────────────────── */
 
-const dropZone  = document.getElementById('pdf-drop-zone');
-const fileInput = document.getElementById('pdf-file-input');
+.container {
+  position: relative; z-index: 3;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
 
-dropZone.addEventListener('click', () => fileInput.click());
+/* ─── Hero ────────────────────────────────────────────────── */
 
-fileInput.addEventListener('change', async () => {
-  const file = fileInput.files[0];
-  if (!file) return;
-  if (file.type !== 'application/pdf') {
-    setPdfStatus('❌ Ce fichier n\'est pas un PDF.', 'err'); return;
+.hero { text-align: center; margin-bottom: 48px; position: relative; }
+
+.badge-top {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(245,158,11,.1);
+  border: 1px solid rgba(245,158,11,.4);
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  animation: badge-pulse 3s ease-in-out infinite;
+}
+
+.badge-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: blink-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%,100% { box-shadow: 0 0 0 rgba(245,158,11,0); }
+  50%      { box-shadow: 0 0 20px rgba(245,158,11,.35); }
+}
+
+@keyframes blink-dot {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .2; }
+}
+
+/* ─── Titre avec effet glitch ─────────────────────────────── */
+
+.title {
+  font-family: var(--font-title);
+  display: flex; flex-direction: column;
+  line-height: .88;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.title-cfc,
+.title-pro,
+.title-checker { position: relative; display: inline-block; }
+
+/* Glitch via pseudo-éléments */
+.title-cfc::before, .title-cfc::after,
+.title-pro::before, .title-pro::after,
+.title-checker::before, .title-checker::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+
+.title-cfc::before { color: #0ff; animation: glitch-top 4s infinite; }
+.title-cfc::after  { color: #f0f; animation: glitch-bot 4s infinite; animation-delay: .1s; }
+.title-pro::before { color: #0ff; animation: glitch-top 5s infinite; animation-delay: .3s; }
+.title-pro::after  { color: #f0f; animation: glitch-bot 5s infinite; animation-delay: .5s; }
+.title-checker::before { color: #0ff; animation: glitch-top 6s infinite; animation-delay: .7s; }
+.title-checker::after  { color: #f0f; animation: glitch-bot 6s infinite; animation-delay: .9s; }
+
+@keyframes glitch-top {
+  0%,90%,100% { clip: rect(0,9999px,0,0); transform: none; opacity: 0; }
+  91%  { clip: rect(8px,9999px,24px,0); transform: translate(-3px,0); opacity: .8; }
+  93%  { clip: rect(40px,9999px,55px,0); transform: translate(3px,0); opacity: .8; }
+  95%  { clip: rect(15px,9999px,30px,0); transform: translate(-2px,0); opacity: .8; }
+  97%  { clip: rect(0,9999px,0,0); opacity: 0; }
+}
+
+@keyframes glitch-bot {
+  0%,90%,100% { clip: rect(0,9999px,0,0); transform: none; opacity: 0; }
+  92%  { clip: rect(60px,9999px,80px,0); transform: translate(4px,0); opacity: .7; }
+  94%  { clip: rect(20px,9999px,40px,0); transform: translate(-4px,0); opacity: .7; }
+  96%  { clip: rect(0px,9999px,10px,0); transform: translate(2px,0); opacity: .7; }
+  98%  { clip: rect(0,9999px,0,0); opacity: 0; }
+}
+
+.title-cfc {
+  font-size: clamp(90px, 24vw, 160px);
+  color: transparent;
+  -webkit-text-stroke: 2px var(--violet-glow);
+  text-shadow: 0 0 60px rgba(168,85,247,.4), 0 0 120px rgba(168,85,247,.15);
+  letter-spacing: 8px;
+}
+
+.title-pro {
+  font-size: clamp(56px, 15vw, 100px);
+  color: var(--gold);
+  text-shadow: 0 0 40px var(--gold-glow), 0 0 80px rgba(245,158,11,.3);
+  letter-spacing: 12px;
+}
+
+.title-checker {
+  font-size: clamp(34px, 9vw, 62px);
+  color: var(--green);
+  text-shadow: 0 0 30px var(--green-glow), 0 0 60px rgba(34,197,94,.3);
+  letter-spacing: 5px;
+}
+
+/* ─── Subtitle ────────────────────────────────────────────── */
+
+.subtitle {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  letter-spacing: 2px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.subtitle-blink { animation: blink-dot .8s step-end infinite; }
+
+/* ─── Sprites hero ────────────────────────────────────────── */
+
+.hero-sprites {
+  position: relative;
+  height: 0; /* ne prend pas de place */
+  pointer-events: none;
+}
+
+.sprite { image-rendering: auto; }
+
+.hero-tung {
+  position: absolute;
+  height: 90px;
+  left: -10px; top: -180px;
+  animation: sprite-float 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(168,85,247,.5));
+  transform-origin: bottom center;
+}
+
+.hero-hun {
+  position: absolute;
+  height: 100px;
+  right: -10px; top: -200px;
+  animation: sprite-float 3.5s ease-in-out infinite reverse;
+  filter: drop-shadow(0 0 14px rgba(245,158,11,.5));
+  transform-origin: bottom center;
+}
+
+@keyframes sprite-float {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* ─── Card holographique ──────────────────────────────────── */
+
+.card {
+  position: relative;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: flex; flex-direction: column; gap: 22px;
+  overflow: hidden;
+  transition: border-color .3s, box-shadow .3s;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+.card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    rgba(168,85,247,.06) 0%,
+    transparent 35%,
+    rgba(233,30,140,.04) 70%,
+    transparent 100%);
+  pointer-events: none;
+}
+
+/* Shine holographique qui suit la souris via JS */
+.card-shine {
+  position: absolute; inset: 0;
+  border-radius: var(--radius);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s;
+  background: radial-gradient(circle at var(--mx,50%) var(--my,50%),
+    rgba(168,85,247,.18) 0%,
+    rgba(233,30,140,.08) 35%,
+    transparent 70%);
+}
+
+.card:hover .card-shine { opacity: 1; }
+.card:hover {
+  border-color: rgba(168,85,247,.4);
+  box-shadow: 0 8px 64px rgba(0,0,0,.6), 0 0 0 1px rgba(168,85,247,.12), inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+/* ─── Formulaire ──────────────────────────────────────────── */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.optional {
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  color: rgba(255,255,255,.25);
+  margin-left: 6px;
+}
+
+input, textarea {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 11px 16px;
+  outline: none;
+  resize: vertical;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,.18); }
+
+input:focus, textarea:focus {
+  border-color: rgba(168,85,247,.6);
+  background: rgba(168,85,247,.07);
+  box-shadow: 0 0 0 3px rgba(168,85,247,.12), 0 0 20px rgba(168,85,247,.1);
+}
+
+/* ─── Mode toggle ─────────────────────────────────────────── */
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  background: rgba(0,0,0,.25);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 5px;
+}
+
+.mode-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 10px 14px;
+  transition: all .2s;
+  text-transform: uppercase;
+}
+
+.mode-btn:hover { color: var(--text); }
+
+.mode-btn--active {
+  background: linear-gradient(135deg, rgba(124,58,237,.3) 0%, rgba(76,29,149,.4) 100%);
+  border-color: rgba(168,85,247,.5);
+  color: var(--violet-glow);
+  box-shadow: 0 0 16px rgba(168,85,247,.2);
+}
+
+.section-hidden { display: none; }
+
+#section-auto { display: flex; flex-direction: column; gap: 8px; }
+#section-manual { display: flex; flex-direction: column; gap: 0; }
+
+/* Les sélecteurs ID ci-dessus battaient .section-hidden (spécificité) :
+   on remonte la spécificité pour que le masquage fonctionne réellement. */
+#section-auto.section-hidden,
+#section-manual.section-hidden { display: none; }
+
+/* ─── Loading animation ───────────────────────────────────── */
+
+.result-searching {
+  background: linear-gradient(135deg, #04040e 0%, #060410 50%, #040a06 100%);
+  border: 2px solid var(--violet);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  text-align: center;
+  animation: result-in .3s cubic-bezier(.22,1,.36,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.result-searching::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--violet-glow), var(--cyan), var(--violet-glow), transparent);
+  animation: scan-line 1.5s linear infinite;
+}
+
+.searching-title {
+  font-family: var(--font-title);
+  font-size: clamp(24px, 6vw, 40px);
+  color: var(--violet-glow);
+  text-shadow: 0 0 30px rgba(168,85,247,.6);
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+.searching-subtitle {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  margin-bottom: 28px;
+}
+
+.searching-msg-wrap {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.searching-msg {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  animation: msg-fade .4s ease both;
+  text-shadow: 0 0 20px rgba(245,158,11,.4);
+}
+
+@keyframes msg-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fake-progress-track {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.fake-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--violet) 0%, var(--cyan) 50%, var(--violet-glow) 100%);
+  background-size: 200% 100%;
+  animation: bar-shine 1.5s linear infinite;
+  transition: width .4s cubic-bezier(.22,1,.36,1);
+  width: 0%;
+  box-shadow: 0 0 12px rgba(168,85,247,.6);
+}
+
+@keyframes bar-shine {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.fake-progress-pct {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--violet-glow);
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.searching-sprites {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.searching-sprite-tung {
+  height: 70px;
+  animation: tung-bounce .4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 12px rgba(168,85,247,.5));
+}
+
+.searching-sprite-hun {
+  height: 80px;
+  animation: tung-bounce .4s .2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 14px rgba(245,158,11,.5));
+}
+
+@keyframes tung-bounce {
+  from { transform: translateY(0) rotate(-4deg) scale(1); }
+  to   { transform: translateY(-12px) rotate(4deg) scale(1.06); }
+}
+
+/* ─── Zone PDF ────────────────────────────────────────────── */
+
+.btn-pdf-auto {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(245,158,11,.06);
+  border: 1px solid rgba(245,158,11,.4);
+  border-radius: 10px;
+  color: var(--gold);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 12px 18px;
+  transition: box-shadow .2s, border-color .2s;
+  width: 100%;
+}
+
+.btn-pdf-auto:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(245,158,11,.25);
+}
+
+.btn-pdf-auto:disabled { opacity: .4; cursor: not-allowed; }
+
+.btn-pdf-auto.loading {
+  border-color: var(--violet-glow);
+  color: var(--violet-glow);
+  animation: pulse-violet 1.2s ease-in-out infinite;
+}
+
+.btn-pdf-auto.success { border-color: var(--green); color: var(--green); }
+
+@keyframes pulse-violet {
+  0%,100% { box-shadow: 0 0 0 rgba(168,85,247,0); }
+  50%      { box-shadow: 0 0 20px rgba(168,85,247,.4); }
+}
+
+.pdf-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(255,255,255,.02);
+  transition: border-color .2s, background .2s;
+}
+
+.pdf-drop-zone:hover, .pdf-drop-zone.drag-over {
+  border-color: var(--violet-glow);
+  background: rgba(124,58,237,.05);
+}
+
+.pdf-drop-zone.loaded { border-color: var(--green); background: rgba(34,197,94,.04); }
+
+.pdf-drop-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pdf-drop-icon  { font-size: 26px; }
+.pdf-drop-text  { font-size: 12px; color: var(--text-muted); font-family: var(--font-ui); }
+.pdf-drop-hint  { font-size: 11px; color: rgba(255,255,255,.3); line-height: 1.6; }
+.pdf-drop-hint a { color: var(--violet-glow); }
+
+.pdf-status { margin-top: 8px; font-size: 11px; min-height: 14px; color: var(--text-muted); font-family: var(--font-ui); }
+.pdf-status.ok      { color: var(--green); }
+.pdf-status.err     { color: var(--red); }
+.pdf-status.loading { color: var(--violet-glow); }
+
+.pdf-date {
+  display: none;
+  margin-top: 6px;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  letter-spacing: 1px;
+  color: var(--gold);
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 6px;
+  padding: 5px 12px;
+}
+.pdf-date.show { display: block; }
+
+/* ─── Boutons ─────────────────────────────────────────────── */
+
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.btn-primary {
+  flex: 1;
+  position: relative;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  border: 1px solid rgba(168,85,247,.4);
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 22px;
+  letter-spacing: 3px;
+  padding: 16px 28px;
+  overflow: hidden;
+  transition: transform .15s, box-shadow .2s;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Balayage de lumière en idle — le bouton respire */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: btn-sweep 3.8s ease-in-out infinite;
+}
+
+@keyframes btn-sweep {
+  0%, 55%  { left: -60%; }
+  100%     { left: 160%; }
+}
+
+.btn-glow {
+  position: absolute; inset: -1px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--violet-glow), var(--cyan), var(--violet-glow));
+  background-size: 200% 200%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity .2s;
+  animation: glow-rotate 3s linear infinite;
+  filter: blur(8px);
+}
+
+.btn-primary:hover .btn-glow { opacity: .6; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(124,58,237,.5); }
+.btn-primary:active { transform: translateY(0); }
+
+@keyframes glow-rotate {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.btn-reset {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 16px 22px;
+  transition: border-color .2s, color .2s;
+}
+
+.btn-reset:hover { border-color: var(--text-muted); color: var(--text); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,.12);
+  border-radius: 8px;
+  color: rgba(255,255,255,.3);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 7px 14px;
+  transition: border-color .2s, color .2s;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.btn-secondary:hover { border-color: var(--violet-glow); color: var(--violet-glow); }
+
+/* ─── Zone résultat ───────────────────────────────────────── */
+
+.result-zone { margin-top: 32px; }
+
+/* Succès — base */
+.result-success {
+  background: linear-gradient(135deg, #040e08 0%, #020704 100%);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: 0 0 80px rgba(34,197,94,.15), inset 0 1px 0 rgba(74,222,128,.1);
+  animation: result-in .5s cubic-bezier(.22,1,.36,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.result-success::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green-glow), transparent);
+  animation: scan-line 2s linear infinite;
+}
+
+@keyframes scan-line {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.result-success-normal {
+  background: linear-gradient(135deg, #06050e 0%, #030208 100%);
+  border-color: var(--violet-glow);
+  box-shadow: 0 0 60px rgba(168,85,247,.15), inset 0 1px 0 rgba(168,85,247,.1);
+}
+
+.result-success-normal::before { background: linear-gradient(90deg, transparent, var(--violet-glow), transparent); }
+
+.result-title {
+  font-family: var(--font-title);
+  font-size: clamp(28px, 8vw, 52px);
+  color: var(--green-glow);
+  text-shadow: 0 0 40px var(--green-glow), 0 0 80px rgba(74,222,128,.3);
+  letter-spacing: 3px;
+  margin-bottom: 14px;
+}
+
+.result-success-normal .result-title {
+  color: var(--violet-glow);
+  text-shadow: 0 0 40px var(--violet-glow), 0 0 80px rgba(168,85,247,.3);
+}
+
+.result-subtitle {
+  font-family: var(--font-title);
+  font-size: clamp(15px, 4vw, 24px);
+  color: var(--gold);
+  text-shadow: 0 0 20px var(--gold-glow);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.result-badge {
+  display: inline-block;
+  background: rgba(245,158,11,.12);
+  border: 1px solid rgba(245,158,11,.5);
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 6px 20px;
+  border-radius: 999px;
+  margin: 4px;
+  animation: glow-gold 2.5s ease-in-out infinite;
+}
+
+.result-badge-2 {
+  background: rgba(124,58,237,.12);
+  border-color: rgba(168,85,247,.5);
+  color: var(--violet-glow);
+  animation: glow-violet-badge 2.8s ease-in-out infinite;
+}
+
+@keyframes glow-gold {
+  0%,100% { box-shadow: 0 0 6px rgba(245,158,11,.2); }
+  50%      { box-shadow: 0 0 20px rgba(245,158,11,.6); }
+}
+
+@keyframes glow-violet-badge {
+  0%,100% { box-shadow: 0 0 6px rgba(168,85,247,.2); }
+  50%      { box-shadow: 0 0 20px rgba(168,85,247,.6); }
+}
+
+.result-bonjour {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 2px;
+  margin: 12px 0;
+}
+
+.result-profession {
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.18);
+  border-radius: 8px;
+  padding: 9px 16px;
+  margin: 12px 0 0;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.result-profession.muted {
+  color: var(--text-muted);
+  background: rgba(71,85,105,.06);
+  border-color: rgba(71,85,105,.15);
+}
+
+.result-lines {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(34,197,94,.05);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: left;
+  word-break: break-all;
+  font-family: var(--font-body);
+}
+
+/* Brainrot banner */
+.brainrot-banner {
+  font-size: 32px;
+  letter-spacing: 10px;
+  margin-bottom: 16px;
+  animation: drum-shake .25s ease-in-out infinite alternate;
+}
+
+@keyframes drum-shake {
+  from { transform: rotate(-3deg) scale(1); }
+  to   { transform: rotate(3deg) scale(1.06); }
+}
+
+/* Sprites dans le résultat */
+.result-sprites {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin: 16px 0;
+}
+
+.result-sprite-hun {
+  height: 110px;
+  animation: popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+  filter: drop-shadow(0 0 20px rgba(245,158,11,.6));
+}
+
+.result-sprite-tung {
+  height: 80px;
+  animation: popIn .5s .15s cubic-bezier(.175,.885,.32,1.275) both, sprite-fly-in .6s cubic-bezier(.22,1,.36,1) both;
+  filter: drop-shadow(0 0 16px rgba(168,85,247,.6));
+}
+
+@keyframes popIn {
+  from { transform: scale(0) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes sprite-fly-in {
+  from { transform: translateX(-120px) scale(.5); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+/* Résultat échec */
+.result-fail {
+  background: #060202;
+  border: 2px solid #3f1414;
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  animation: result-in .5s cubic-bezier(.22,1,.36,1);
+}
+
+.result-fail .result-title {
+  color: var(--red);
+  text-shadow: 0 0 30px rgba(239,68,68,.4);
+}
+
+.result-fail .result-msg {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* Résultats multiples */
+.result-multi {
+  background: rgba(8,7,3,.9);
+  border: 2px solid rgba(245,158,11,.4);
+  border-radius: var(--radius);
+  padding: 28px;
+  animation: result-in .5s cubic-bezier(.22,1,.36,1);
+}
+
+.result-multi .result-title {
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(245,158,11,.4);
+  font-size: clamp(20px, 5vw, 34px);
+  margin-bottom: 18px;
+}
+
+.match-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+.match-list li {
+  background: rgba(5,5,10,.8);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: border-color .2s;
+}
+
+.match-list li:hover { border-color: rgba(245,158,11,.4); }
+
+.match-line { font-size: 13px; color: var(--text); }
+.match-prof { font-size: 11px; color: var(--gold); opacity: .8; font-family: var(--font-ui); }
+
+/* Animation résultat */
+@keyframes result-in {
+  from { opacity: 0; transform: translateY(24px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Bouton attestation ──────────────────────────────────── */
+
+.btn-certif {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 22px;
+  background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 20px;
+  letter-spacing: 2px;
+  padding: 12px 28px;
+  transition: transform .15s, box-shadow .2s;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.btn-certif:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(245,158,11,.5);
+}
+
+.btn-certif:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 10px rgba(245,158,11,.2); }
+  50%      { box-shadow: 0 0 30px rgba(245,158,11,.5); }
+}
+
+/* ─── Debug panel ─────────────────────────────────────────── */
+
+.debug-zone {
+  position: relative; z-index: 3;
+  max-width: 700px;
+  margin: 16px auto 0;
+  padding: 0 20px;
+}
+
+.btn-debug {
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,.2);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 7px 14px;
+  transition: border-color .2s, color .2s;
+}
+
+.btn-debug:hover { border-color: rgba(168,85,247,.4); color: var(--violet-glow); }
+
+.debug-panel {
+  margin-top: 10px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  max-height: 380px;
+  overflow-y: auto;
+  backdrop-filter: blur(12px);
+}
+
+.debug-panel.hidden { display: none; }
+.debug-title  { color: var(--violet-glow); margin-bottom: 10px; letter-spacing: 1px; }
+.debug-sep    { color: rgba(255,255,255,.15); margin: 10px 0 4px; letter-spacing: 1px; }
+.debug-line   { color: rgba(255,255,255,.2); padding: 2px 0; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.04); word-break: break-all; }
+.debug-match  { color: var(--green-glow) !important; background: rgba(34,197,94,.05); border-radius: 4px; padding: 3px 6px; }
+.debug-lnum   { color: rgba(255,255,255,.12); min-width: 30px; text-align: right; flex-shrink: 0; }
+.debug-none   { color: rgba(255,255,255,.2); font-style: italic; margin-bottom: 8px; }
+
+/* ─── Footer ──────────────────────────────────────────────── */
+
+.footer {
+  position: relative; z-index: 3;
+  text-align: center;
+  padding: 24px 20px 48px;
+  color: rgba(255,255,255,.2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: .5px;
+  line-height: 2;
+}
+
+.footer a { color: rgba(168,85,247,.5); text-underline-offset: 3px; }
+.footer a:hover { color: var(--violet-glow); }
+.footer-sub { margin-top: 2px; }
+
+/* ─── Flottants brainrot ──────────────────────────────────── */
+
+.brainrot-float {
+  position: fixed;
+  font-size: 28px;
+  opacity: .05;
+  pointer-events: none;
+  z-index: 1;
+  animation: float-drift 20s ease-in-out infinite;
+  user-select: none;
+  filter: blur(.5px);
+}
+
+.brainrot-f1 { top: 12%;  left:  3%; animation-duration: 17s; }
+.brainrot-f2 { top: 55%;  right: 3%; animation-duration: 23s; animation-delay:  -7s; }
+.brainrot-f3 { top: 30%;  left:  2%; animation-duration: 20s; animation-delay: -13s; }
+.brainrot-f4 { bottom: 6%;right: 6%; animation-duration: 26s; animation-delay:  -4s; }
+.brainrot-f5 { top: 75%;  left:  6%; animation-duration: 15s; animation-delay:  -9s; }
+
+@keyframes float-drift {
+  0%,100% { transform: translateY(0)    rotate(0deg); }
+  33%      { transform: translateY(-22px) rotate(9deg); }
+  66%      { transform: translateY(14px)  rotate(-6deg); }
+}
+
+/* ─── États erreur ────────────────────────────────────────── */
+
+input.error, textarea.error {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 520px) {
+  .form-row { grid-template-columns: 1fr; }
+  .card { padding: 20px 16px; }
+  .btn-row { flex-direction: column; }
+  .hero-tung, .hero-hun { height: 60px; }
+  .title-cfc { font-size: 70px; }
+  .title-pro { font-size: 44px; }
+  .title-checker { font-size: 28px; }
+}
+
+/* ─── CRT vignette ────────────────────────────────────────── */
+
+.crt-vignette {
+  position: fixed; inset: 0; z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    transparent 55%,
+    rgba(0,0,0,.55) 100%);
+}
+
+/* ─── Particles canvas ────────────────────────────────────── */
+
+#particles-canvas {
+  position: fixed; inset: 0; z-index: 1;
+  pointer-events: none;
+}
+
+/* ─── QCM Popup ───────────────────────────────────────────── */
+
+.qcm-overlay {
+  position: fixed; inset: 0; z-index: 5000;
+  background: rgba(0,0,0,.88);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .3s ease;
+  backdrop-filter: blur(6px);
+}
+.qcm-overlay.qcm-show { opacity: 1; }
+.qcm-overlay.qcm-hide { opacity: 0; pointer-events: none; }
+
+.qcm-box {
+  background: #030309;
+  border: 1px solid #22c55e;
+  border-radius: 10px;
+  padding: 32px 36px;
+  max-width: 480px;
+  width: 100%;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 0 80px rgba(34,197,94,.2), inset 0 1px 0 rgba(34,197,94,.08);
+  animation: qcm-in .35s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes qcm-in {
+  from { transform: translateY(28px) scale(.97); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.qcm-sep {
+  color: #22c55e;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 8px;
+  opacity: .6;
+}
+
+.qcm-label {
+  color: #f59e0b;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.qcm-question {
+  font-family: 'Courier New', monospace;
+  font-size: 17px;
+  color: #e2e8f0;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.qcm-options { display: flex; flex-direction: column; gap: 10px; }
+
+.qcm-btn {
+  background: transparent;
+  border: 1px solid #1e1e35;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 12px 18px;
+  text-align: left;
+  transition: border-color .2s, background .2s, color .2s, box-shadow .2s;
+  letter-spacing: .5px;
+}
+.qcm-btn:hover { background: rgba(34,197,94,.06); border-color: #22c55e; color: #22c55e; box-shadow: 0 0 14px rgba(34,197,94,.15); }
+.qcm-btn-oui:hover { background: rgba(168,85,247,.06); border-color: #a855f7; color: #a855f7; box-shadow: 0 0 14px rgba(168,85,247,.15); }
+
+.qcm-result {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 2.2;
+  color: #94a3b8;
+  margin-top: 16px;
+  display: none;
+}
+.qcm-result.show { display: block; }
+
+.qcm-bar { color: #22c55e; }
+.qcm-err-sub { color: #475569; font-size: 11px; letter-spacing: .5px; }
+
+/* Bouton OUI — mauvaise réponse */
+@keyframes qcm-shake {
+  0%,100% { transform: translateX(0) rotate(0deg); }
+  15%      { transform: translateX(-8px) rotate(-2deg); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  30%      { transform: translateX(8px)  rotate(2deg);  background: rgba(239,68,68,.08); }
+  45%      { transform: translateX(-6px) rotate(-1deg); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  60%      { transform: translateX(6px)  rotate(1deg);  background: rgba(239,68,68,.08); }
+  75%      { transform: translateX(-3px); background: rgba(239,68,68,.18); border-color:#ef4444; color:#ef4444; }
+  90%      { transform: translateX(3px); }
+}
+.qcm-oui-shake { animation: qcm-shake .55s ease both; }
+.qcm-btn-dead  { opacity: .3 !important; cursor: not-allowed !important; filter: grayscale(1); pointer-events: none; }
+
+/* ─── Écran logo OSU HUN ─────────────────────────────────── */
+
+.osu-logo-screen {
+  position: fixed; inset: 0; z-index: 6500;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity .45s ease;
+  pointer-events: none;
+}
+.osu-logo-screen.osu-logo-in  { opacity: 1; }
+.osu-logo-screen.osu-logo-out { opacity: 0; }
+
+.osu-logo-img {
+  max-width: min(320px, 70vw);
+  max-height: 50vh;
+  object-fit: contain;
+  filter: drop-shadow(0 0 40px rgba(168,85,247,.8)) drop-shadow(0 0 80px rgba(168,85,247,.4));
+  animation: osu-logo-pulse 1.2s ease-in-out;
+}
+
+@keyframes osu-logo-pulse {
+  0%   { transform: scale(.85); filter: drop-shadow(0 0 0 rgba(168,85,247,0)); }
+  40%  { transform: scale(1.04); filter: drop-shadow(0 0 60px rgba(168,85,247,.9)); }
+  100% { transform: scale(1);   filter: drop-shadow(0 0 40px rgba(168,85,247,.8)); }
+}
+
+/* ─── Mini-jeu OSU ────────────────────────────────────────── */
+
+.osu-overlay {
+  position: fixed; inset: 0; z-index: 6000;
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.osu-overlay.osu-show { opacity: 1; }
+.osu-overlay.osu-hide { opacity: 0; pointer-events: none; }
+
+.osu-stage {
+  width: min(640px, 96vw);
+  background: linear-gradient(160deg, rgba(14,8,28,.96), rgba(6,4,16,.98));
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 0 100px rgba(255,102,170,.18), 0 30px 80px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: qcm-in .4s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* HUD haut — titre + accuracy */
+.osu-hud-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.osu-song { display: flex; flex-direction: column; gap: 2px; }
+.osu-song-title {
+  font-family: var(--font-ui);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,.7);
+}
+.osu-diff {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: #ff66aa;
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px rgba(255,102,170,.6);
+}
+.osu-acc {
+  font-family: var(--font-title);
+  font-size: 30px;
+  letter-spacing: 2px;
+  color: #ffd76a;
+  text-shadow: 0 0 20px rgba(255,215,106,.5);
+  line-height: 1;
+}
+
+/* Barre de vie osu */
+.osu-health {
+  height: 7px;
+  background: rgba(255,255,255,.07);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.osu-health-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff66aa, #ffb3d9);
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(255,102,170,.7);
+  animation: osu-health-pulse 1.6s ease-in-out infinite;
+}
+@keyframes osu-health-pulse {
+  0%,100% { filter: brightness(1); }
+  50%      { filter: brightness(1.35); }
+}
+
+/* Zone de jeu */
+.osu-playarea {
+  position: relative;
+  height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: none;
+}
+.osu-playarea * { cursor: none; }
+.osu-field {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,102,170,.06), transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(168,85,247,.06), transparent 60%),
+    rgba(5,4,12,.85);
+  border: 1px solid rgba(255,102,170,.18);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: opacity .2s;
+}
+
+/* Curseur osu + traînée */
+.osu-cursor {
+  position: absolute; top: 0; left: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ff66aa 55%, rgba(255,102,170,0) 75%);
+  box-shadow: 0 0 18px rgba(255,102,170,.9);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 30;
+  will-change: transform;
+}
+.osu-trail {
+  position: absolute;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,180,220,.8), rgba(255,102,170,0) 70%);
+  pointer-events: none;
+  z-index: 29;
+  animation: osu-trail-fade .36s ease-out forwards;
+}
+@keyframes osu-trail-fade {
+  from { opacity: .8; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(.3); }
+}
+
+/* Combo */
+.osu-combo {
+  position: absolute; left: 12px; bottom: 8px;
+  font-family: var(--font-title);
+  font-size: 38px;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255,102,170,.7), 0 2px 4px rgba(0,0,0,.6);
+  pointer-events: none;
+  z-index: 25;
+}
+.osu-combo b { font-size: 44px; color: #ff66aa; }
+.osu-combo-pop { animation: osu-combo-pop .25s cubic-bezier(.175,.885,.32,1.4); }
+@keyframes osu-combo-pop {
+  0%   { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* Jugements 300 / PERFECT */
+.osu-judge-layer { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+.osu-judge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-title);
+  font-size: 30px;
+  letter-spacing: 2px;
+  animation: osu-judge-anim .7s ease-out forwards;
+}
+.osu-judge-300     { color: #5ad7ff; text-shadow: 0 0 18px rgba(90,215,255,.9); }
+.osu-judge-perfect { color: #ffd76a; font-size: 24px; text-shadow: 0 0 18px rgba(255,215,106,.9); }
+@keyframes osu-judge-anim {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+  30%  { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -110%) scale(.9); }
+}
+
+/* Circles */
+.osu-circle {
+  position: absolute;
+  width: 70px; height: 70px;
+  transform: translate(-50%, -50%) scale(0);
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+  transition: transform .18s cubic-bezier(.175,.885,.32,1.275);
+}
+.osu-circle-in { transform: translate(-50%, -50%) scale(1); }
+.osu-circle.osu-hit { transform: translate(-50%, -50%) scale(1.7) !important; opacity: 0; transition: transform .35s ease, opacity .35s ease; }
+
+.osu-num {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,140,200,.5), rgba(168,85,247,.3) 70%);
+  border: 3px solid #ff66aa;
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 26px;
+  letter-spacing: 0;
+  box-shadow: 0 0 26px rgba(255,102,170,.6), inset 0 0 16px rgba(255,255,255,.15);
+  z-index: 1;
+}
+
+.osu-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,102,170,.85);
+  box-shadow: 0 0 14px rgba(255,102,170,.4);
+  animation: osu-approach 1.1s linear forwards;
+}
+
+@keyframes osu-approach {
+  from { transform: scale(2); opacity: .3; }
+  to   { transform: scale(1.05); opacity: 1; }
+}
+
+/* Burst au clic */
+.osu-burst {
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--green-glow);
+  opacity: 0;
+  pointer-events: none;
+}
+.osu-circle.osu-hit .osu-burst { animation: osu-burst-anim .4s ease-out forwards; }
+@keyframes osu-burst-anim {
+  from { opacity: .9; transform: scale(1); }
+  to   { opacity: 0;  transform: scale(2.4); }
+}
+
+/* Explosion verte au clic */
+.osu-circle.osu-hit .osu-num {
+  background: radial-gradient(circle at 35% 30%, rgba(120,255,170,.6), rgba(34,197,94,.35) 70%);
+  border-color: var(--green-glow);
+  box-shadow: 0 0 44px rgba(34,197,94,.9), inset 0 0 22px rgba(34,197,94,.3);
+  color: #fff;
+}
+
+/* Slider */
+.osu-slider-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 16px;
+}
+.osu-slider-hint {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--violet-glow);
+  animation: blink-dot 1s step-end infinite;
+}
+.osu-slider-track {
+  position: relative;
+  width: 88%;
+  height: 12px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.osu-slider-prog {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--violet) 0%, var(--violet-glow) 100%);
+  border-radius: 999px;
+  width: 0%;
+  box-shadow: 0 0 10px rgba(168,85,247,.6);
+  transition: width .04s linear;
+}
+.osu-slider-knob {
+  position: absolute;
+  top: 50%; left: 0%;
+  transform: translate(-50%, -50%);
+  width: 28px; height: 28px;
+  background: var(--violet-glow);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 18px rgba(168,85,247,.8);
+  border: 2px solid #fff;
+  touch-action: none;
+  transition: left .04s linear;
+}
+.osu-slider-knob:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.15); }
+
+/* Finish bar */
+.osu-finish {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.osu-finish-bar-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--violet-glow);
+  margin-bottom: 10px;
+}
+.osu-finish-track {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.osu-finish-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--violet) 0%, var(--green) 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(34,197,94,.5);
+  transition: width .04s linear;
+}
+.osu-finish-pct {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--violet-glow);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+.osu-finish-done {
+  font-family: var(--font-title);
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: var(--green-glow);
+  text-shadow: 0 0 20px var(--green-glow);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.osu-finish-done.osu-done-show { opacity: 1; transform: translateY(0); }
+
+/* ─── Terminal de chargement ──────────────────────────────── */
+
+.terminal-container {
+  background: #020208;
+  border: 1px solid rgba(34,197,94,.35);
+  border-radius: 10px;
+  overflow: hidden;
+  animation: result-in .3s cubic-bezier(.22,1,.36,1);
+  box-shadow: 0 0 40px rgba(34,197,94,.08);
+}
+
+.terminal-header {
+  background: #06060f;
+  border-bottom: 1px solid #0c1a0c;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.term-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.term-dot-r { background: #ef4444; }
+.term-dot-y { background: #f59e0b; }
+.term-dot-g { background: #22c55e; }
+
+.terminal-title-bar {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #334155;
+  letter-spacing: 1px;
+  margin-left: 8px;
+}
+
+.terminal-body {
+  padding: 14px 20px;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(11px, 2.2vw, 13px);
+  min-height: 200px;
+  max-height: 250px;
+  overflow-y: auto;
+  line-height: 1.85;
+  color: #64748b;
+  scrollbar-width: thin;
+  scrollbar-color: #1e1e35 transparent;
+}
+
+.terminal-line { display: block; animation: term-line-in .15s ease both; }
+
+@keyframes term-line-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.term-ok   { color: #22c55e; }
+.term-err  { color: #ef4444; }
+.term-warn { color: #f59e0b; }
+.term-muted { color: #334155; }
+
+.term-cursor {
+  display: inline-block;
+  width: 8px; height: 13px;
+  background: #22c55e;
+  vertical-align: text-bottom;
+  animation: blink-dot .55s step-end infinite;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.terminal-footer {
+  padding: 12px 20px 14px;
+  border-top: 1px solid #060f06;
+}
+
+.terminal-sprites {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 10px 20px 14px;
+  border-top: 1px solid #060f06;
+}
+
+/* ─── Speedrun badge ──────────────────────────────────────── */
+
+.speedrun-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent;
+  border: 1px dashed #151525;
+  border-radius: 6px;
+  color: #252535;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  transition: border-color .2s, color .2s;
+  margin-left: 8px;
+}
+.speedrun-toggle:hover  { border-color: #3a3a5a; color: #4a4a6a; }
+.speedrun-toggle.active { border-color: var(--gold); color: var(--gold); }
+
+.sound-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent;
+  border: 1px dashed #151525;
+  border-radius: 6px;
+  color: #252535;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  transition: border-color .2s, color .2s;
+  margin-left: 8px;
+}
+.sound-toggle:hover   { border-color: #3a3a5a; color: #4a4a6a; }
+.sound-toggle.muted   { border-color: #2a1a1a; color: #3a2a2a; }
+
+/* ─── Boot BIOS screen ────────────────────────────────────── */
+
+#bios-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .8s ease;
+}
+
+#bios-screen.fade-out { opacity: 0; pointer-events: none; }
+#bios-screen.gone     { display: none; }
+
+#bios-content {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(12px, 2vw, 15px);
+  color: #22c55e;
+  line-height: 1.9;
+  white-space: pre;
+  padding: 20px;
+  width: min(560px, 90vw);
+}
+
+.bios-head   { color: #a855f7; display: block; margin-bottom: 4px; }
+.bios-ok     { color: #22c55e; }
+.bios-fail   { color: #ef4444; }
+.bios-wait   { color: #f59e0b; }
+.bios-ready  { color: #fff; text-shadow: 0 0 16px #fff; }
+.bios-cursor { display: inline-block; width: 9px; height: 1em; background: #22c55e; vertical-align: text-bottom; animation: blink-dot .6s step-end infinite; }
+
+/* ─── Achievement Steam toast ─────────────────────────────── */
+
+#achievement-toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  z-index: 1000;
+  transform: translateX(140%);
+  transition: transform .5s cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+
+#achievement-toast.show { transform: translateX(0); }
+
+.achievement-inner {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #0d0c1a 0%, #1a0a2e 100%);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 0 40px rgba(245,158,11,.3), 0 6px 30px rgba(0,0,0,.9);
+  min-width: 250px;
+}
+
+.achievement-icon { font-size: 34px; flex-shrink: 0; }
+
+.achievement-text { display: flex; flex-direction: column; gap: 2px; }
+.achievement-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.achievement-title {
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.achievement-sub {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--violet-glow);
+  letter-spacing: 1px;
+}
+
+/* ─── Tampon VALIDÉ ───────────────────────────────────────── */
+
+.stamp-valid {
+  position: absolute;
+  top: 18px; right: 18px;
+  border: 3px solid rgba(239,68,68,.85);
+  border-radius: 5px;
+  padding: 5px 10px;
+  transform: rotate(-12deg) scale(3);
+  opacity: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(239,68,68,.85);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1.5;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(239,68,68,.3);
+  pointer-events: none;
+  user-select: none;
+  animation: stamp-drop .45s .5s cubic-bezier(.175,.885,.32,1.275) forwards;
+  z-index: 10;
+}
+
+@keyframes stamp-drop {
+  0%   { transform: rotate(-12deg) scale(3); opacity: 0; }
+  60%  { transform: rotate(-12deg) scale(.92); opacity: .9; }
+  100% { transform: rotate(-12deg) scale(1); opacity: .85; }
+}
+
+/* ─── Scan holographique vertical au résultat ─────────────── */
+
+.result-success::after {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(168,85,247,.07) 35%,
+    rgba(74,222,128,.13) 50%,
+    rgba(168,85,247,.07) 65%,
+    transparent 100%);
+  animation: holoscan 1.4s ease-out .05s forwards;
+  pointer-events: none;
+}
+
+@keyframes holoscan {
+  from { left: -100%; }
+  to   { left: 160%; }
+}
+
+/* ─── Gold flash overlay ──────────────────────────────────── */
+
+#gold-overlay {
+  position: fixed; inset: 0; z-index: 997;
+  pointer-events: none;
+  background: rgba(245,158,11,.14);
+  opacity: 0;
+}
+
+#gold-overlay.flash { animation: gold-flash-anim .9s ease-out forwards; }
+
+@keyframes gold-flash-anim {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── Alain Addor — Reward chips ─────────────────────────── */
+
+#alain-rewards-wrap {
+  position: fixed; inset: 0; z-index: 1100;
+  pointer-events: none;
+}
+
+.alain-reward-chip {
+  position: absolute;
+  right: 32px;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(6,4,18,.85);
+  border: 1.5px solid var(--rc, #a855f7);
+  border-radius: 12px;
+  padding: 10px 22px 10px 16px;
+  box-shadow: 0 0 32px var(--rg, rgba(168,85,247,.5)), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  transform: translateX(60px) scale(.85);
+  transition: opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1);
+  white-space: nowrap;
+}
+
+.alain-reward-chip.arc-in {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.alain-reward-chip.arc-out {
+  opacity: 0;
+  transform: translateX(40px) scale(.9);
+  transition: opacity .45s ease, transform .45s ease;
+}
+
+.arc-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--rc, #a855f7);
+  text-shadow: 0 0 18px var(--rg, rgba(168,85,247,.8));
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.arc-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.75);
+}
+
+/* ─── Alain Addor — Big reward card ──────────────────────── */
+
+#alain-reward-card {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.7) translateY(30px);
+  transition: opacity .45s cubic-bezier(.22,1,.36,1), transform .45s cubic-bezier(.22,1,.36,1);
+}
+
+#alain-reward-card.arc-card-in {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+#alain-reward-card.arc-card-out {
+  opacity: 0;
+  transform: scale(.92) translateY(-20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+.arc-card-inner {
+  background: linear-gradient(160deg, rgba(10,6,28,.97) 0%, rgba(6,4,18,.98) 100%);
+  border: 2px solid #a855f7;
+  border-radius: 20px;
+  padding: 36px 52px;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(168,85,247,.3),
+    0 0 60px rgba(168,85,247,.4),
+    0 0 120px rgba(168,85,247,.15),
+    0 32px 80px rgba(0,0,0,.8),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  animation: arc-card-pulse 1.4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.arc-card-inner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #a855f7, #f59e0b, #22c55e, #a855f7, transparent);
+  animation: scan-line 1.8s linear infinite;
+}
+
+@keyframes arc-card-pulse {
+  0%,100% { box-shadow: 0 0 0 1px rgba(168,85,247,.3), 0 0 60px rgba(168,85,247,.4), 0 0 120px rgba(168,85,247,.15), 0 32px 80px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.1); }
+  50%      { box-shadow: 0 0 0 1px rgba(168,85,247,.6), 0 0 90px rgba(168,85,247,.6), 0 0 180px rgba(245,158,11,.1), 0 32px 80px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.1); }
+}
+
+.arc-card-line {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: rgba(168,85,247,.5);
+  letter-spacing: 1px;
+  margin: 4px 0;
+}
+
+.arc-card-trophy {
+  font-size: 56px;
+  margin: 10px 0 6px;
+  filter: drop-shadow(0 0 20px rgba(245,158,11,.8));
+  animation: trophy-bob .8s ease-in-out infinite alternate;
+}
+
+@keyframes trophy-bob {
+  from { transform: scale(1) rotate(-4deg); }
+  to   { transform: scale(1.1) rotate(4deg); }
+}
+
+.arc-card-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #f59e0b;
+  text-shadow: 0 0 16px rgba(245,158,11,.6);
+  margin-bottom: 6px;
+}
+
+.arc-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255,255,255,.3);
+  line-height: 1.1;
+}
+
+.arc-card-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  letter-spacing: 4px;
+  color: #a855f7;
+  text-shadow: 0 0 40px rgba(168,85,247,.9), 0 0 80px rgba(168,85,247,.4);
+  line-height: 1;
+  margin: 4px 0 8px;
+}
+
+.arc-card-edition {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #22c55e;
+  text-shadow: 0 0 16px rgba(34,197,94,.6);
+  margin-bottom: 10px;
+}
+
+/* ─── OSU Results Screen ──────────────────────────────────── */
+
+#osu-results-overlay {
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(4,3,12,.92);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: scale(.96);
+  transition: opacity .4s cubic-bezier(.22,1,.36,1), transform .4s cubic-bezier(.22,1,.36,1);
+}
+
+#osu-results-overlay.osr-in  { opacity: 1; transform: scale(1); }
+#osu-results-overlay.osr-out { opacity: 0; transform: scale(1.04); transition: opacity .5s ease, transform .5s ease; }
+
+.osr-inner {
+  display: grid;
+  grid-template-areas:
+    "top   top   rank"
+    "score score rank"
+    "stats stats rank"
+    "perf  perf  rank"
+    "btn   btn   btn";
+  grid-template-columns: 1fr 1fr 260px;
+  gap: 0;
+  width: min(900px, 95vw);
+  animation: osr-fadein .5s .1s both;
+}
+
+@keyframes osr-fadein {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Top bar */
+.osr-top {
+  grid-area: top;
+  padding: 14px 22px 10px;
+}
+
+.osr-beatmap {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0,0,0,.8);
+}
+
+.osr-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  margin-top: 2px;
+}
+
+/* Score */
+.osr-score-block {
+  grid-area: score;
+  background: rgba(180,190,220,.13);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px 12px 0 0;
+  padding: 12px 22px 10px;
+  border-bottom: none;
+}
+
+.osr-score-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 2px;
+}
+
+.osr-score-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(255,255,255,.2);
+  line-height: 1;
+}
+
+/* Stats grid */
+.osr-stats-grid {
+  grid-area: stats;
+  background: rgba(100,140,210,.18);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 0 0 12px 12px;
+  padding: 14px 22px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.osr-stat {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px 1fr;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  padding-bottom: 6px;
+}
+
+.osr-stat:last-child { border-bottom: none; padding-bottom: 0; }
+
+.osr-stat-key {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.osr-300  { color: #6cf; text-shadow: 0 0 10px rgba(100,200,255,.6); }
+.osr-katu { color: #6cf; font-size: 22px; }
+.osr-100  { color: #9f9; text-shadow: 0 0 10px rgba(100,255,100,.4); }
+.osr-50   { color: #fa0; text-shadow: 0 0 10px rgba(255,180,0,.4); }
+.osr-miss { color: #f55; font-size: 18px; text-shadow: 0 0 10px rgba(255,80,80,.4); }
+
+.osr-stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 1px;
+  padding-left: 8px;
+}
+
+/* Bottom row: combo + accuracy */
+.osr-stat--bottom {
+  grid-template-columns: 80px 1fr 100px 1fr;
+  padding-top: 6px;
+}
+
+.osr-bottom-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,.55);
+}
+
+.osr-bottom-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  padding-left: 8px;
+}
+
+.osr-acc { color: #ffd700; text-shadow: 0 0 16px rgba(255,215,0,.5); }
+
+/* Rank block — right column */
+.osr-rank-block {
+  grid-area: rank;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px;
+  gap: 6px;
+}
+
+.osr-rank-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+}
+
+/* Anneau de grade façon osu! (Lazer) */
+.osr-rank-ring {
+  position: relative;
+  width: 170px; height: 170px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(circle at center, rgba(245,158,11,.12), transparent 70%);
+  animation: rank-pop .5s .25s cubic-bezier(.175,.885,.32,1.275) both;
+}
+.osr-rank-ring::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  padding: 6px;
+  background: conic-gradient(from -90deg, #fbbf24, #f59e0b 70%, rgba(245,158,11,.15) 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  box-shadow: 0 0 36px rgba(245,158,11,.6), inset 0 0 26px rgba(245,158,11,.4);
+  animation: osr-ring-spin 6s linear infinite;
+}
+@keyframes osr-ring-spin { to { transform: rotate(360deg); } }
+
+.osr-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 110px;
+  line-height: .85;
+  color: #f59e0b;
+  text-shadow:
+    0 0 40px rgba(245,158,11,.9),
+    0 0 80px rgba(245,158,11,.5),
+    0 4px 0 #92400e;
+  -webkit-text-stroke: 2px rgba(255,255,255,.18);
+  animation: rank-pulse 2s 1s ease-in-out infinite;
+}
+
+.osr-pp {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 1px;
+  color: #5ad7ff;
+  text-shadow: 0 0 18px rgba(90,215,255,.7);
+  line-height: 1;
+}
+.osr-pp span { font-size: 18px; color: rgba(255,255,255,.6); margin-left: 2px; }
+
+@keyframes rank-pop {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+@keyframes rank-pulse {
+  0%,100% { text-shadow: 0 0 40px rgba(245,158,11,.9), 0 0 80px rgba(245,158,11,.5), 0 4px 0 #92400e; }
+  50%      { text-shadow: 0 0 70px rgba(245,158,11,1),  0 0 140px rgba(245,158,11,.7), 0 4px 0 #92400e; }
+}
+
+/* Perf / "Perfect" */
+.osr-perf {
+  grid-area: perf;
+  padding: 10px 22px 4px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.osr-perf-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: 2px;
+}
+
+.osr-perf-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  line-height: 1;
+  background: linear-gradient(90deg, #f97316, #ef4444, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 20px rgba(249,115,22,.5));
+  animation: perf-slide .5s .4s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes perf-slide {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Continue button */
+.osr-continue-btn {
+  grid-area: btn;
+  margin: 18px auto 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: 1px solid rgba(147,197,253,.4);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 13px 52px;
+  text-transform: uppercase;
+  transition: transform .15s, box-shadow .2s;
+  animation: osr-fadein .4s .6s both;
+}
+
+.osr-continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(59,130,246,.5);
+}
+
+.osr-continue-btn:active { transform: translateY(0); }
+
+@media (max-width: 600px) {
+  .osr-inner {
+    grid-template-areas: "top" "score" "stats" "rank" "perf" "btn";
+    grid-template-columns: 1fr;
   }
-  await loadPdfBuffer(await file.arrayBuffer(), file.name);
-});
-
-dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', async e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-  if (file.type !== 'application/pdf') {
-    setPdfStatus('❌ Ce fichier n\'est pas un PDF.', 'err'); return;
-  }
-  await loadPdfBuffer(await file.arrayBuffer(), file.name);
-});
-
-preloadSprites();
-preloadVictoire();
-preloadOsu();
-preloadSixSeven();
-setPdfDate(PDF_URL);
-
-window.addEventListener('resize', () => {
-  const canvas = document.getElementById('confetti-canvas');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-
-// ════════════════════════════════════════════════════════════
-//   BRAINROT MAX — module autonome
-// ════════════════════════════════════════════════════════════
-
-const BRAINROT_SOUNDS = {
-  vineboom:  './vineboom.mp3',
-  bruh:      './bruh.mp3',
-  pipe:      './pipe.mp3',
-  tralalero: './tralalero.mp3',
-  tungsahur: './tungsahur.mp3',
-  rizz:      './rizz.mp3',
-  speedrun:  './speedrun.mp3',
-  polizia:   './polizia.mp3',
-  wait:      './wait.mp3',
-  dubist:    './dubist.mp3',
-};
-const _brBuffers = {};
-let _brSoloSource = null;
-
-// ── Canal "story" : un seul son narratif à la fois (le nouveau coupe l'ancien) ──
-let _storySource = null;
-function playStory(name, vol, loop, autoStopMs) {
-  if (!_brBuffers[name]) return;
-  stopStory();
-  if (!soundEnabled) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      const gain = ctx.createGain();
-      gain.gain.value = vol == null ? 0.8 : vol;
-      gain.connect(ctx.destination);
-      const src = ctx.createBufferSource();
-      src.buffer = _brBuffers[name];
-      src.loop = !!loop;
-      src.connect(gain);
-      src.start(0);
-      _storySource = src;
-      src.onended = () => { if (_storySource === src) _storySource = null; };
-      if (autoStopMs) setTimeout(() => {
-        if (_storySource === src) { try { src.stop(); } catch(e) {} _storySource = null; }
-      }, autoStopMs);
-    });
-  } catch(e) {}
-}
-function stopStory() {
-  if (_storySource) {
-    try { _storySource.stop(); } catch(e) {}
-    _storySource = null;
-  }
+  .osr-rank { font-size: 100px; }
+  .osr-score-value { font-size: 36px; }
 }
 
-// ── Gif speedrunner (pendant la musique Dream) ──
-function showSpeedrunnerGif() {
-  if (document.getElementById('speedrunner-gif')) return;
-  const img = document.createElement('img');
-  img.id = 'speedrunner-gif';
-  img.src = './speedrunner.gif';
-  img.alt = '';
-  img.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(img);
-  requestAnimationFrame(() => requestAnimationFrame(() => img.classList.add('show')));
-}
-function hideSpeedrunnerGif() {
-  const img = document.getElementById('speedrunner-gif');
-  if (img) { img.classList.remove('show'); setTimeout(() => img.remove(), 400); }
-}
+/* ─── Roue de la chance ───────────────────────────────────── */
 
-async function preloadBrainrotSounds() {
-  for (const name in BRAINROT_SOUNDS) {
-    try {
-      const res = await fetch(BRAINROT_SOUNDS[name]);
-      if (!res.ok) continue;
-      const buf = await res.arrayBuffer();
-      _brBuffers[name] = await getAudioCtx().decodeAudioData(buf);
-    } catch(e) {}
-  }
+#spin-overlay {
+  position: fixed; inset: 0; z-index: 1400;
+  background: rgba(4,3,12,.94);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.94);
+  transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1);
+}
+#spin-overlay.spin-in  { opacity: 1; transform: scale(1); }
+#spin-overlay.spin-out { opacity: 0; transform: scale(1.05); transition: opacity .45s ease, transform .45s ease; }
+
+.spin-box {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 36px 40px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 0 80px rgba(168,85,247,.2), 0 32px 80px rgba(0,0,0,.7);
 }
 
-function playBrainrot(name, vol, solo) {
-  if (!soundEnabled || !_brBuffers[name]) return;
-  try {
-    const ctx = getAudioCtx();
-    ctx.resume().then(() => {
-      if (solo && _brSoloSource) { try { _brSoloSource.stop(); } catch(e) {} }
-      const gain = ctx.createGain();
-      gain.gain.value = vol == null ? 0.8 : vol;
-      gain.connect(ctx.destination);
-      const src = ctx.createBufferSource();
-      src.buffer = _brBuffers[name];
-      src.connect(gain);
-      src.start(0);
-      if (solo) { _brSoloSource = src; src.onended = () => { if (_brSoloSource === src) _brSoloSource = null; }; }
-    });
-  } catch(e) {}
+.spin-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 5px;
+  color: #f59e0b;
+  text-shadow: 0 0 30px rgba(245,158,11,.7);
 }
 
-// Un overlay de jeu est-il ouvert ? (on met en pause les effets plein écran)
-function _brOverlayOpen() {
-  return !!document.querySelector('.osu-overlay, #spin-overlay, .qcm-overlay, #osu-results-overlay, #bulletin-overlay, .osu-logo-screen, #troll-reveal');
+.spin-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+  margin-top: -10px;
 }
 
-const BR_EMOJIS = ['💀','🔥','😭','🥁','🗿','💯','🤑','👹','🐊','⚡','💜','😎','🤙','📈'];
-const BR_WORDS  = ['SKIBIDI','67','RIZZ +1000','SIGMA','OHIO','GYATT','MOG','+9999 AURA','MEWING','SHEEEESH','W','GOAT','NPC','BRAINROT','HUN APPROVED','TUNG TUNG'];
-
-// ── Curseur : traînée d'emojis ──
-function _brSpawnTrail(x, y) {
-  const e = document.createElement('div');
-  e.className = 'br-trail';
-  e.textContent = BR_EMOJIS[(Math.random() * BR_EMOJIS.length) | 0];
-  e.style.left = x + 'px';
-  e.style.top  = y + 'px';
-  document.body.appendChild(e);
-  setTimeout(() => e.remove(), 800);
+.spin-arena {
+  position: relative;
+  width: 320px; height: 320px;
 }
 
-// ── Explosion d'emojis au clic ──
-function _brBurst(x, y) {
-  const n = 7;
-  for (let i = 0; i < n; i++) {
-    const e = document.createElement('div');
-    e.className = 'br-burst';
-    e.textContent = BR_EMOJIS[(Math.random() * BR_EMOJIS.length) | 0];
-    const ang = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-    const dist = 60 + Math.random() * 70;
-    e.style.left = x + 'px';
-    e.style.top  = y + 'px';
-    e.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
-    e.style.setProperty('--dy', (Math.sin(ang) * dist - 40) + 'px');
-    document.body.appendChild(e);
-    setTimeout(() => e.remove(), 900);
-  }
+#spin-canvas {
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(168,85,247,.3), 0 0 80px rgba(168,85,247,.1);
+  display: block;
 }
 
-// ── Flash de mot brainrot ──
-function _brFlashWord() {
-  const w = document.createElement('div');
-  w.className = 'br-word';
-  w.textContent = BR_WORDS[(Math.random() * BR_WORDS.length) | 0];
-  w.style.left = (10 + Math.random() * 70) + 'vw';
-  w.style.top  = (15 + Math.random() * 60) + 'vh';
-  w.style.setProperty('--rot', (Math.random() * 30 - 15) + 'deg');
-  document.body.appendChild(w);
-  setTimeout(() => w.remove(), 900);
+/* Needle at top */
+.spin-needle {
+  position: absolute;
+  top: -14px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 26px solid #fff;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.8));
+  z-index: 2;
 }
 
-// ── Screen shake ──
-function brainrotShake() {
-  document.body.classList.remove('br-shake');
-  void document.body.offsetWidth;
-  document.body.classList.add('br-shake');
-  setTimeout(() => document.body.classList.remove('br-shake'), 500);
+.spin-result {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  min-height: 38px;
+  opacity: 0;
+  transform: scale(.8);
+  transition: opacity .4s cubic-bezier(.22,1,.36,1), transform .4s cubic-bezier(.22,1,.36,1);
+}
+.spin-result.spin-result-show { opacity: 1; transform: scale(1); }
+
+.spin-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+  border: 1px solid rgba(168,85,247,.5);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 12px 40px;
+  text-transform: uppercase;
+  transition: transform .15s, box-shadow .2s;
+}
+.spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,.5); }
+.spin-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ─── Terminal — barre de téléchargements ─────────────────── */
+
+.term-dl-block { margin: 4px 0 6px; }
+
+.term-dl-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
 }
 
-// ── Marquee défilant (ticker brainrot) ──
-function _brBuildMarquee() {
-  const seg = ' 🥁 TUNG TUNG TUNG SAHUR 🐊 TRALALERO TRALALA 💀 67 💀 SKIBIDI RIZZ OHIO 🗿 SIGMA AURA +9999 ⚡ HUN APPROVED 🥁 BONEKA AMBALABU 💯 MAMA GUAVO 🔥 ';
-  const bar = document.createElement('div');
-  bar.id = 'br-marquee';
-  bar.innerHTML = `<div class="br-marquee-track">${seg.repeat(4)}</div>`;
-  document.body.appendChild(bar);
+.term-dl-bar {
+  display: inline-block;
+  width: 90px; height: 7px;
+  background: rgba(255,255,255,.08);
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-// ── Soundboard flottant ──
-function _brBuildSoundboard() {
-  const SB = [
-    { name: 'vineboom',  emoji: '💥', label: 'BOOM' },
-    { name: 'tungsahur', emoji: '🥁', label: 'TUNG' },
-    { name: 'tralalero', emoji: '🐊', label: 'TRALA' },
-    { name: 'bruh',      emoji: '💀', label: 'BRUH' },
-    { name: 'rizz',      emoji: '🗿', label: 'RIZZ' },
-    { name: 'pipe',      emoji: '🔧', label: 'PIPE' },
-  ];
-  const wrap = document.createElement('div');
-  wrap.id = 'br-soundboard';
-  wrap.className = 'br-collapsed';
-  wrap.innerHTML = `
-    <div class="br-sb-panel">
-      ${SB.map(s => `<button class="br-sb-btn" data-sound="${s.name}"><span>${s.emoji}</span>${s.label}</button>`).join('')}
-    </div>
-    <button id="br-sb-toggle" title="Soundboard brainrot">🧠</button>
-  `;
-  document.body.appendChild(wrap);
-
-  wrap.querySelector('#br-sb-toggle').addEventListener('click', e => {
-    e.stopPropagation();
-    wrap.classList.toggle('br-collapsed');
-    playBrainrot('vineboom', 0.4);
-  });
-  wrap.querySelectorAll('.br-sb-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const long = ['tungsahur', 'tralalero'].includes(btn.dataset.sound);
-      playBrainrot(btn.dataset.sound, 0.9, long);
-      btn.classList.remove('br-sb-pop'); void btn.offsetWidth; btn.classList.add('br-sb-pop');
-    });
-  });
+.term-dl-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #a855f7;
+  border-radius: 4px;
+  transition: width .04s linear;
 }
 
-// ── Floaters images (réutilise les assets existants) ──
-function _brBuildFloaters() {
-  const imgs = [
-    { src: './67.gif',  cls: 'br-float-1' },
-    { src: './HUN.png', cls: 'br-float-2' },
-    { src: './67.gif',  cls: 'br-float-3' },
-  ];
-  imgs.forEach(o => {
-    const im = document.createElement('img');
-    im.src = o.src;
-    im.className = 'br-floater ' + o.cls;
-    im.alt = '';
-    im.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(im);
-  });
+.term-dl-name   { color: rgba(255,255,255,.6); flex: 1; }
+.term-dl-status { font-size: 12px; min-width: 20px; }
+
+/* ─── Terminal — logs GitHub ──────────────────────────────── */
+
+.term-git-block { margin: 4px 0 6px; }
+
+.term-git-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  animation: git-row-in .25s cubic-bezier(.22,1,.36,1) both;
 }
 
-// ── Init global ──
-function initBrainrotMax() {
-  preloadBrainrotSounds();
-  _brBuildMarquee();
-  _brBuildSoundboard();
-  _brBuildFloaters();
-  initAuraCounter();
-  initNameEggs();
-  initKonami();
-  initIdleReaction();
-
-  // Curseur traînée (throttle)
-  let _lastTrail = 0;
-  document.addEventListener('pointermove', e => {
-    if (_brOverlayOpen()) return;
-    const now = performance.now();
-    if (now - _lastTrail < 55) return;
-    _lastTrail = now;
-    _brSpawnTrail(e.clientX, e.clientY);
-  }, { passive: true });
-
-  // Clic = explosion d'emojis (+ boom sur les boutons) + aura
-  document.addEventListener('click', e => {
-    if (e.target.closest('#br-soundboard')) return;
-    addAura(1 + ((Math.random() * 8) | 0));
-    if (_brOverlayOpen()) return;
-    _brBurst(e.clientX, e.clientY);
-    const onBtn = e.target.closest('button, .mode-btn, .btn-primary, .btn-pdf-auto');
-    if (onBtn && Math.random() < 0.5) playBrainrot('vineboom', 0.45);
-  });
-
-  // Flash de mots brainrot
-  setInterval(() => {
-    if (_brOverlayOpen() || document.hidden) return;
-    if (Math.random() < 0.65) _brFlashWord();
-  }, 4500);
-
-  // Vine boom + shake sur le bouton Vérifier
-  const checkBtn = document.getElementById('btn-check');
-  if (checkBtn) checkBtn.addEventListener('click', () => {
-    playBrainrot('vineboom', 0.7);
-    brainrotShake();
-  });
+@keyframes git-row-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-// ════════════════════════════════════════════════════════════
-//   SURPRISES CACHÉES
-// ════════════════════════════════════════════════════════════
+.term-git-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.git-ok   { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,.7); }
+.git-fail { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.7); }
 
-// ── 1) Compteur d'AURA (monte à chaque clic, paliers à débloquer) ──
-let _aura = 0;
-function initAuraCounter() {
-  if (document.getElementById('aura-counter')) return;
-  const el = document.createElement('div');
-  el.id = 'aura-counter';
-  el.innerHTML = '✨ AURA <b id="aura-val">0</b>';
-  document.body.appendChild(el);
-}
-function addAura(n) {
-  const before = _aura;
-  _aura += n;
-  const v = document.getElementById('aura-val');
-  const box = document.getElementById('aura-counter');
-  if (v) v.textContent = _aura.toLocaleString('fr-CH');
-  if (box) { box.classList.remove('aura-pop'); void box.offsetWidth; box.classList.add('aura-pop'); }
-  [100, 500, 1000, 5000, 10000].forEach(m => {
-    if (before < m && _aura >= m) _auraMilestone(m);
-  });
-}
-function _auraMilestone(m) {
-  const labels = { 100: 'SIGMA GRINDSET 🗿', 500: 'AURA FARMING 🔥', 1000: 'CERTIFIED GOAT 🐐', 5000: 'GIGACHAD ULTIME 💪', 10000: 'AURA INFINIE ♾️' };
-  const p = document.createElement('div');
-  p.className = 'aura-milestone';
-  p.innerHTML = `<div class="am-x">+${m.toLocaleString('fr-CH')} AURA</div><div class="am-l">${labels[m] || 'AURA'}</div>`;
-  document.body.appendChild(p);
-  playBrainrot('rizz', 0.75);
-  setTimeout(() => p.remove(), 1700);
+.term-git-label  { color: rgba(255,255,255,.35); font-size: 10px; letter-spacing: 1px; }
+.term-git-msg    { color: rgba(255,255,255,.7); flex: 1; }
+.term-git-status { font-weight: 700; font-size: 11px; letter-spacing: 1px; flex-shrink: 0; }
+.term-git-status.git-ok   { color: #22c55e; }
+.term-git-status.git-fail { color: #ef4444; }
+
+/* ─── Troll glitch ────────────────────────────────────────── */
+
+@keyframes troll-glitch-anim {
+  0%   { transform: translate(0); filter: none; }
+  10%  { transform: translate(-6px, 2px); filter: hue-rotate(90deg) saturate(3); }
+  20%  { transform: translate(6px,-3px); filter: hue-rotate(180deg); clip-path: inset(20% 0 30% 0); }
+  30%  { transform: translate(-4px, 1px); filter: hue-rotate(270deg) saturate(5); clip-path: inset(0); }
+  40%  { transform: translate(8px,-2px); filter: none; }
+  50%  { transform: translate(-8px, 4px); filter: hue-rotate(45deg) contrast(3); clip-path: inset(50% 0 10% 0); }
+  60%  { transform: translate(4px,-4px); filter: none; clip-path: inset(0); }
+  70%  { transform: translate(-6px, 2px); filter: hue-rotate(135deg) saturate(4); }
+  80%  { transform: translate(6px, 0); filter: none; }
+  90%  { transform: translate(-2px, 3px); filter: hue-rotate(200deg); clip-path: inset(30% 0 20% 0); }
+  100% { transform: translate(0); filter: none; clip-path: inset(0); }
 }
 
-// ── 2) Easter eggs dans les champs Prénom / Nom ──
-function initNameEggs() {
-  const EGGS = [
-    { match: 'wesley',  sound: 'bruh',      msg: '❌ WESLEY DÉTECTÉ — ACCÈS REFUSÉ', bad: true },
-    { match: 'hun',     sound: 'tungsahur', msg: '🥁 HUN — LE GOAT 🐐' },
-    { match: 'skibidi', sound: 'vineboom',  msg: '🚽 SKIBIDI TOILET 🚽' },
-    { match: 'tung',    sound: 'tungsahur', msg: '🥁 TUNG TUNG TUNG SAHUR' },
-    { match: 'rizz',    sound: 'rizz',      msg: '🗿 W RIZZ DÉTECTÉ' },
-    { match: 'ohio',    sound: 'vineboom',  msg: '💀 ONLY IN OHIO 💀' },
-    { match: 'alain',   sound: 'tungsahur', msg: '👑 LE BOSS FINAL EN PERSONNE 👑' },
-  ];
-  let last = '';
-  function check() {
-    const p = document.getElementById('input-prenom');
-    const n = document.getElementById('input-nom');
-    if (!p || !n) return;
-    const combined = normalize(p.value) + ' ' + normalize(n.value);
-    for (const egg of EGGS) {
-      if (combined.includes(egg.match)) {
-        if (last !== egg.match) { last = egg.match; _fireNameEgg(egg); }
-        return;
-      }
-    }
-    last = '';
-  }
-  ['input-prenom', 'input-nom'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', check);
-  });
-}
-function _fireNameEgg(egg) {
-  playBrainrot(egg.sound, 0.85, true);
-  addAura(67);
-  const t = document.createElement('div');
-  t.className = 'name-egg' + (egg.bad ? ' name-egg-bad' : '');
-  t.textContent = egg.msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 1900);
-  if (egg.bad) {
-    ['input-prenom', 'input-nom'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.add('egg-shake'); setTimeout(() => el.classList.remove('egg-shake'), 500); }
-    });
-  }
+.troll-glitch { animation: troll-glitch-anim 0.6s ease both; }
+
+/* ─── Troll reveal ────────────────────────────────────────── */
+
+.troll-reveal {
+  text-align: center;
+  padding: 36px 24px;
+  animation: result-in .3s cubic-bezier(.22,1,.36,1);
 }
 
-// ── 3) Konami code → HUN MODE ──
-function initKonami() {
-  const seq = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
-  let idx = 0;
-  document.addEventListener('keydown', e => {
-    if (_brOverlayOpen()) return;
-    const k = (e.key || '').toLowerCase();
-    if (k === seq[idx]) {
-      idx++;
-      if (idx === seq.length) { idx = 0; triggerHunMode(); }
-    } else {
-      idx = (k === seq[0]) ? 1 : 0;
-    }
-  });
-}
-function triggerHunMode() {
-  if (document.getElementById('hun-mode-banner')) return;
-  document.body.classList.add('hun-mode-rainbow');
-  playBrainrot('vineboom', 0.7);
-  setTimeout(() => playBrainrot('tungsahur', 0.85, true), 180);
-
-  const banner = document.createElement('div');
-  banner.id = 'hun-mode-banner';
-  banner.textContent = '🥁 HUN MODE ACTIVÉ 🥁';
-  document.body.appendChild(banner);
-  addAura(1000);
-
-  const imgs = ['./HUN.png', './TUNG.png', './67.gif'];
-  const emos = ['🥁','🐊','💀','🗿','💯','👹','🤑','⚡'];
-  let count = 0;
-  const rainIv = setInterval(() => {
-    if (count++ > 70) { clearInterval(rainIv); return; }
-    const useImg = Math.random() < 0.4;
-    const el = document.createElement(useImg ? 'img' : 'div');
-    if (useImg) { el.src = imgs[(Math.random() * imgs.length) | 0]; el.className = 'hun-rain hun-rain-img'; }
-    else { el.className = 'hun-rain hun-rain-emoji'; el.textContent = emos[(Math.random() * emos.length) | 0]; }
-    el.style.left = (Math.random() * 100) + 'vw';
-    el.style.setProperty('--dur', (2.4 + Math.random() * 2.2) + 's');
-    el.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 5200);
-  }, 80);
-
-  setTimeout(() => {
-    document.body.classList.remove('hun-mode-rainbow');
-    banner.classList.add('out');
-    setTimeout(() => banner.remove(), 600);
-  }, 6000);
+.troll-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 13vw, 92px);
+  letter-spacing: 8px;
+  color: #22c55e;
+  text-shadow: 0 0 40px rgba(34,197,94,.9), 0 0 80px rgba(34,197,94,.4);
+  margin: 0 0 22px;
+  animation: troll-text-pop .45s cubic-bezier(.175,.885,.32,1.5) both, troll-text-wob 2s ease-in-out .45s infinite;
 }
 
-// ── 4) Réaction d'inactivité ──
-let _idleTimer = null;
-const IDLE_LINES = [
-  'T\'es encore là ? 🥁', 'Wesley c\'est toi ? 👀', 'Allez, tape un nom 🐊',
-  'MAMA GUAVO t\'attend 💀', 'Skibidi ? 🚽', 'AFK détecté 📈', 'Toujours là le sigma ? 🗿'
-];
-function initIdleReaction() {
-  ['pointermove', 'keydown', 'click', 'scroll'].forEach(ev =>
-    document.addEventListener(ev, _resetIdle, { passive: true }));
-  _resetIdle();
-}
-function _resetIdle() {
-  clearTimeout(_idleTimer);
-  _idleTimer = setTimeout(_showIdle, 25000);
-}
-function _showIdle() {
-  if (_brOverlayOpen() || document.hidden) { _resetIdle(); return; }
-  if (document.getElementById('idle-pop')) return;
-  const pop = document.createElement('div');
-  pop.id = 'idle-pop';
-  pop.innerHTML = `<img src="./HUN.png" alt="" /><div class="idle-bubble">${IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0]}</div>`;
-  document.body.appendChild(pop);
-  playBrainrot('vineboom', 0.4);
-  requestAnimationFrame(() => requestAnimationFrame(() => pop.classList.add('show')));
-  setTimeout(() => { pop.classList.remove('show'); setTimeout(() => pop.remove(), 500); }, 5000);
-  _resetIdle();
+@keyframes troll-text-pop {
+  from { transform: scale(0) rotate(-8deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);  opacity: 1; }
 }
 
-// ════════════════════════════════════════════════════════════
-//   GATE — écran de verrouillage (mot de passe OU Alain trouvé)
-// ════════════════════════════════════════════════════════════
-
-const GATE_PASSWORD = 'JEMAMAGUAVEENBALLE';
-let _siteRevealed = false;
-
-// Splash "ANASTASIAAAAAAA" au tout début (pour la vanne)
-function showAnastasiaSplash() {
-  const s = document.createElement('div');
-  s.id = 'anastasia-splash';
-  s.innerHTML = '<div class="anastasia-text">ANASTASIAAAAAAA</div>';
-  document.body.appendChild(s);
-  try { if (typeof playBrainrot === 'function') playBrainrot('vineboom', 0.6); } catch (e) {}
-  const _show = () => s.classList.add('show');
-  requestAnimationFrame(() => requestAnimationFrame(_show));
-  setTimeout(_show, 60); // fallback si rAF throttlé
-  setTimeout(() => { s.classList.add('out'); setTimeout(() => s.remove(), 600); }, 1700);
+@keyframes troll-text-wob {
+  0%,100% { transform: rotate(-2deg) scale(1); }
+  50%      { transform: rotate(2deg) scale(1.04); }
 }
 
-// Révèle le vrai site (BIOS + brainrot) — une seule fois
-function revealSite() {
-  if (_siteRevealed) return;
-  _siteRevealed = true;
-  showAnastasiaSplash();
-  runBiosBoot();
-  initBrainrotMax();
+.troll-gif-wrap {
+  display: inline-block;
+  position: relative;
+  border-radius: 18px;
+  padding: 6px;
+  background: linear-gradient(135deg, #22c55e, #a855f7, #f59e0b);
+  background-size: 200% 200%;
+  animation: troll-border-flow 3s linear infinite, troll-gif-in .5s .1s cubic-bezier(.175,.885,.32,1.275) both;
+  box-shadow: 0 0 60px rgba(34,197,94,.5), 0 20px 60px rgba(0,0,0,.6);
 }
 
-function unlockSite(viaPassword) {
-  try { localStorage.setItem('hun-unlocked', 'true'); } catch (e) {}
-  const gate = document.getElementById('gate-screen');
-  if (gate) {
-    const lock = document.getElementById('gate-lock');
-    if (lock) lock.textContent = '🔓';
-    gate.classList.add('gate-unlocking');
-    setTimeout(() => { gate.classList.add('gate-gone'); }, viaPassword ? 350 : 1100);
-    setTimeout(() => { gate.remove(); }, (viaPassword ? 350 : 1100) + 700);
-  }
-  // petit délai pour laisser l'anim, puis on révèle
-  setTimeout(revealSite, viaPassword ? 250 : 900);
+@keyframes troll-border-flow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
-function _gateStatus(html, cls) {
-  const el = document.getElementById('gate-status');
-  if (!el) return;
-  el.innerHTML = html;
-  el.className = 'gate-status show' + (cls ? ' ' + cls : '');
+@keyframes troll-gif-in {
+  from { transform: scale(.6) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);     opacity: 1; }
 }
 
-// fetch avec timeout (évite tout blocage sur un proxy lent)
-function _fetchTimeout(url, ms, opts) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), ms);
-  return fetch(url, Object.assign({ signal: ctl.signal }, opts || {}))
-    .finally(() => clearTimeout(t));
+.troll-gif {
+  display: block;
+  width: min(340px, 78vw);
+  height: auto;
+  border-radius: 13px;
 }
 
-// Récupère le PDF le plus récent (repo en priorité, proxies en secours) — timeouts
-async function _gateFetchPdf() {
-  const sources = [
-    PDF_LOCAL,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(PDF_URL)}`,
-    `https://corsproxy.io/?${encodeURIComponent(PDF_URL)}`,
-  ];
-  for (const url of sources) {
-    try {
-      const res = await _fetchTimeout(url, 8000, { cache: 'no-store' });
-      if (!res.ok) continue;
-      const buffer = await res.arrayBuffer();
-      const m = new Uint8Array(buffer.slice(0, 4));
-      if (!(m[0] === 0x25 && m[1] === 0x50 && m[2] === 0x44 && m[3] === 0x46)) continue;
-      return { buffer, url };
-    } catch (e) { /* source suivante */ }
-  }
-  return null;
+/* ─── Speedrun timer ──────────────────────────────────────── */
+
+#speedrun-timer {
+  position: fixed;
+  top: 16px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  z-index: 2000;
+  background: rgba(6,4,18,.92);
+  border: 1.5px solid rgba(168,85,247,.5);
+  border-radius: 12px;
+  padding: 8px 24px 10px;
+  text-align: center;
+  backdrop-filter: blur(16px);
+  transition: transform .4s cubic-bezier(.22,1,.36,1);
+  min-width: 160px;
 }
 
-// Vérification TEMPS RÉEL : scrape la page officielle en direct (via proxy),
-// trouve le PDF le plus récent, le télécharge et cherche Alain. Renvoie {date, found} ou null.
-const PALMARES_PAGE = 'https://www.citedesmetiers.ch/palmares2026/';
-async function _gateLiveCheck() {
-  const proxy = u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`;
-  // 1) Récupère la page et liste les PDF
-  let html;
-  try {
-    const r = await _fetchTimeout(proxy(PALMARES_PAGE), 7000, { cache: 'no-store' });
-    if (!r.ok) return null;
-    html = await r.text();
-  } catch (e) { return null; }
+#speedrun-timer.sr-show { transform: translateX(-50%) translateY(0); }
 
-  const urls = html.match(/https?:\/\/[^"'>\s]+\.pdf/gi);
-  if (!urls || !urls.length) return null;
-
-  // 2) Choisit le plus récent (date dans le nom de fichier)
-  const key = u => { const m = u.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})/); return m ? m.slice(1).join('') : '0'; };
-  urls.sort((a, b) => key(b).localeCompare(key(a)));
-  const latest = urls[0];
-  const date = extractPdfDate(latest);
-
-  // 3) Télécharge ce PDF et cherche Alain
-  try {
-    const r = await _fetchTimeout(proxy(latest), 10000, { cache: 'no-store' });
-    if (!r.ok) return null;
-    const buffer = await r.arrayBuffer();
-    const m = new Uint8Array(buffer.slice(0, 4));
-    if (!(m[0] === 0x25 && m[1] === 0x50 && m[2] === 0x44 && m[3] === 0x46)) return null;
-    const text  = await extractTextFromPdfBuffer(buffer);
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    return { date, found: lines.some(l => lineMatchesName(l, 'Alain', 'Addor')) };
-  } catch (e) { return null; }
+.sr-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
 }
 
-async function gateCheckPdf() {
-  const btn = document.getElementById('gate-check-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Vérification du palmarès…'; }
-  _gateStatus('🔍 Lecture des dernières données…', 'loading');
-
-  let date = null, found = null;
-
-  // 1) Données du bot (instantané, rafraîchi ~15 min) — déverrouille direct si déjà trouvé
-  try {
-    const r = await _fetchTimeout('./palmares-info.json?t=' + Date.now(), 6000, { cache: 'no-store' });
-    if (r.ok) { const j = await r.json(); date = j.date || null; if (typeof j.found === 'boolean') found = j.found; }
-  } catch (e) {}
-
-  // 2) Tant qu'Alain n'est pas (encore) trouvé : vérification EN DIRECT de la page officielle
-  if (found !== true) {
-    _gateStatus('🔍 Lecture en direct du palmarès officiel…', 'loading');
-    const live = await _gateLiveCheck();
-    if (live) { if (live.date) date = live.date; found = live.found; }
-  }
-
-  // 3) Dernier recours : PDF du repo si rien d'autre n'a répondu
-  if (found === null) {
-    try {
-      const pdf = await _gateFetchPdf();
-      if (pdf) {
-        if (!date) date = extractPdfDate(pdf.url);
-        const text  = await extractTextFromPdfBuffer(pdf.buffer);
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-        found = lines.some(l => lineMatchesName(l, 'Alain', 'Addor'));
-      }
-    } catch (e) {}
-  }
-
-  if (btn) { btn.disabled = false; btn.textContent = '🔍 CHECK PDF TO UNLOCK'; }
-
-  if (found === null) {
-    _gateStatus('⚠️ Impossible de vérifier le palmarès pour le moment.<br>Réessaie dans un moment.', 'err');
-    return;
-  }
-
-  if (!date) date = extractPdfDate(PDF_URL) || 'date inconnue';
-
-  if (found) {
-    _gateStatus(
-      `📅 Dernier PDF : <b>${date}</b><br><span class="gate-found">✅ ALAIN ADDOR FOUND — UNLOCKING WEBSITE…</span>`,
-      'ok'
-    );
-    setTimeout(() => unlockSite(false), 1400);
-  } else {
-    _gateStatus(
-      `📅 Dernier PDF : <b>${date}</b><br><span class="gate-notfound">❌ Alain Addor not found — website stays locked 🔒</span>`,
-      'err'
-    );
-  }
+.sr-label.sr-pb {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245,158,11,.6);
+  animation: badge-pulse 1s ease-in-out infinite;
 }
 
-function initGate() {
-  const gate = document.getElementById('gate-screen');
-
-  // Déjà déverrouillé → on saute le gate
-  let unlocked = false;
-  try { unlocked = localStorage.getItem('hun-unlocked') === 'true'; } catch (e) {}
-  if (unlocked || !gate) {
-    if (gate) gate.remove();
-    revealSite();
-    return;
-  }
-
-  // Mot de passe
-  const pass = document.getElementById('gate-pass');
-  const passBtn = document.getElementById('gate-pass-btn');
-  function tryPass() {
-    const v = (pass.value || '').toUpperCase().replace(/\s/g, '');
-    if (v === GATE_PASSWORD) {
-      _gateStatus('🔓 Mot de passe correct — accès autorisé.', 'ok');
-      unlockSite(true);
-    } else {
-      _gateStatus('❌ Mot de passe incorrect.', 'err');
-      pass.value = '';
-      gate.querySelector('.gate-box').classList.remove('gate-shake');
-      void gate.offsetWidth;
-      gate.querySelector('.gate-box').classList.add('gate-shake');
-    }
-  }
-  if (passBtn) passBtn.addEventListener('click', tryPass);
-  if (pass) pass.addEventListener('keydown', e => { if (e.key === 'Enter') tryPass(); });
-
-  // Check PDF
-  const checkBtn = document.getElementById('gate-check-btn');
-  if (checkBtn) checkBtn.addEventListener('click', gateCheckPdf);
+.sr-time {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 3px;
+  color: #a855f7;
+  text-shadow: 0 0 20px rgba(168,85,247,.7);
+  line-height: 1.1;
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initGate);
-} else {
-  initGate();
+.sr-final {
+  color: #f59e0b;
+  text-shadow: 0 0 20px rgba(245,158,11,.7);
 }
+
+.sr-cry {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+/* ─── Twitch chat ─────────────────────────────────────────── */
+
+#twitch-chat {
+  position: fixed;
+  bottom: 80px; right: -280px;
+  z-index: 1050;
+  width: 260px;
+  background: rgba(14,9,30,.92);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: right .45s cubic-bezier(.22,1,.36,1);
+  backdrop-filter: blur(16px);
+}
+
+#twitch-chat.tc-show { right: 16px; }
+
+.tc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(168,85,247,.15);
+  padding: 8px 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,.7);
+  border-bottom: 1px solid rgba(168,85,247,.2);
+}
+
+.tc-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: blink-dot .8s step-end infinite;
+}
+
+.tc-viewers { font-size: 10px; color: rgba(255,255,255,.35); }
+
+.tc-body {
+  padding: 8px;
+  height: 220px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168,85,247,.3) transparent;
+}
+
+.tc-msg {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  animation: git-row-in .2s ease both;
+}
+
+.tc-user { font-weight: 700; }
+.tc-sep  { color: rgba(255,255,255,.3); margin: 0 4px; }
+.tc-text { color: rgba(255,255,255,.8); }
+
+/* ─── Bulletin scolaire ───────────────────────────────────── */
+
+#bulletin-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(4,3,12,.88);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .35s ease;
+}
+
+#bulletin-overlay.bul-in { opacity: 1; }
+
+.bul-card {
+  background: #fff;
+  color: #1a1a2e;
+  border-radius: 12px;
+  padding: 32px 36px;
+  max-width: 580px;
+  width: 95vw;
+  box-shadow: 0 32px 80px rgba(0,0,0,.8);
+  font-family: 'Rajdhani', sans-serif;
+  animation: result-in .4s cubic-bezier(.22,1,.36,1);
+}
+
+.bul-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a1a2e; padding-bottom: 14px; }
+.bul-school { font-size: 11px; letter-spacing: 3px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+.bul-title  { font-size: 20px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.bul-student { font-size: 13px; color: #444; margin-top: 6px; }
+
+.bul-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.bul-table th {
+  background: #1a1a2e; color: #fff;
+  padding: 9px 14px; text-align: left;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+}
+.bul-row td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+.bul-row:hover td { background: #f9fafb; }
+.bul-grade { font-weight: 700; font-size: 18px; color: #16a34a; text-align: center; }
+.bul-fail td { background: rgba(254,202,202,.3); }
+.bul-fail-grade { color: #dc2626 !important; }
+
+.bul-footer { border-top: 1px solid #e5e7eb; padding-top: 14px; font-size: 13px; }
+.bul-comment { color: #555; margin-bottom: 8px; font-style: normal; }
+.bul-avg { font-weight: 700; font-size: 15px; }
+.bul-mention { color: #7c3aed; }
+
+.bul-close {
+  display: block; margin: 18px auto 0;
+  background: #1a1a2e; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 10px 32px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; letter-spacing: 1px;
+  transition: background .2s;
+}
+.bul-close:hover { background: #7c3aed; }
+
+/* ─── Terminal — sponsors ─────────────────────────────────── */
+
+.term-sponsor-block { margin: 4px 0 6px; }
+
+.term-sponsor-line {
+  color: #f59e0b !important;
+  padding-left: 8px;
+  animation: git-row-in .25s ease both;
+  text-shadow: 0 0 10px rgba(245,158,11,.4);
+}
+
+/* ════════════════════════════════════════════════════════════
+   BRAINROT MAX
+   ════════════════════════════════════════════════════════════ */
+
+/* Traînée d'emojis au curseur */
+.br-trail {
+  position: fixed;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 940;
+  transform: translate(-50%, -50%);
+  animation: br-trail-fade .8s ease-out forwards;
+  will-change: transform, opacity;
+}
+@keyframes br-trail-fade {
+  0%   { opacity: .9; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  100% { opacity: 0;  transform: translate(-50%,-50%) scale(.4) translateY(14px) rotate(40deg); }
+}
+
+/* Explosion d'emojis au clic */
+.br-burst {
+  position: fixed;
+  font-size: 22px;
+  pointer-events: none;
+  z-index: 945;
+  transform: translate(-50%, -50%);
+  animation: br-burst-fly .9s cubic-bezier(.22,1,.36,1) forwards;
+  will-change: transform, opacity;
+}
+@keyframes br-burst-fly {
+  0%   { opacity: 1; transform: translate(-50%,-50%) translate(0,0) scale(.6) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%,-50%) translate(var(--dx), var(--dy)) scale(1.2) rotate(180deg); }
+}
+
+/* Flash de mots brainrot */
+.br-word {
+  position: fixed;
+  font-family: var(--font-title);
+  font-size: clamp(34px, 7vw, 64px);
+  letter-spacing: 2px;
+  color: #fff;
+  pointer-events: none;
+  z-index: 938;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  text-shadow: 0 0 18px #ff66aa, 0 0 36px #a855f7, 3px 3px 0 #06b6d4;
+  animation: br-word-pop .9s cubic-bezier(.175,.885,.32,1.4) forwards;
+  white-space: nowrap;
+}
+@keyframes br-word-pop {
+  0%   { opacity: 0; transform: translate(-50%,-50%) rotate(var(--rot,0deg)) scale(.3); }
+  25%  { opacity: 1; transform: translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1.15); }
+  70%  { opacity: 1; transform: translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1.1) translateY(-30px); }
+}
+
+/* Screen shake */
+@keyframes br-shake-anim {
+  0%,100% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(-6px, 4px) rotate(-.5deg); }
+  40% { transform: translate(7px, -5px) rotate(.6deg); }
+  60% { transform: translate(-5px, 6px) rotate(-.4deg); }
+  80% { transform: translate(6px, -3px) rotate(.5deg); }
+}
+body.br-shake { animation: br-shake-anim .5s ease; }
+
+/* Ticker / marquee défilant */
+#br-marquee {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 28px;
+  background: linear-gradient(90deg, rgba(233,30,140,.18), rgba(168,85,247,.18));
+  border-top: 1px solid rgba(255,102,170,.35);
+  overflow: hidden;
+  z-index: 900;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center;
+}
+.br-marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #ffd1ec;
+  text-shadow: 0 0 8px rgba(255,102,170,.5);
+  animation: br-marquee-scroll 28s linear infinite;
+  will-change: transform;
+}
+@keyframes br-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Soundboard flottant */
+#br-soundboard {
+  position: fixed;
+  left: 16px; bottom: 40px;
+  z-index: 1060;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+}
+#br-sb-toggle {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,102,170,.6);
+  background: rgba(14,8,28,.9);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(255,102,170,.5);
+  backdrop-filter: blur(12px);
+  transition: transform .2s, box-shadow .2s;
+  animation: br-sb-bob 2.4s ease-in-out infinite;
+}
+#br-sb-toggle:hover { transform: scale(1.12) rotate(8deg); box-shadow: 0 0 36px rgba(255,102,170,.8); }
+@keyframes br-sb-bob {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.br-sb-panel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: rgba(14,8,28,.92);
+  border: 1px solid rgba(255,102,170,.35);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 50px rgba(0,0,0,.6), 0 0 40px rgba(255,102,170,.15);
+  transform-origin: bottom left;
+  transition: opacity .25s, transform .25s;
+}
+#br-soundboard.br-collapsed .br-sb-panel {
+  opacity: 0;
+  transform: scale(.6) translateY(20px);
+  pointer-events: none;
+}
+
+.br-sb-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 64px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform .12s, border-color .2s, background .2s;
+}
+.br-sb-btn span { font-size: 24px; }
+.br-sb-btn:hover { border-color: #ff66aa; background: rgba(255,102,170,.12); transform: translateY(-2px); }
+.br-sb-pop { animation: br-sb-pop-anim .25s cubic-bezier(.175,.885,.32,1.5); }
+@keyframes br-sb-pop-anim {
+  0% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Floaters images brainrot */
+.br-floater {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  opacity: .14;
+  filter: drop-shadow(0 0 14px rgba(255,102,170,.4));
+  border-radius: 12px;
+}
+.br-float-1 { width: 110px; bottom: 8%;  right: 3%;  animation: br-spin-a 9s ease-in-out infinite; }
+.br-float-2 { width: 90px;  top: 18%;    left: 2%;   animation: br-spin-b 11s ease-in-out infinite; }
+.br-float-3 { width: 80px;  top: 55%;    right: 5%;  animation: br-spin-a 13s ease-in-out infinite reverse; }
+@keyframes br-spin-a {
+  0%,100% { transform: translateY(0) rotate(-8deg); }
+  50%      { transform: translateY(-26px) rotate(8deg); }
+}
+@keyframes br-spin-b {
+  0%,100% { transform: translateY(0) rotate(6deg) scale(1); }
+  50%      { transform: translateY(20px) rotate(-6deg) scale(1.08); }
+}
+
+/* Le ticker ne doit pas masquer le footer en bas */
+.footer { padding-bottom: 64px; }
+
+@media (max-width: 520px) {
+  #br-soundboard { left: 10px; bottom: 38px; }
+  .br-sb-btn { width: 56px; }
+}
+
+/* ─── OSU results : gif gigachad à droite ─────────────────── */
+
+.osr-gif-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  margin-top: 14px;
+  animation: osr-gif-in .5s .35s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes osr-gif-in {
+  from { opacity: 0; transform: scale(.6) rotate(-8deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.osr-gif {
+  width: 140px;
+  border-radius: 14px;
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 40px rgba(245,158,11,.4), 0 16px 40px rgba(0,0,0,.6);
+}
+.osr-gif-cap {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: #ffd76a;
+  text-shadow: 0 0 14px rgba(255,215,106,.6);
+  text-align: center;
+  max-width: 150px;
+  line-height: 1.1;
+}
+
+/* ─── Gif speedrunner pendant la musique Dream ────────────── */
+
+#speedrunner-gif {
+  position: fixed;
+  right: 18px; bottom: 44px;
+  width: 190px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,102,170,.6);
+  box-shadow: 0 0 36px rgba(255,102,170,.5), 0 16px 40px rgba(0,0,0,.6);
+  z-index: 950;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(30px) scale(.85);
+  transition: opacity .4s cubic-bezier(.22,1,.36,1), transform .4s cubic-bezier(.22,1,.36,1);
+}
+#speedrunner-gif.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: speedrunner-bob 1.2s ease-in-out infinite .4s;
+}
+@keyframes speedrunner-bob {
+  0%,100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(-7px) rotate(1.5deg); }
+}
+
+@media (max-width: 560px) {
+  #speedrunner-gif { width: 120px; right: 10px; bottom: 40px; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SURPRISES CACHÉES
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 1) Compteur AURA ── */
+#aura-counter {
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 1000;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #ffd1ec;
+  background: rgba(14,8,28,.82);
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 999px;
+  padding: 6px 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 20px rgba(255,102,170,.25);
+  text-shadow: 0 0 8px rgba(255,102,170,.5);
+}
+#aura-counter b { color: #ff66aa; font-size: 16px; margin-left: 4px; }
+.aura-pop { animation: aura-pop-anim .25s cubic-bezier(.175,.885,.32,1.5); }
+@keyframes aura-pop-anim { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+.aura-milestone {
+  position: fixed;
+  top: 54px; left: 14px;
+  z-index: 1001;
+  text-align: left;
+  pointer-events: none;
+  animation: aura-ms-anim 1.7s cubic-bezier(.22,1,.36,1) forwards;
+}
+.am-x {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px; letter-spacing: 2px;
+  color: #ff66aa; text-shadow: 0 0 18px rgba(255,102,170,.8);
+  line-height: 1;
+}
+.am-l {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 3px;
+  color: #ffd76a; text-shadow: 0 0 12px rgba(255,215,106,.6);
+}
+@keyframes aura-ms-anim {
+  0%   { opacity: 0; transform: translateX(-20px) scale(.7); }
+  15%  { opacity: 1; transform: translateX(0) scale(1.1); }
+  75%  { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(0) scale(1) translateY(-16px); }
+}
+
+/* ── 2) Easter eggs noms ── */
+.name-egg {
+  position: fixed;
+  top: 22%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1300;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 6vw, 46px);
+  letter-spacing: 3px;
+  color: #4ade80;
+  text-shadow: 0 0 24px rgba(34,197,94,.8), 0 2px 6px rgba(0,0,0,.6);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: name-egg-anim 1.9s cubic-bezier(.22,1,.36,1) forwards;
+}
+.name-egg-bad { color: #ef4444; text-shadow: 0 0 24px rgba(239,68,68,.8), 0 2px 6px rgba(0,0,0,.6); }
+@keyframes name-egg-anim {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4) rotate(-6deg); }
+  18%  { opacity: 1; transform: translate(-50%,-50%) scale(1.15) rotate(2deg); }
+  78%  { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(1.05) translateY(-26px); }
+}
+@keyframes egg-shake-anim {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+}
+.egg-shake { animation: egg-shake-anim .5s ease; border-color: var(--red) !important; }
+
+/* ── 3) HUN MODE (konami) ── */
+#hun-mode-banner {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9500;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 11vw, 110px);
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 0 30px #ff66aa, 0 0 60px #a855f7, 4px 4px 0 #06b6d4;
+  pointer-events: none;
+  text-align: center;
+  animation: hun-banner-in .5s cubic-bezier(.175,.885,.32,1.5) both, hun-banner-pulse 1s .5s ease-in-out infinite;
+}
+#hun-mode-banner.out { animation: hun-banner-out .6s ease forwards; }
+@keyframes hun-banner-in { from { opacity: 0; transform: translate(-50%,-50%) scale(.3) rotate(-10deg); } to { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0); } }
+@keyframes hun-banner-pulse { 0%,100% { transform: translate(-50%,-50%) scale(1) rotate(-2deg); } 50% { transform: translate(-50%,-50%) scale(1.08) rotate(2deg); } }
+@keyframes hun-banner-out { to { opacity: 0; transform: translate(-50%,-50%) scale(1.4); } }
+
+.hun-rain {
+  position: fixed;
+  top: -80px;
+  z-index: 9400;
+  pointer-events: none;
+  animation: hun-rain-fall var(--dur, 3s) linear forwards;
+  will-change: transform;
+}
+.hun-rain-img { width: 64px; filter: drop-shadow(0 0 12px rgba(255,102,170,.6)); }
+.hun-rain-emoji { font-size: 44px; }
+@keyframes hun-rain-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(112vh) rotate(var(--rot, 360deg)); opacity: .9; }
+}
+
+body.hun-mode-rainbow { animation: hun-rainbow 1.2s linear infinite; }
+@keyframes hun-rainbow {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* ── 4) Réaction d'inactivité ── */
+#idle-pop {
+  position: fixed;
+  left: -260px; bottom: 110px;
+  z-index: 1040;
+  display: flex; align-items: center; gap: 10px;
+  transition: left .5s cubic-bezier(.22,1,.36,1);
+}
+#idle-pop.show { left: 16px; }
+#idle-pop img {
+  width: 64px;
+  filter: drop-shadow(0 0 14px rgba(245,158,11,.6));
+  animation: idle-bob 1s ease-in-out infinite;
+}
+@keyframes idle-bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+.idle-bubble {
+  position: relative;
+  background: rgba(14,8,28,.95);
+  border: 1px solid rgba(255,102,170,.4);
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+.idle-bubble::before {
+  content: '';
+  position: absolute; left: -7px; top: 50%;
+  transform: translateY(-50%);
+  border: 7px solid transparent;
+  border-right-color: rgba(255,102,170,.4);
+}
+
+@media (max-width: 560px) {
+  #aura-counter { font-size: 11px; padding: 5px 12px; }
+  #idle-pop img { width: 48px; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   GATE — écran de verrouillage
+   ════════════════════════════════════════════════════════════ */
+
+#gate-screen {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(124,58,237,.16), transparent 58%),
+    radial-gradient(circle at 50% 105%, rgba(6,182,212,.10), transparent 55%),
+    #06040f !important;
+  overflow: hidden;
+  transition: opacity .7s ease;
+  font-family: 'Rajdhani', sans-serif;
+}
+#gate-screen.gate-gone { opacity: 0; pointer-events: none; }
+
+/* étoiles / poussière subtile */
+.gate-stars {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1.5px 1.5px at 85% 65%, rgba(168,85,247,.5), transparent),
+    radial-gradient(1px 1px at 35% 75%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 55% 50%, rgba(6,182,212,.4), transparent),
+    radial-gradient(1.5px 1.5px at 15% 85%, rgba(255,255,255,.3), transparent);
+  animation: gate-twinkle 4s ease-in-out infinite;
+}
+@keyframes gate-twinkle { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+
+.gate-box {
+  position: relative;
+  width: min(440px, 92vw);
+  padding: 40px 34px 34px;
+  text-align: center;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 22px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 70px rgba(124,58,237,.25), 0 30px 80px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07);
+  animation: gate-box-in .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes gate-box-in { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+
+.gate-shake { animation: gate-shake-anim .4s ease; }
+@keyframes gate-shake-anim {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-9px); } 50% { transform: translateX(9px); } 75% { transform: translateX(-5px); }
+}
+
+.gate-lock {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 0 24px rgba(168,85,247,.7));
+  animation: gate-lock-pulse 2.2s ease-in-out infinite;
+}
+@keyframes gate-lock-pulse {
+  0%,100% { transform: scale(1) rotate(-2deg); filter: drop-shadow(0 0 18px rgba(168,85,247,.5)); }
+  50%      { transform: scale(1.08) rotate(2deg); filter: drop-shadow(0 0 34px rgba(168,85,247,.9)); }
+}
+.gate-unlocking .gate-lock { animation: gate-lock-open .8s cubic-bezier(.22,1,.36,1) forwards; }
+@keyframes gate-lock-open {
+  0%   { transform: scale(1) rotate(0); }
+  40%  { transform: scale(1.3) rotate(-12deg); filter: drop-shadow(0 0 50px rgba(74,222,128,.9)); }
+  100% { transform: scale(1.1) rotate(8deg); filter: drop-shadow(0 0 40px rgba(74,222,128,.8)); }
+}
+
+.gate-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px;
+  letter-spacing: 5px;
+  color: #fff;
+  text-shadow: 0 0 28px rgba(168,85,247,.6);
+  margin-bottom: 8px;
+}
+.gate-sub {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .5px;
+  margin-bottom: 26px;
+}
+.gate-sub strong { color: #a855f7; }
+
+.gate-field { display: flex; gap: 8px; margin-bottom: 18px; }
+#gate-pass {
+  flex: 1;
+  background: rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+#gate-pass:focus { border-color: rgba(168,85,247,.6); box-shadow: 0 0 0 3px rgba(168,85,247,.15); }
+#gate-pass::placeholder { color: rgba(255,255,255,.3); }
+#gate-pass-btn {
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  border: 1px solid rgba(168,85,247,.5);
+  border-radius: 10px;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 0 20px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+}
+#gate-pass-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.5); }
+
+.gate-or {
+  position: relative;
+  text-align: center;
+  color: rgba(255,255,255,.35);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 6px 0 18px;
+}
+.gate-or::before, .gate-or::after {
+  content: ''; position: absolute; top: 50%; width: 38%; height: 1px;
+  background: rgba(255,255,255,.12);
+}
+.gate-or::before { left: 0; } .gate-or::after { right: 0; }
+.gate-or span { background: transparent; padding: 0 10px; }
+
+#gate-check-btn {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(245,158,11,.18), rgba(34,197,94,.16));
+  border: 1px solid rgba(245,158,11,.5);
+  border-radius: 12px;
+  color: #fbbf24;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  padding: 15px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s, border-color .2s;
+  animation: gate-check-glow 2.4s ease-in-out infinite;
+}
+#gate-check-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: #fbbf24; box-shadow: 0 8px 30px rgba(245,158,11,.3); }
+#gate-check-btn:disabled { opacity: .6; cursor: wait; animation: none; }
+@keyframes gate-check-glow {
+  0%,100% { box-shadow: 0 0 0 rgba(245,158,11,0); }
+  50%      { box-shadow: 0 0 26px rgba(245,158,11,.28); }
+}
+
+.gate-status {
+  margin-top: 20px;
+  min-height: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: .5px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .3s, transform .3s;
+}
+.gate-status.show { opacity: 1; transform: none; }
+.gate-status b { color: #fff; }
+.gate-status.loading { color: var(--violet-glow); }
+.gate-status.ok { color: rgba(255,255,255,.7); }
+.gate-status.err { color: rgba(255,255,255,.7); }
+.gate-found { color: #4ade80; font-weight: 700; text-shadow: 0 0 16px rgba(74,222,128,.6); }
+.gate-notfound { color: #f87171; font-weight: 700; }
+
+@media (max-width: 420px) {
+  .gate-title { font-size: 34px; }
+  .gate-lock { font-size: 60px; }
+  .gate-field { flex-direction: column; }
+  #gate-pass-btn { padding: 12px; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SPONSOR KONVINK + pluie de jetons
+   ════════════════════════════════════════════════════════════ */
+
+#konvink-overlay {
+  position: fixed; inset: 0; z-index: 1400;
+  background: rgba(4,3,12,.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; transform: scale(.96);
+  transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1);
+}
+#konvink-overlay.show { opacity: 1; transform: scale(1); }
+#konvink-overlay.konvink-hide { opacity: 0; transform: scale(1.04); transition: opacity .5s ease, transform .5s ease; }
+
+.konvink-box {
+  width: min(440px, 94vw);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px 32px 28px;
+  text-align: center;
+  box-shadow: 0 0 70px rgba(236,0,140,.25), 0 30px 80px rgba(0,0,0,.7);
+  animation: konvink-in .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes konvink-in { from { transform: translateY(20px) scale(.95); } to { transform: none; } }
+.konvink-box.kv-shake { animation: konvink-shake .45s ease; }
+@keyframes konvink-shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-10px) rotate(-1deg); }
+  40% { transform: translateX(10px) rotate(1deg); }
+  60% { transform: translateX(-7px); } 80% { transform: translateX(7px); }
+}
+
+.konvink-spon {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+.konvink-logo { max-width: 230px; width: 70%; height: auto; margin: 0 auto 18px; display: block; }
+.konvink-logo-fallback {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 40px; letter-spacing: 2px; color: #4a5568; line-height: 1;
+  margin: 4px auto 18px;
+}
+.konvink-logo-fallback span { display: block; font-family: Georgia, serif; font-weight: 400; font-size: 16px; font-style: italic; color: #64748b; margin-top: 4px; letter-spacing: 0; }
+
+.konvink-ask {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: #334155;
+  margin-bottom: 16px;
+}
+.konvink-ask b { color: #ec008c; }
+
+.konvink-stars { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.kv-star {
+  font-size: 46px; line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: transform .12s, color .15s;
+  user-select: none;
+}
+.kv-star:hover { transform: scale(1.18); }
+.kv-star.on { color: #fbbf24; text-shadow: 0 0 14px rgba(251,191,36,.6); }
+.kv-star.kv-error { color: #ef4444 !important; text-shadow: 0 0 14px rgba(239,68,68,.6); animation: kv-star-err .3s ease; }
+@keyframes kv-star-err { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px) scale(1.2); } }
+.kv-star.kv-gold { color: #f59e0b; text-shadow: 0 0 20px rgba(245,158,11,.9); animation: kv-star-pop .4s cubic-bezier(.175,.885,.32,1.4); }
+@keyframes kv-star-pop { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+.konvink-msg {
+  min-height: 44px;
+  margin-top: 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 700;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .25s, transform .25s;
+}
+.konvink-msg.show { opacity: 1; transform: none; }
+.konvink-msg.err { color: #dc2626; }
+.konvink-msg.ok  { color: #16a34a; }
+.kv-sub { display: block; font-size: 13px; font-weight: 600; opacity: .8; margin-top: 3px; }
+
+/* Pluie de jetons */
+.casino-coin {
+  position: fixed;
+  top: -60px;
+  z-index: 9450;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(245,158,11,.5));
+  animation: casino-fall var(--dur, 2.4s) linear forwards;
+  will-change: transform;
+}
+@keyframes casino-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: .95; }
+}
+
+@media (max-width: 420px) {
+  .kv-star { font-size: 38px; }
+  .konvink-logo { width: 80%; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Splash ANASTASIAAAAAAA (vanne d'intro)
+   ════════════════════════════════════════════════════════════ */
+#anastasia-splash {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #06040f;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+#anastasia-splash.show { opacity: 1; }
+#anastasia-splash.out  { opacity: 0; transition: opacity .6s ease; }
+
+.anastasia-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(34px, 13vw, 180px);
+  letter-spacing: 3px;
+  white-space: nowrap;
+  text-align: center;
+  background: linear-gradient(90deg, #ff66aa, #a855f7, #06b6d4, #22c55e, #fbbf24, #ff66aa);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 40px rgba(168,85,247,.6));
+  animation:
+    anastasia-pop .55s cubic-bezier(.175,.885,.32,1.5) both,
+    anastasia-rainbow 1.1s linear infinite,
+    anastasia-wob .4s ease-in-out infinite alternate;
+}
+@keyframes anastasia-pop {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes anastasia-rainbow { from { background-position: 0% 0; } to { background-position: 300% 0; } }
+@keyframes anastasia-wob { from { transform: rotate(-3deg) scale(1); } to { transform: rotate(3deg) scale(1.05); } }
