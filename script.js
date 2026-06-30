@@ -1550,14 +1550,105 @@ function showQCM() {
       }, 1000);
     });
 
-    // ── Bouton NON — roue puis mini-jeu ──
+    // ── Bouton NON — sponsor Konvink → roue → mini-jeu ──
     overlay.querySelector('#qcm-non').addEventListener('click', () => {
       overlay.classList.add('qcm-hide');
       setTimeout(() => {
         overlay.remove();
-        showSpinWheel().then(() => showOsuGame().then(resolve));
+        showKonvinkSponsor().then(() => showSpinWheel().then(() => showOsuGame().then(resolve)));
       }, 300);
     });
+  });
+}
+
+// ─── Pluie de jetons de casino ───────────────────────────────
+
+function castCasinoRain(duration) {
+  const coins = ['🪙', '💰', '🎰', '💵', '🪙', '🪙', '🤑'];
+  const end = Date.now() + (duration || 2500);
+  const iv = setInterval(() => {
+    if (Date.now() > end) { clearInterval(iv); return; }
+    for (let k = 0; k < 3; k++) {
+      const c = document.createElement('div');
+      c.className = 'casino-coin';
+      c.textContent = coins[(Math.random() * coins.length) | 0];
+      c.style.left = (Math.random() * 100) + 'vw';
+      c.style.setProperty('--dur', (1.8 + Math.random() * 1.6) + 's');
+      c.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      c.style.fontSize = (24 + Math.random() * 28) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3600);
+    }
+  }, 85);
+}
+
+// ─── Sponsor Konvink + notation 5 étoiles (qui bug sous 5) ────
+
+function showKonvinkSponsor() {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.id = 'konvink-overlay';
+    overlay.innerHTML = `
+      <div class="konvink-box">
+        <div class="konvink-spon">Cette recherche est sponsorisée par</div>
+        <img src="./konvink.png" class="konvink-logo" alt="KONVINK" />
+        <div class="konvink-ask">Veuillez évaluer <b>KONVINK</b> pour continuer</div>
+        <div class="konvink-stars" id="konvink-stars">
+          ${[1,2,3,4,5].map(i => `<span class="kv-star" data-v="${i}">★</span>`).join('')}
+        </div>
+        <div class="konvink-msg" id="konvink-msg"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('show')));
+
+    // Fallback si l'image n'est pas (encore) présente
+    const logo = overlay.querySelector('.konvink-logo');
+    logo.addEventListener('error', () => {
+      logo.style.display = 'none';
+      const fb = document.createElement('div');
+      fb.className = 'konvink-logo-fallback';
+      fb.innerHTML = 'KONVINK<span>Wissen fürs Können.</span>';
+      logo.after(fb);
+    });
+
+    const box   = overlay.querySelector('.konvink-box');
+    const stars = Array.from(overlay.querySelectorAll('.kv-star'));
+    const msg   = overlay.querySelector('#konvink-msg');
+    let locked  = false;
+
+    const fill = n => stars.forEach((s, i) => s.classList.toggle('on', i < n));
+
+    stars.forEach(star => {
+      star.addEventListener('mouseenter', () => { if (!locked) fill(+star.dataset.v); });
+      star.addEventListener('click', () => {
+        if (locked) return;
+        const v = +star.dataset.v;
+        if (v < 5) {
+          // ── BUG : on refuse toute note < 5 ──
+          _playErrorBeep();
+          box.classList.remove('kv-shake'); void box.offsetWidth; box.classList.add('kv-shake');
+          stars.forEach(s => s.classList.add('kv-error'));
+          msg.innerHTML = '⚠️ ERREUR SYSTÈME — note invalide.<br><span class="kv-sub">Seul un avis ★★★★★ peut être enregistré.</span>';
+          msg.className = 'konvink-msg show err';
+          setTimeout(() => { stars.forEach(s => s.classList.remove('kv-error')); fill(0); }, 650);
+        } else {
+          // ── 5 étoiles → jackpot ──
+          locked = true;
+          fill(5);
+          stars.forEach(s => s.classList.add('kv-gold'));
+          msg.innerHTML = '✅ Merci pour votre avis 5 étoiles !<br><span class="kv-sub">🎰 JACKPOT KONVINK 🎰</span>';
+          msg.className = 'konvink-msg show ok';
+          castCasinoRain(2800);
+          [660, 880, 1046, 1318, 1568].forEach((f, i) => setTimeout(() => _playRewardBeep(f, 0.25), i * 110));
+          setTimeout(() => {
+            overlay.classList.add('konvink-hide');
+            setTimeout(() => { overlay.remove(); resolve(); }, 500);
+          }, 2500);
+        }
+      });
+    });
+    overlay.querySelector('#konvink-stars').addEventListener('mouseleave', () => { if (!locked) fill(0); });
   });
 }
 
